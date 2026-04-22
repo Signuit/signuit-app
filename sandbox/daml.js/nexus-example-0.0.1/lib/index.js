@@ -5,12 +5,10 @@ function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }
 Object.defineProperty(exports, "__esModule", { value: true });
+var CollateralRouter = require('./CollateralRouter');
+exports.CollateralRouter = CollateralRouter;
 var Iou = require('./Iou');
 exports.Iou = Iou;
 var Main = require('./Main');
 exports.Main = Main;
-var MultisigWallet = require('./MultisigWallet');
-exports.MultisigWallet = MultisigWallet;
-var WalletSetup = require('./WalletSetup');
-exports.WalletSetup = WalletSetup;
-exports.packageId = 'ee685789f7ed6681277d1be17c49ab9cc3821b337a70e886472710dfc9e38f05';
+exports.packageId = '45f66670fb2f7752c9c4a220ce4477b972bcad0642981883fdde676811db7931';
