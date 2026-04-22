@@ -5,7 +5,8 @@
 import * as jtv from '@mojotech/json-type-validation';
 import * as damlTypes from '@daml/types';
 
-import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from '@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
+import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from 'daml.js/daml-prim-DA-Types-1.0.0';
+import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from 'daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
 
 export declare type UpdateHolding = {
   newAmount: damlTypes.Numeric;
@@ -137,6 +138,9 @@ export declare type RoutingSuggestion = {
   suggestedAssets: string[];
   suggestedAmounts: damlTypes.Numeric[];
   ctdSavings: damlTypes.Numeric;
+  opportunityCostBps: damlTypes.Numeric;
+  alternativeOptions: RoutingOption[];
+  expiryWarnings: string[];
   explanation: string;
   status: RouteStatus;
   createdAt: damlTypes.Time;
@@ -171,6 +175,9 @@ export declare type UpdatePolicy = {
   newPriorityList: string[];
   newMinLtv: damlTypes.Numeric;
   newMaxHaircut: damlTypes.Numeric;
+  newCounterpartyRules: pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<string, string[]>[];
+  newAutoApprove: boolean;
+  newNotificationEmail: damlTypes.Optional<string>;
   newActive: boolean;
 };
 
@@ -188,6 +195,9 @@ export declare type CollateralPolicy = {
   priorityList: string[];
   minLtv: damlTypes.Numeric;
   maxHaircut: damlTypes.Numeric;
+  counterpartyRules: pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<string, string[]>[];
+  autoApprove: boolean;
+  notificationEmail: damlTypes.Optional<string>;
   active: boolean;
   createdAt: damlTypes.Time;
 };
@@ -205,6 +215,54 @@ export declare const CollateralPolicy:
 export declare namespace CollateralPolicy {
 }
 
+
+
+export declare type UpdateMetadata = {
+  newYield: damlTypes.Numeric;
+  newHaircut: damlTypes.Numeric;
+  newEligible: boolean;
+};
+
+export declare const UpdateMetadata:
+  damlTypes.Serializable<UpdateMetadata> & {
+  }
+;
+
+
+export declare type CollateralAssetMetadata = {
+  operator: damlTypes.Party;
+  assetSymbol: string;
+  currentYield: damlTypes.Numeric;
+  haircut: damlTypes.Numeric;
+  eligible: boolean;
+  updatedAt: damlTypes.Time;
+};
+
+export declare interface CollateralAssetMetadataInterface {
+  UpdateMetadata: damlTypes.Choice<CollateralAssetMetadata, UpdateMetadata, damlTypes.ContractId<CollateralAssetMetadata>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<CollateralAssetMetadata, undefined>>;
+  Archive: damlTypes.Choice<CollateralAssetMetadata, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<CollateralAssetMetadata, undefined>>;
+}
+export declare const CollateralAssetMetadata:
+  damlTypes.Template<CollateralAssetMetadata, undefined, '#nexus-example:CollateralRouter:CollateralAssetMetadata'> &
+  damlTypes.ToInterface<CollateralAssetMetadata, never> &
+  CollateralAssetMetadataInterface;
+
+export declare namespace CollateralAssetMetadata {
+}
+
+
+
+export declare type RoutingOption = {
+  assets: string[];
+  amounts: damlTypes.Numeric[];
+  savings: damlTypes.Numeric;
+  label: string;
+};
+
+export declare const RoutingOption:
+  damlTypes.Serializable<RoutingOption> & {
+  }
+;
 
 
 export declare type RouteStatus =

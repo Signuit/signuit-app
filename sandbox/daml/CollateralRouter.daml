@@ -3,8 +3,6 @@ module CollateralRouter where
 -- SignUIT CollateralRouter - Core smart contracts for collateral routing
 -- HackCanton Season #1 MVP
 
-import DA.List (find)
-
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Data Types
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -23,6 +21,13 @@ data RouteStatus
   | Failed
   deriving (Eq, Show)
 
+data RoutingOption = RoutingOption with
+    assets   : [Text]
+    amounts  : [Decimal]
+    savings  : Decimal
+    label    : Text
+  deriving (Eq, Show)
+
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Helpers
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -37,20 +42,55 @@ canCover amount required haircut =
   netValue amount haircut >= required
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- AssetMetadata - Market data for collateral assets
+-- ─────────────────────────────────────────────────────────────────────────────
+
+template CollateralAssetMetadata
+  with
+    operator    : Party
+    assetSymbol : Text        -- "USDC", "USYC", "UST", "GILT"
+    currentYield: Decimal     -- e.g. 0.045 = 4.5%
+    haircut     : Decimal     -- e.g. 0.02 = 2%
+    eligible    : Bool        -- Can be used as collateral
+    updatedAt   : Time
+  where
+    signatory operator
+
+    -- key (operator, assetSymbol) : (Party, Text)
+    -- maintainer key._1
+
+    choice UpdateMetadata : ContractId CollateralAssetMetadata
+      with
+        newYield    : Decimal
+        newHaircut  : Decimal
+        newEligible : Bool
+      controller operator
+      do
+        now <- getTime
+        create this with
+          currentYield = newYield
+          haircut = newHaircut
+          eligible = newEligible
+          updatedAt = now
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- CollateralPolicy - Institution's routing rules
 -- ─────────────────────────────────────────────────────────────────────────────
 
 template CollateralPolicy
   with
-    operator      : Party        -- SignUIT protocol operator
-    institution   : Party        -- The institution owning this policy
-    policyId      : Text         -- Unique policy identifier
-    ruleType      : RuleType    -- CTD, ExpiryFirst, or YieldMax
-    priorityList  : [Text]      -- ["USYC", "UST", "USDC"]
-    minLtv        : Decimal      -- Minimum LTV (e.g. 0.95)
-    maxHaircut    : Decimal      -- Maximum haircut (e.g. 0.10)
-    active        : Bool        -- Is policy active
-    createdAt     : Time        -- Creation timestamp
+    operator          : Party        -- SignUIT protocol operator
+    institution       : Party        -- The institution owning this policy
+    policyId          : Text         -- Unique policy identifier
+    ruleType          : RuleType    -- CTD, ExpiryFirst, or YieldMax
+    priorityList      : [Text]      -- ["USYC", "UST", "USDC"]
+    minLtv            : Decimal      -- Minimum LTV (e.g. 0.95)
+    maxHaircut        : Decimal      -- Maximum haircut (e.g. 0.10)
+    counterpartyRules : [(Text, [Text])] -- Map counterparty -> eligible assets
+    autoApprove       : Bool         -- Enable auto-approval
+    notificationEmail : Optional Text -- Alert on suggestions
+    active            : Bool        -- Is policy active
+    createdAt         : Time        -- Creation timestamp
   where
     signatory operator, institution
 
@@ -62,41 +102,50 @@ template CollateralPolicy
     -- Update policy
     choice UpdatePolicy : ContractId CollateralPolicy
       with
-        newRuleType    : RuleType
-        newPriorityList : [Text]
-        newMinLtv      : Decimal
-        newMaxHaircut  : Decimal
-        newActive     : Bool
+        newRuleType          : RuleType
+        newPriorityList      : [Text]
+        newMinLtv            : Decimal
+        newMaxHaircut        : Decimal
+        newCounterpartyRules : [(Text, [Text])]
+        newAutoApprove       : Bool
+        newNotificationEmail : Optional Text
+        newActive            : Bool
       controller institution
       do
         create this with
-          ruleType     = newRuleType
-          priorityList = newPriorityList
-          minLtv       = newMinLtv
-          maxHaircut   = newMaxHaircut
-          active      = newActive
+          ruleType          = newRuleType
+          priorityList      = newPriorityList
+          minLtv            = newMinLtv
+          maxHaircut        = newMaxHaircut
+          counterpartyRules = newCounterpartyRules
+          autoApprove       = newAutoApprove
+          notificationEmail = newNotificationEmail
+          active            = newActive
 
     -- Archive policy
     choice ArchivePolicy : ()
       controller institution
       do return ()
 
--- ───────────────────────────────────────────���─────────────────────────────────
+-- ─────────────────────────────────────────────────────────────────────────────
 -- RoutingSuggestion - Pending routing recommendation
 -- ─────────────────────────────────────────────────────────────────────────────
 
 template RoutingSuggestion
   with
-    routeId         : Text        -- Unique route identifier
-    institution    : Party       -- Institution making the route
-    marginCallId   : Text        -- Associated margin call
-    amountRequired : Decimal    -- Amount needed
-    suggestedAssets: [Text]     -- Asset symbols in priority order
-    suggestedAmounts: [Decimal] -- Amounts of each asset
-    ctdSavings      : Decimal    -- Estimated savings vs USDC baseline
-    explanation    : Text        -- Human-readable rationale
-    status         : RouteStatus
-    createdAt      : Time       -- Creation timestamp
+    routeId          : Text        -- Unique route identifier
+    institution      : Party       -- Institution making the route
+    marginCallId     : Text        -- Associated margin call
+    amountRequired   : Decimal     -- Amount needed
+    suggestedAssets  : [Text]      -- Asset symbols in priority order
+    suggestedAmounts : [Decimal]   -- Amounts of each asset
+    ctdSavings       : Decimal     -- Estimated savings vs USDC baseline
+    opportunityCostBps : Decimal    -- vs USDC baseline
+    alternativeOptions : [RoutingOption] -- Alternative selections
+    expiryWarnings   : [Text]      -- Assets expiring soon
+    explanation      : Text        -- Human-readable rationale
+    status           : RouteStatus
+    createdAt        : Time        -- Creation timestamp
   where
     signatory institution
 
@@ -112,13 +161,13 @@ template RoutingSuggestion
           routeId        = routeId
           institution    = institution
           marginCallId   = marginCallId
-          assetsSent    = suggestedAssets
-          amountsSent   = suggestedAmounts
-          ruleApplied   = "CTD"
-          ctdSavingsBps = ctdSavings
-          approvedBy   = institution
-          executedAt   = now
-          status       = Executed
+          assetsSent     = suggestedAssets
+          amountsSent    = suggestedAmounts
+          ruleApplied    = show status
+          ctdSavingsBps  = ctdSavings
+          approvedBy     = institution
+          executedAt     = now
+          status         = Executed
 
     -- Reject the suggestion
     choice RejectSuggestion : ()
@@ -132,15 +181,15 @@ template RoutingSuggestion
 template AllocationRecord
   with
     routeId        : Text        -- Reference to original suggestion
-    institution   : Party        -- Institution that authorized
-    marginCallId  : Text        -- Associated margin call
-    assetsSent   : [Text]       -- Assets delivered
-    amountsSent  : [Decimal]    -- Amounts of each asset
-    ruleApplied  : Text        -- Rule type used (CTD, ExpiryFirst, etc)
-    ctdSavingsBps : Decimal    -- Savings basis points vs baseline
-    approvedBy   : Party       -- Who approved
-    executedAt   : Time        -- Execution timestamp
-    status       : RouteStatus  -- Executed or Failed
+    institution    : Party        -- Institution that authorized
+    marginCallId   : Text        -- Associated margin call
+    assetsSent     : [Text]       -- Assets delivered
+    amountsSent    : [Decimal]    -- Amounts of each asset
+    ruleApplied    : Text        -- Rule type used (CTD, ExpiryFirst, etc)
+    ctdSavingsBps  : Decimal    -- Savings basis points vs baseline
+    approvedBy     : Party       -- Who approved
+    executedAt     : Time        -- Execution timestamp
+    status         : RouteStatus  -- Executed or Failed
   where
     signatory institution, approvedBy
 
@@ -157,15 +206,16 @@ template AllocationRecord
 template MarginCall
   with
     callId         : Text        -- Unique call identifier
-    institution   : Party       -- Institution receiving call
-    counterparty  : Party       -- Calling counterparty
-    amountRequired : Decimal    -- Amount needed
+    institution    : Party       -- Institution receiving call
+    counterparty   : Party       -- Calling counterparty
+    amountRequired : Decimal     -- Amount needed
     currency       : Text        -- Currency (USD, EUR, etc)
     dueBy          : Time        -- Deadline
     status         : RouteStatus
-    createdAt     : Time
+    createdAt      : Time
   where
     signatory counterparty
+    observer institution
 
     -- Mark as satisfied (after routing executed)
     choice SatisfyMarginCall : ContractId MarginCall
@@ -184,7 +234,7 @@ template CollateralHolding
     asset         : Text        -- Asset symbol (USDC, USYC, UST, etc)
     amount        : Decimal     -- Available amount
     yield         : Decimal     -- Annual yield (e.g. 0.045 = 4.5%)
-    haircut      : Decimal     -- Haircut (e.g. 0.05 = 5%)
+    haircut       : Decimal     -- Haircut (e.g. 0.05 = 5%)
     expiry        : Optional Time -- Optional expiry
   where
     signatory institution

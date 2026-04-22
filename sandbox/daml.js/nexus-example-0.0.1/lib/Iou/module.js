@@ -10,8 +10,8 @@ var jtv = require('@mojotech/json-type-validation');
 /* eslint-disable-next-line no-unused-vars */
 var damlTypes = require('@daml/types');
 
-var pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 = require('@daml.js/daml-prim-DA-Types-1.0.0');
-var pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 = require('@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0');
+var pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 = require('daml.js/daml-prim-DA-Types-1.0.0');
+var pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 = require('daml.js/ghc-stdlib-DA-Internal-Template-1.0.0');
 
 
 exports.Merge = {
@@ -53,7 +53,7 @@ exports.Transfer = {
 exports.Iou = damlTypes.assembleTemplate(
 {
   templateId: '#nexus-example:Iou:Iou',
-  templateIdWithPackageId: '45f66670fb2f7752c9c4a220ce4477b972bcad0642981883fdde676811db7931:Iou:Iou',
+  templateIdWithPackageId: '7e486e68a64ec43d36cbdda89b9a56520d28de2e0f11bfa98d30d232100eb812:Iou:Iou',
   keyDecoder: damlTypes.lazyMemo(function () { return jtv.constant(undefined); }),
   keyEncode: function () { throw 'EncodeError'; },
   decoder: damlTypes.lazyMemo(function () { return jtv.object({issuer: damlTypes.Party.decoder, owner: damlTypes.Party.decoder, amount: damlTypes.Numeric(10).decoder, currency: damlTypes.Text.decoder, observers: damlTypes.List(damlTypes.Party).decoder, }); }),
@@ -104,5 +104,5 @@ exports.Iou = damlTypes.assembleTemplate(
 );
 
 
-damlTypes.registerTemplate(exports.Iou, ['45f66670fb2f7752c9c4a220ce4477b972bcad0642981883fdde676811db7931', '#nexus-example']);
+damlTypes.registerTemplate(exports.Iou, ['7e486e68a64ec43d36cbdda89b9a56520d28de2e0f11bfa98d30d232100eb812', '#nexus-example']);
 

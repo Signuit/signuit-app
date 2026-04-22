@@ -1,4 +1,4 @@
-import { MultisigWallet } from "@daml.js/nexus-example-0.0.1";
+import { CollateralRouter } from "@daml.js/nexus-example-0.0.1";
 
 /**
  * Centralized Daml template types for Nexus.
@@ -12,10 +12,13 @@ import { MultisigWallet } from "@daml.js/nexus-example-0.0.1";
  * - Easy to add/remove templates in one place
  */
 export const nexusTypes = {
-	MultisigWallet: MultisigWallet.MultisigWallet,
-	TransactionProposal: MultisigWallet.TransactionProposal,
-	GovernanceProposal: MultisigWallet.GovernanceProposal,
-	PendingWalletUpdate: MultisigWallet.PendingWalletUpdate,
+	// CollateralRouter Templates
+	CollateralPolicy: CollateralRouter.CollateralPolicy,
+	RoutingSuggestion: CollateralRouter.RoutingSuggestion,
+	AllocationRecord: CollateralRouter.AllocationRecord,
+	MarginCall: CollateralRouter.MarginCall,
+	CollateralHolding: CollateralRouter.CollateralHolding,
+	CollateralAssetMetadata: CollateralRouter.CollateralAssetMetadata,
 } as const;
 
 /**

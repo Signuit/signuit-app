@@ -10,13 +10,13 @@ var jtv = require('@mojotech/json-type-validation');
 /* eslint-disable-next-line no-unused-vars */
 var damlTypes = require('@daml/types');
 
-var pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 = require('@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0');
+var pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 = require('daml.js/ghc-stdlib-DA-Internal-Template-1.0.0');
 
 
 exports.Placeholder = damlTypes.assembleTemplate(
 {
   templateId: '#nexus-example:Main:Placeholder',
-  templateIdWithPackageId: '45f66670fb2f7752c9c4a220ce4477b972bcad0642981883fdde676811db7931:Main:Placeholder',
+  templateIdWithPackageId: '7e486e68a64ec43d36cbdda89b9a56520d28de2e0f11bfa98d30d232100eb812:Main:Placeholder',
   keyDecoder: damlTypes.lazyMemo(function () { return jtv.constant(undefined); }),
   keyEncode: function () { throw 'EncodeError'; },
   decoder: damlTypes.lazyMemo(function () { return jtv.object({owner: damlTypes.Party.decoder, }); }),
@@ -39,5 +39,5 @@ exports.Placeholder = damlTypes.assembleTemplate(
 );
 
 
-damlTypes.registerTemplate(exports.Placeholder, ['45f66670fb2f7752c9c4a220ce4477b972bcad0642981883fdde676811db7931', '#nexus-example']);
+damlTypes.registerTemplate(exports.Placeholder, ['7e486e68a64ec43d36cbdda89b9a56520d28de2e0f11bfa98d30d232100eb812', '#nexus-example']);
 

@@ -12,8 +12,11 @@
 		"./routers/iou": {
 			"default": "./src/routers/iou.ts"
 		},
-		"./schemas/signet": {
-			"default": "./src/schemas/signet.ts"
+		"./schemas/collateral": {
+			"default": "./src/schemas/collateral.ts"
+		},
+		"./engines/ctd-engine": {
+			"default": "./src/engines/ctd-engine.ts"
 		},
 		"./context": {
 			"default": "./src/context.ts"
