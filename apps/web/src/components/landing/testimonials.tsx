@@ -3,17 +3,17 @@ import TiltedCard from "@/components/TiltedCard";
 
 const testimonials = [
 	{
-		quote: "SignUIT ile onay sureclerimiz daha hizli ve denetlenebilir hale geldi.",
+		quote: "With SignUIT, our approval processes became faster and more auditable.",
 		author: "Treasury Lead, Digital Asset Firm",
 		color: "1f2937",
 	},
 	{
-		quote: "Canton tabanli gizlilik modeli, kurumsal uyum beklentimizi dogrudan karsiladi.",
+		quote: "Canton-based privacy model directly met our institutional compliance expectations.",
 		author: "Compliance Director, Financial Institution",
 		color: "0f172a",
 	},
 	{
-		quote: "m-of-n policy ve audit trail birlikte calisinca operasyonel risk belirgin sekilde azaldi.",
+		quote: "The combination of policy enforcement and audit trails significantly reduced our operational risk.",
 		author: "COO, Infrastructure Provider",
 		color: "1e1b4b",
 	},

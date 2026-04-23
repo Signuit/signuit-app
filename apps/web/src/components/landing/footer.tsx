@@ -15,7 +15,7 @@ export function LandingFooter() {
 							SIGNUIT
 						</GradientText>
 						<p className="mt-3 max-w-md text-sm text-slate-400">
-							Canton Network için tasarlanmış politika tabanlı teminat yönlendirme tavsiye motoru.
+							A policy-based collateral routing recommendation engine designed for the Canton Network.
 						</p>
 					</div>
 

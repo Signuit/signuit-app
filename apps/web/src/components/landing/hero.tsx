@@ -50,7 +50,7 @@ export function LandingHero() {
 
 				<div className="max-w-3xl text-lg text-slate-200 sm:text-xl">
 					<BlurText
-						text="SignUIT, Canton Network üzerinde kurumsal seviyede teminat yönlendirme tavsiyeleri, insan onaylı akışlar ve tam denetlenebilirlik sağlar."
+						text="SignUIT provides institutional-grade collateral routing recommendations, human-approved workflows, and full auditability on the Canton Network."
 						animateBy="words"
 						delay={60}
 					/>

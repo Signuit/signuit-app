@@ -8,32 +8,32 @@ const featureItems = [
 	{
 		icon: LockKeyhole,
 		title: "Policy-Based Routing",
-		desc: "Sermaye verimliliğini optimize eden, kurum politikalarına göre çalışan CTD algoritması.",
+		desc: "CTD algorithm that optimizes capital efficiency while adhering to institutional policies.",
 	},
 	{
 		icon: ShieldCheck,
 		title: "Privacy by Design",
-		desc: "Canton'un mahremiyet katmanı sayesinde işlemler sadece ilgili taraflara açılır.",
+		desc: "Transactions are visible only to involved parties, leveraging Canton's privacy layer.",
 	},
 	{
 		icon: CheckCheck,
 		title: "Real-time Optimization",
-		desc: "Teminat havuzunu canlı olarak takip et, optimizasyon fırsatlarını anında yakala.",
+		desc: "Monitor your collateral pool in real-time and capture optimization opportunities instantly.",
 	},
 	{
 		icon: WalletCards,
 		title: "Asset Allocation",
-		desc: "Teminat havuzunu, marjin çağrılarını ve varlık dağılımını tek panelde yönet.",
+		desc: "Manage your collateral pool, margin calls, and asset allocation in a single dashboard.",
 	},
 	{
 		icon: Fingerprint,
 		title: "Immutable Audit Trail",
-		desc: "Her tavsiye ve onay Canton ledger üzerinde doğrulanabilir ve denetlenebilir kayıt bırakır.",
+		desc: "Every recommendation and approval leaves a verifiable and auditable record on the Canton ledger.",
 	},
 	{
 		icon: UserRoundCheck,
 		title: "Human-in-the-loop",
-		desc: "Tüm otomatik öneriler operasyon ekibinin onayıyla güvenli bir şekilde yürütülür.",
+		desc: "All automated suggestions are securely executed only with the operations team's approval.",
 	},
 ];
 

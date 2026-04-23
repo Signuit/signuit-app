@@ -5,19 +5,19 @@ import SpotlightCard from "@/components/SpotlightCard";
 const useCases = [
 	{
 		title: "Margin Call Response",
-		desc: "Anlık marjin çağrıları için en uygun teminatı saniyeler içinde belirleyin ve onaylayın.",
+		desc: "Identify and approve the most suitable collateral for instant margin calls within seconds.",
 	},
 	{
 		title: "Policy-Based Rebalancing",
-		desc: "Kurumsal risk politikalarınıza göre teminat havuzunuzu otomatik analiz edin ve yeniden dengeleyin.",
+		desc: "Automatically analyze and rebalance your collateral pool based on institutional risk policies.",
 	},
 	{
 		title: "Yield Optimization",
-		desc: "Düşük getirili varlıkları önceliklendirerek sermaye maliyetinizi minimize edin.",
+		desc: "Minimize your capital cost by prioritizing low-yielding assets for collateral usage.",
 	},
 	{
 		title: "Cross-Domain Routing",
-		desc: "Canton Network üzerindeki farklı domainler arasında varlıklarınızı verimli bir şekilde yönlendirin.",
+		desc: "Efficiently route your assets across different domains on the Canton Network.",
 	},
 ];
 

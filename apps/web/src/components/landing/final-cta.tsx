@@ -26,7 +26,7 @@ export function LandingFinalCta() {
 					splitType="words, chars"
 				/>
 				<p className="max-w-2xl text-sm text-slate-300 sm:text-base">
-					SignUIT ile politika tabanlı teminat yönetimi, denetlenebilir öneriler ve verimli sermaye operasyonunu tek platformda topla.
+					Combine policy-based collateral management, auditable recommendations, and efficient capital operations on a single platform with SignUIT.
 				</p>
 				<Magnet padding={120} magnetStrength={1.9}>
 					<ElectricBorder color="#22d3ee" borderRadius={18} className="rounded-2xl bg-slate-900/80 p-0.5">

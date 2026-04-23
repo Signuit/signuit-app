@@ -8,19 +8,19 @@ const DotGrid = lazy(() => import("@/components/DotGrid"));
 const steps = [
 	{
 		title: "Define Policies",
-		desc: "Teminat havuzunuz için uygunluk kurallarını ve optimizasyon hedeflerini belirleyin.",
+		desc: "Set eligibility rules and optimization targets for your collateral pool.",
 	},
 	{
 		title: "Analyze Holdings",
-		desc: "CTD motoru, Canton Network üzerindeki varlıklarınızı gerçek zamanlı analiz eder.",
+		desc: "The CTD engine analyzes your assets on the Canton Network in real-time.",
 	},
 	{
 		title: "Review Recommendations",
-		desc: "Politika uyumlu önerileri inceleyin ve sermaye verimliliğini doğrulayın.",
+		desc: "Review policy-compliant recommendations and verify capital efficiency.",
 	},
 	{
 		title: "Approved Settlement",
-		desc: "Operasyon ekibi onayıyla işlemler atomik şekilde Canton ledger'a commit edilir.",
+		desc: "Transactions are atomically committed to the Canton ledger with operations team approval.",
 	},
 ];
 

@@ -6,15 +6,15 @@ import ScrollReveal from "@/components/ScrollReveal";
 const cards = [
 	{
 		title: "1. Analyze & Propose",
-		desc: "CTD algoritması en verimli teminat önerisini kurum politikalarına göre oluşturur.",
+		desc: "The CTD algorithm generates the most efficient collateral recommendation based on institutional policies.",
 	},
 	{
 		title: "2. Human Approval",
-		desc: "Yetkili operasyon ekibi öneriyi inceler ve güvenli kanal üzerinden onay verir.",
+		desc: "The authorized operations team reviews the recommendation and provides approval via a secure channel.",
 	},
 	{
 		title: "3. Atomic Settlement",
-		desc: "Onaylanan işlem Canton ledger'a atomik ve denetlenebilir biçimde yazılır.",
+		desc: "The approved transaction is recorded on the Canton ledger in an atomic and auditable manner.",
 	},
 ];
 
@@ -29,7 +29,7 @@ export function LandingFlow() {
 							containerClassName="!my-0"
 							textClassName="!text-2xl !leading-[1.35] text-blue-50 sm:!text-4xl"
 						>
-							{`SignUIT, marjin çağrısından kesinleşmeye kadar tüm süreci politika uyumlu ve denetlenebilir şekilde yürütür.`}
+							{`SignUIT manages the entire process from margin call to final settlement in a policy-compliant and auditable way.`}
 						</ScrollReveal>
 						<div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
 							<DecryptedText
