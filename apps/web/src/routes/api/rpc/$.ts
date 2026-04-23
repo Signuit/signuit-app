@@ -1,11 +1,11 @@
 import { createContext } from "@nexus/api/context";
-import { appRouter } from "@nexus/api/routers/index";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { createFileRoute } from "@tanstack/react-router";
+import { appRouter } from "@/lib/api";
 
 const rpcHandler = new RPCHandler(appRouter, {
 	interceptors: [

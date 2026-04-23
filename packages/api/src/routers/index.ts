@@ -1,5 +1,6 @@
 import type { RouterClient } from "@orpc/server";
-import { protectedProcedure, publicProcedure } from "../index";
+import { protectedProcedure, publicProcedure } from "../procedures";
+import { z } from "zod";
 
 // ─── Base app router ──────────────────────────────────────────────────────────
 //
@@ -21,9 +22,9 @@ import { protectedProcedure, publicProcedure } from "../index";
 //   export type AppRouter = typeof appRouter
 
 export const baseAppRouter = {
-	healthCheck: publicProcedure.handler(() => "OK" as const),
+	healthCheck: publicProcedure.input(z.void()).handler(() => "OK" as const),
 
-	me: protectedProcedure.handler(({ context }) => ({
+	me: protectedProcedure.input(z.void()).handler(({ context }) => ({
 		id: context.session?.user.id,
 		email: context.session?.user.email,
 		name: context.session?.user.name,
