@@ -15,7 +15,14 @@ import {
 } from "@nexus/ui/components/sidebar";
 import { TeamSwitcher } from "@nexus/ui/components/team-switcher";
 import { Link, linkOptions } from "@tanstack/react-router";
-import { LayoutDashboardIcon, SettingsIcon, UsersIcon } from "lucide-react";
+import {
+	FileTextIcon,
+	HistoryIcon,
+	LayoutDashboardIcon,
+	SettingsIcon,
+	WalletIcon,
+	ZapIcon,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import type * as React from "react";
 import { useEffect, useState } from "react";
@@ -35,25 +42,38 @@ const mainNavItems = linkOptions([
 		activeOptions: { exact: true },
 	},
 	{
-		to: "/dashboard/users",
-		label: "Users",
-		icon: <UsersIcon />,
+		to: "/dashboard/holdings",
+		label: "Holdings",
+		icon: <WalletIcon />,
+		activeOptions: { exact: true },
+	},
+	{
+		to: "/dashboard/suggestions",
+		label: "Suggestions",
+		icon: <FileTextIcon />,
+		activeOptions: { exact: true },
+	},
+	{
+		to: "/dashboard/policy",
+		label: "Policy",
+		icon: <SettingsIcon />,
+		activeOptions: { exact: true },
+	},
+	{
+		to: "/dashboard/audit",
+		label: "Audit Trail",
+		icon: <HistoryIcon />,
 		activeOptions: { exact: true },
 	},
 ]);
 
 const secondaryNavItems = linkOptions([
 	{
-		to: "/dashboard/components_lib",
-		label: "Components",
-		icon: <LayoutDashboardIcon />,
+		to: "/dashboard/generate",
+		label: "⚡ Generate Suggestion",
+		icon: <ZapIcon />,
 		activeOptions: { exact: true },
-	},
-	{
-		to: "/dashboard/settings",
-		label: "Settings",
-		icon: <SettingsIcon />,
-		activeOptions: { exact: true },
+		className: "bg-primary/10 hover:bg-primary/20", // Highlight for demo
 	},
 ]);
 

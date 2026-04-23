@@ -15,7 +15,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppDashboardIndexRouteImport } from './routes/_app/dashboard/index'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AppDashboardSuggestionsRouteImport } from './routes/_app/dashboard/suggestions'
+import { Route as AppDashboardPolicyRouteImport } from './routes/_app/dashboard/policy'
+import { Route as AppDashboardHoldingsRouteImport } from './routes/_app/dashboard/holdings'
+import { Route as AppDashboardGenerateRouteImport } from './routes/_app/dashboard/generate'
 import { Route as AppDashboardComponents_libRouteImport } from './routes/_app/dashboard/components_lib'
+import { Route as AppDashboardAuditRouteImport } from './routes/_app/dashboard/audit'
 import { Route as AppDashboardUsersIndexRouteImport } from './routes/_app/dashboard/users/index'
 import { Route as AppDashboardSettingsIndexRouteImport } from './routes/_app/dashboard/settings/index'
 import { Route as AppDashboardUsersSettingsRouteImport } from './routes/_app/dashboard/users/settings'
@@ -49,12 +54,37 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppDashboardSuggestionsRoute = AppDashboardSuggestionsRouteImport.update({
+  id: '/dashboard/suggestions',
+  path: '/dashboard/suggestions',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDashboardPolicyRoute = AppDashboardPolicyRouteImport.update({
+  id: '/dashboard/policy',
+  path: '/dashboard/policy',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDashboardHoldingsRoute = AppDashboardHoldingsRouteImport.update({
+  id: '/dashboard/holdings',
+  path: '/dashboard/holdings',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDashboardGenerateRoute = AppDashboardGenerateRouteImport.update({
+  id: '/dashboard/generate',
+  path: '/dashboard/generate',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppDashboardComponents_libRoute =
   AppDashboardComponents_libRouteImport.update({
     id: '/dashboard/components_lib',
     path: '/dashboard/components_lib',
     getParentRoute: () => AppRouteRoute,
   } as any)
+const AppDashboardAuditRoute = AppDashboardAuditRouteImport.update({
+  id: '/dashboard/audit',
+  path: '/dashboard/audit',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppDashboardUsersIndexRoute = AppDashboardUsersIndexRouteImport.update({
   id: '/dashboard/users/',
   path: '/dashboard/users/',
@@ -76,7 +106,12 @@ const AppDashboardUsersSettingsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/dashboard/audit': typeof AppDashboardAuditRoute
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
+  '/dashboard/generate': typeof AppDashboardGenerateRoute
+  '/dashboard/holdings': typeof AppDashboardHoldingsRoute
+  '/dashboard/policy': typeof AppDashboardPolicyRoute
+  '/dashboard/suggestions': typeof AppDashboardSuggestionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/dashboard/': typeof AppDashboardIndexRoute
@@ -87,7 +122,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/dashboard/audit': typeof AppDashboardAuditRoute
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
+  '/dashboard/generate': typeof AppDashboardGenerateRoute
+  '/dashboard/holdings': typeof AppDashboardHoldingsRoute
+  '/dashboard/policy': typeof AppDashboardPolicyRoute
+  '/dashboard/suggestions': typeof AppDashboardSuggestionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/dashboard': typeof AppDashboardIndexRoute
@@ -100,7 +140,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/dashboard/audit': typeof AppDashboardAuditRoute
   '/_app/dashboard/components_lib': typeof AppDashboardComponents_libRoute
+  '/_app/dashboard/generate': typeof AppDashboardGenerateRoute
+  '/_app/dashboard/holdings': typeof AppDashboardHoldingsRoute
+  '/_app/dashboard/policy': typeof AppDashboardPolicyRoute
+  '/_app/dashboard/suggestions': typeof AppDashboardSuggestionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/_app/dashboard/': typeof AppDashboardIndexRoute
@@ -113,7 +158,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/dashboard/audit'
     | '/dashboard/components_lib'
+    | '/dashboard/generate'
+    | '/dashboard/holdings'
+    | '/dashboard/policy'
+    | '/dashboard/suggestions'
     | '/api/auth/$'
     | '/api/rpc/$'
     | '/dashboard/'
@@ -124,7 +174,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/dashboard/audit'
     | '/dashboard/components_lib'
+    | '/dashboard/generate'
+    | '/dashboard/holdings'
+    | '/dashboard/policy'
+    | '/dashboard/suggestions'
     | '/api/auth/$'
     | '/api/rpc/$'
     | '/dashboard'
@@ -136,7 +191,12 @@ export interface FileRouteTypes {
     | '/'
     | '/_app'
     | '/login'
+    | '/_app/dashboard/audit'
     | '/_app/dashboard/components_lib'
+    | '/_app/dashboard/generate'
+    | '/_app/dashboard/holdings'
+    | '/_app/dashboard/policy'
+    | '/_app/dashboard/suggestions'
     | '/api/auth/$'
     | '/api/rpc/$'
     | '/_app/dashboard/'
@@ -197,11 +257,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/dashboard/suggestions': {
+      id: '/_app/dashboard/suggestions'
+      path: '/dashboard/suggestions'
+      fullPath: '/dashboard/suggestions'
+      preLoaderRoute: typeof AppDashboardSuggestionsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/dashboard/policy': {
+      id: '/_app/dashboard/policy'
+      path: '/dashboard/policy'
+      fullPath: '/dashboard/policy'
+      preLoaderRoute: typeof AppDashboardPolicyRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/dashboard/holdings': {
+      id: '/_app/dashboard/holdings'
+      path: '/dashboard/holdings'
+      fullPath: '/dashboard/holdings'
+      preLoaderRoute: typeof AppDashboardHoldingsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/dashboard/generate': {
+      id: '/_app/dashboard/generate'
+      path: '/dashboard/generate'
+      fullPath: '/dashboard/generate'
+      preLoaderRoute: typeof AppDashboardGenerateRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/dashboard/components_lib': {
       id: '/_app/dashboard/components_lib'
       path: '/dashboard/components_lib'
       fullPath: '/dashboard/components_lib'
       preLoaderRoute: typeof AppDashboardComponents_libRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/dashboard/audit': {
+      id: '/_app/dashboard/audit'
+      path: '/dashboard/audit'
+      fullPath: '/dashboard/audit'
+      preLoaderRoute: typeof AppDashboardAuditRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/dashboard/users/': {
@@ -229,7 +324,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteRouteChildren {
+  AppDashboardAuditRoute: typeof AppDashboardAuditRoute
   AppDashboardComponents_libRoute: typeof AppDashboardComponents_libRoute
+  AppDashboardGenerateRoute: typeof AppDashboardGenerateRoute
+  AppDashboardHoldingsRoute: typeof AppDashboardHoldingsRoute
+  AppDashboardPolicyRoute: typeof AppDashboardPolicyRoute
+  AppDashboardSuggestionsRoute: typeof AppDashboardSuggestionsRoute
   AppDashboardIndexRoute: typeof AppDashboardIndexRoute
   AppDashboardUsersSettingsRoute: typeof AppDashboardUsersSettingsRoute
   AppDashboardSettingsIndexRoute: typeof AppDashboardSettingsIndexRoute
@@ -237,7 +337,12 @@ interface AppRouteRouteChildren {
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppDashboardAuditRoute: AppDashboardAuditRoute,
   AppDashboardComponents_libRoute: AppDashboardComponents_libRoute,
+  AppDashboardGenerateRoute: AppDashboardGenerateRoute,
+  AppDashboardHoldingsRoute: AppDashboardHoldingsRoute,
+  AppDashboardPolicyRoute: AppDashboardPolicyRoute,
+  AppDashboardSuggestionsRoute: AppDashboardSuggestionsRoute,
   AppDashboardIndexRoute: AppDashboardIndexRoute,
   AppDashboardUsersSettingsRoute: AppDashboardUsersSettingsRoute,
   AppDashboardSettingsIndexRoute: AppDashboardSettingsIndexRoute,

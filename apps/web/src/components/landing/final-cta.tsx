@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { lazy, Suspense } from "react";
 
 import ElectricBorder from "@/components/ElectricBorder";
 import Magnet from "@/components/Magnet";
@@ -26,10 +26,15 @@ export function LandingFinalCta() {
 					splitType="words, chars"
 				/>
 				<p className="max-w-2xl text-sm text-slate-300 sm:text-base">
-					Combine policy-based collateral management, auditable recommendations, and efficient capital operations on a single platform with SignUIT.
+					Combine policy-based collateral management, auditable recommendations, and efficient
+					capital operations on a single platform with SignUIT.
 				</p>
 				<Magnet padding={120} magnetStrength={1.9}>
-					<ElectricBorder color="#22d3ee" borderRadius={18} className="rounded-2xl bg-slate-900/80 p-0.5">
+					<ElectricBorder
+						color="#22d3ee"
+						borderRadius={18}
+						className="rounded-2xl bg-slate-900/80 p-0.5"
+					>
 						<a
 							href="/dashboard"
 							className="inline-flex rounded-2xl px-8 py-3 text-lg font-semibold tracking-wide text-cyan-50"

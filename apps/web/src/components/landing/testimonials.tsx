@@ -13,7 +13,8 @@ const testimonials = [
 		color: "0f172a",
 	},
 	{
-		quote: "The combination of policy enforcement and audit trails significantly reduced our operational risk.",
+		quote:
+			"The combination of policy enforcement and audit trails significantly reduced our operational risk.",
 		author: "COO, Infrastructure Provider",
 		color: "1e1b4b",
 	},
@@ -39,7 +40,9 @@ export function LandingTestimonials() {
 				<AnimatedContent distance={30}>
 					<div className="text-center">
 						<p className="text-sm uppercase tracking-[0.2em] text-cyan-300">Testimonials</p>
-						<h2 className="mt-3 text-3xl font-semibold text-blue-50 sm:text-5xl">Trusted by teams moving real value</h2>
+						<h2 className="mt-3 text-3xl font-semibold text-blue-50 sm:text-5xl">
+							Trusted by teams moving real value
+						</h2>
 					</div>
 				</AnimatedContent>
 
@@ -60,7 +63,9 @@ export function LandingTestimonials() {
 								/>
 								<div className="mt-3 p-2">
 									<p className="text-sm text-slate-200">"{item.quote}"</p>
-									<p className="mt-3 text-xs uppercase tracking-[0.15em] text-slate-400">{item.author}</p>
+									<p className="mt-3 text-xs uppercase tracking-[0.15em] text-slate-400">
+										{item.author}
+									</p>
 								</div>
 							</div>
 						</AnimatedContent>

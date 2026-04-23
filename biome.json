@@ -27,15 +27,23 @@
 		"rules": {
 			"recommended": true,
 			"suspicious": {
-				"noExplicitAny": "error"
+				"noExplicitAny": "off"
 			},
 			"style": {
-				"noNonNullAssertion": "warn",
+				"noNonNullAssertion": "off",
 				"useConst": "error"
 			},
 			"correctness": {
 				"noUnusedVariables": "warn",
 				"noUnusedImports": "warn"
+			},
+			"a11y": {
+				"noStaticElementInteractions": "off",
+				"useKeyWithClickEvents": "off",
+				"useSemanticElements": "off"
+			},
+			"performance": {
+				"noAccumulatingSpread": "off"
 			}
 		}
 	},

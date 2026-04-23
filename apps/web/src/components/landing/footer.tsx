@@ -15,17 +15,34 @@ export function LandingFooter() {
 							SIGNUIT
 						</GradientText>
 						<p className="mt-3 max-w-md text-sm text-slate-400">
-							A policy-based collateral routing recommendation engine designed for the Canton Network.
+							A policy-based collateral routing recommendation engine designed for the Canton
+							Network.
 						</p>
 					</div>
 
 					<div className="h-20 min-w-[330px]">
 						<Dock
 							items={[
-								{ icon: <Github size={18} />, label: "GitHub", onClick: open("https://github.com") },
-								{ icon: <BookOpenText size={18} />, label: "Docs", onClick: open("https://docs.canton.network") },
-								{ icon: <MessageCircle size={18} />, label: "Community", onClick: open("https://discord.com") },
-								{ icon: <ShieldCheck size={18} />, label: "Security", onClick: open("https://canton.network") },
+								{
+									icon: <Github size={18} />,
+									label: "GitHub",
+									onClick: open("https://github.com"),
+								},
+								{
+									icon: <BookOpenText size={18} />,
+									label: "Docs",
+									onClick: open("https://docs.canton.network"),
+								},
+								{
+									icon: <MessageCircle size={18} />,
+									label: "Community",
+									onClick: open("https://discord.com"),
+								},
+								{
+									icon: <ShieldCheck size={18} />,
+									label: "Security",
+									onClick: open("https://canton.network"),
+								},
 							]}
 							baseItemSize={48}
 						/>
@@ -70,7 +87,9 @@ export function LandingFooter() {
 						</a>
 					</div>
 				</div>
-				<p className="text-xs uppercase tracking-[0.12em] text-slate-500">© {new Date().getFullYear()} SignUIT. All rights reserved.</p>
+				<p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+					© {new Date().getFullYear()} SignUIT. All rights reserved.
+				</p>
 			</div>
 		</footer>
 	);

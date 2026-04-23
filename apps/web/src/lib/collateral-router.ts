@@ -181,6 +181,12 @@ export const collateralRouter = {
 		return context.ledger.RoutingSuggestion.exercise(input.suggestionCid, "RejectSuggestion", {});
 	}),
 
+	listSuggestions: ledgerProcedure.input(CollateralQuerySchema).handler(({ input, context }) => {
+		return context.ledger.RoutingSuggestion.findMany({
+			limit: input.limit,
+		});
+	}),
+
 	// ─── Audit Trail ───────────────────────────────────────────────────────
 
 	listAllocations: ledgerProcedure.input(CollateralQuerySchema).handler(({ input, context }) => {

@@ -1,4 +1,11 @@
-import { CheckCheck, Fingerprint, LockKeyhole, ShieldCheck, UserRoundCheck, WalletCards } from "lucide-react";
+import {
+	CheckCheck,
+	Fingerprint,
+	LockKeyhole,
+	ShieldCheck,
+	UserRoundCheck,
+	WalletCards,
+} from "lucide-react";
 
 import AnimatedContent from "@/components/AnimatedContent";
 import MagicBento from "@/components/MagicBento";

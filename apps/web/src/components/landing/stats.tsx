@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { lazy, Suspense } from "react";
 
 import AnimatedContent from "@/components/AnimatedContent";
 import CountUp from "@/components/CountUp";
@@ -16,7 +16,12 @@ export function LandingStats() {
 		<section id="stats" className="relative overflow-hidden px-6 py-24">
 			<div className="absolute inset-0 -z-10 opacity-60">
 				<Suspense fallback={<div className="h-full w-full bg-slate-900" />}>
-					<Aurora colorStops={["#0f172a", "#1d4ed8", "#22d3ee"]} amplitude={0.9} blend={0.45} speed={0.8} />
+					<Aurora
+						colorStops={["#0f172a", "#1d4ed8", "#22d3ee"]}
+						amplitude={0.9}
+						blend={0.45}
+						speed={0.8}
+					/>
 				</Suspense>
 			</div>
 			<div className="absolute inset-0 -z-10 bg-slate-950/60" />
@@ -25,7 +30,9 @@ export function LandingStats() {
 				<AnimatedContent distance={40}>
 					<div className="text-center">
 						<p className="text-sm uppercase tracking-[0.2em] text-cyan-200">Proven in production</p>
-						<h2 className="mt-3 text-3xl font-semibold text-blue-50 sm:text-5xl">Operational reliability for critical approvals</h2>
+						<h2 className="mt-3 text-3xl font-semibold text-blue-50 sm:text-5xl">
+							Operational reliability for critical approvals
+						</h2>
 					</div>
 				</AnimatedContent>
 
@@ -38,7 +45,9 @@ export function LandingStats() {
 									<CountUp to={stat.value} duration={2.2} separator="," />
 									{stat.suffix}
 								</div>
-								<p className="mt-3 text-sm uppercase tracking-[0.16em] text-slate-300">{stat.label}</p>
+								<p className="mt-3 text-sm uppercase tracking-[0.16em] text-slate-300">
+									{stat.label}
+								</p>
 							</article>
 						</AnimatedContent>
 					))}

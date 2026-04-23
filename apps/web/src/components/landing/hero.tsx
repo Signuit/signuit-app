@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { lazy, Suspense } from "react";
 
 import BlurText from "@/components/BlurText";
 import SplitText from "@/components/SplitText";
@@ -58,7 +58,12 @@ export function LandingHero() {
 
 				<div className="rounded-full border border-blue-400/30 bg-slate-950/60 px-4 py-2 text-sm text-blue-100">
 					<TextType
-						text={["Collateral Optimization", "Policy Enforcement", "Yield Preservation", "Institutional Control"]}
+						text={[
+							"Collateral Optimization",
+							"Policy Enforcement",
+							"Yield Preservation",
+							"Institutional Control",
+						]}
 						typingSpeed={50}
 						deletingSpeed={30}
 						pauseDuration={1300}
@@ -67,7 +72,6 @@ export function LandingHero() {
 				</div>
 
 				<div className="flex flex-wrap items-center gap-4 pt-2">
-
 					<a
 						href="/dashboard"
 						className="inline-flex rounded-2xl px-6 py-3 text-base font-semibold text-blue-50"
@@ -75,12 +79,9 @@ export function LandingHero() {
 						Launch SignUIT
 					</a>
 
-
-
 					<StarBorder as="a" href="https://docs.canton.network" className="rounded-2xl">
 						Read Docs
 					</StarBorder>
-
 				</div>
 			</div>
 		</section>

@@ -1,5 +1,4 @@
-"use client";
-
+import { Skeleton } from "@nexus/ui/components/skeleton";
 import { cn } from "@nexus/ui/lib/utils";
 import { type LucideIcon, TrendingDownIcon, TrendingUpIcon } from "lucide-react";
 
@@ -10,6 +9,7 @@ interface StatCardProps {
 	trend?: "up" | "down" | null;
 	trendValue?: string;
 	className?: string;
+	loading?: boolean;
 }
 
 export function StatCard({
@@ -19,7 +19,23 @@ export function StatCard({
 	trend,
 	trendValue,
 	className,
+	loading,
 }: StatCardProps) {
+	if (loading) {
+		return (
+			<div className={cn("flex flex-col gap-1 rounded-xl border bg-card p-4 shadow-xs", className)}>
+				<div className="flex items-center justify-between">
+					<Skeleton className="h-4 w-24" />
+					<Skeleton className="size-8 rounded-lg" />
+				</div>
+				<div className="flex items-end justify-between">
+					<Skeleton className="h-8 w-32" />
+					<Skeleton className="h-4 w-12" />
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className={cn("flex flex-col gap-1 rounded-xl border bg-card p-4 shadow-xs", className)}>
 			<div className="flex items-center justify-between">

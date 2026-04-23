@@ -16,16 +16,28 @@ export function LandingNav() {
 
 				{/* Desktop Links */}
 				<div className="hidden items-center gap-8 md:flex">
-					<a href="#features" className="text-sm font-medium text-slate-400 transition-colors hover:text-white">
+					<a
+						href="#features"
+						className="text-sm font-medium text-slate-400 transition-colors hover:text-white"
+					>
 						Features
 					</a>
-					<a href="#how-it-works" className="text-sm font-medium text-slate-400 transition-colors hover:text-white">
+					<a
+						href="#how-it-works"
+						className="text-sm font-medium text-slate-400 transition-colors hover:text-white"
+					>
 						How it works
 					</a>
-					<a href="#use-cases" className="text-sm font-medium text-slate-400 transition-colors hover:text-white">
+					<a
+						href="#use-cases"
+						className="text-sm font-medium text-slate-400 transition-colors hover:text-white"
+					>
 						Solutions
 					</a>
-					<a href="https://docs.canton.network" className="text-sm font-medium text-slate-400 transition-colors hover:text-white">
+					<a
+						href="https://docs.canton.network"
+						className="text-sm font-medium text-slate-400 transition-colors hover:text-white"
+					>
 						Docs
 					</a>
 				</div>
@@ -38,20 +50,19 @@ export function LandingNav() {
 					>
 						Sign in
 					</a>
-					
-						<ElectricBorder
-							color="#3b82f6"
-							className="rounded-full bg-white transition-transform active:scale-95"
-							style={{ borderRadius: 9999 }}
+
+					<ElectricBorder
+						color="#3b82f6"
+						className="rounded-full bg-white transition-transform active:scale-95"
+						style={{ borderRadius: 9999 }}
+					>
+						<a
+							href="/dashboard"
+							className="inline-flex rounded-full bg-white px-5 py-2 text-sm font-bold text-slate-950 transition-colors hover:bg-slate-100"
 						>
-							<a
-								href="/dashboard"
-								className="inline-flex rounded-full bg-white px-5 py-2 text-sm font-bold text-slate-950 transition-colors hover:bg-slate-100"
-							>
-								Launch App
-							</a>
-						</ElectricBorder>
-					
+							Launch App
+						</a>
+					</ElectricBorder>
 				</div>
 			</nav>
 		</header>
