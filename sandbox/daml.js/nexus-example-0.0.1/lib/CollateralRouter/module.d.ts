@@ -5,76 +5,8 @@
 import * as jtv from '@mojotech/json-type-validation';
 import * as damlTypes from '@daml/types';
 
-import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from '@daml.js/daml-prim-DA-Types-1.0.0';
-import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from '@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
-
-export declare type UpdateHolding = {
-  newAmount: damlTypes.Numeric;
-};
-
-export declare const UpdateHolding:
-  damlTypes.Serializable<UpdateHolding> & {
-  }
-;
-
-
-export declare type CollateralHolding = {
-  holdingId: string;
-  institution: damlTypes.Party;
-  asset: string;
-  amount: damlTypes.Numeric;
-  yield: damlTypes.Numeric;
-  haircut: damlTypes.Numeric;
-  expiry: damlTypes.Optional<damlTypes.Time>;
-};
-
-export declare interface CollateralHoldingInterface {
-  Archive: damlTypes.Choice<CollateralHolding, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<CollateralHolding, undefined>>;
-  UpdateHolding: damlTypes.Choice<CollateralHolding, UpdateHolding, damlTypes.ContractId<CollateralHolding>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<CollateralHolding, undefined>>;
-}
-export declare const CollateralHolding:
-  damlTypes.Template<CollateralHolding, undefined, '#nexus-example:CollateralRouter:CollateralHolding'> &
-  damlTypes.ToInterface<CollateralHolding, never> &
-  CollateralHoldingInterface;
-
-export declare namespace CollateralHolding {
-}
-
-
-
-export declare type SatisfyMarginCall = {
-};
-
-export declare const SatisfyMarginCall:
-  damlTypes.Serializable<SatisfyMarginCall> & {
-  }
-;
-
-
-export declare type MarginCall = {
-  callId: string;
-  institution: damlTypes.Party;
-  counterparty: damlTypes.Party;
-  amountRequired: damlTypes.Numeric;
-  currency: string;
-  dueBy: damlTypes.Time;
-  status: RouteStatus;
-  createdAt: damlTypes.Time;
-};
-
-export declare interface MarginCallInterface {
-  SatisfyMarginCall: damlTypes.Choice<MarginCall, SatisfyMarginCall, damlTypes.ContractId<MarginCall>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<MarginCall, undefined>>;
-  Archive: damlTypes.Choice<MarginCall, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<MarginCall, undefined>>;
-}
-export declare const MarginCall:
-  damlTypes.Template<MarginCall, undefined, '#nexus-example:CollateralRouter:MarginCall'> &
-  damlTypes.ToInterface<MarginCall, never> &
-  MarginCallInterface;
-
-export declare namespace MarginCall {
-}
-
-
+import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from 'daml.js/daml-prim-DA-Types-1.0.0';
+import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from 'daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
 
 export declare type MarkFailed = {
 };
@@ -86,6 +18,7 @@ export declare const MarkFailed:
 
 
 export declare type AllocationRecord = {
+  operator: damlTypes.Party;
   routeId: string;
   institution: damlTypes.Party;
   marginCallId: string;
@@ -99,8 +32,8 @@ export declare type AllocationRecord = {
 };
 
 export declare interface AllocationRecordInterface {
-  MarkFailed: damlTypes.Choice<AllocationRecord, MarkFailed, damlTypes.ContractId<AllocationRecord>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<AllocationRecord, undefined>>;
   Archive: damlTypes.Choice<AllocationRecord, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<AllocationRecord, undefined>>;
+  MarkFailed: damlTypes.Choice<AllocationRecord, MarkFailed, damlTypes.ContractId<AllocationRecord>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<AllocationRecord, undefined>>;
 }
 export declare const AllocationRecord:
   damlTypes.Template<AllocationRecord, undefined, '#nexus-example:CollateralRouter:AllocationRecord'> &
@@ -122,6 +55,7 @@ export declare const RejectSuggestion:
 
 
 export declare type ApproveSuggestion = {
+  approvedBy: damlTypes.Party;
 };
 
 export declare const ApproveSuggestion:
@@ -133,6 +67,7 @@ export declare const ApproveSuggestion:
 export declare type RoutingSuggestion = {
   routeId: string;
   institution: damlTypes.Party;
+  operator: damlTypes.Party;
   marginCallId: string;
   amountRequired: damlTypes.Numeric;
   suggestedAssets: string[];
@@ -161,6 +96,76 @@ export declare namespace RoutingSuggestion {
 
 
 
+export declare type SatisfyMarginCall = {
+};
+
+export declare const SatisfyMarginCall:
+  damlTypes.Serializable<SatisfyMarginCall> & {
+  }
+;
+
+
+export declare type MarginCall = {
+  callId: string;
+  operator: damlTypes.Party;
+  institution: damlTypes.Party;
+  counterparty: damlTypes.Party;
+  amountRequired: damlTypes.Numeric;
+  currency: string;
+  dueBy: damlTypes.Time;
+  status: RouteStatus;
+  createdAt: damlTypes.Time;
+};
+
+export declare interface MarginCallInterface {
+  SatisfyMarginCall: damlTypes.Choice<MarginCall, SatisfyMarginCall, damlTypes.ContractId<MarginCall>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<MarginCall, undefined>>;
+  Archive: damlTypes.Choice<MarginCall, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<MarginCall, undefined>>;
+}
+export declare const MarginCall:
+  damlTypes.Template<MarginCall, undefined, '#nexus-example:CollateralRouter:MarginCall'> &
+  damlTypes.ToInterface<MarginCall, never> &
+  MarginCallInterface;
+
+export declare namespace MarginCall {
+}
+
+
+
+export declare type UpdateHolding = {
+  newAmount: damlTypes.Numeric;
+};
+
+export declare const UpdateHolding:
+  damlTypes.Serializable<UpdateHolding> & {
+  }
+;
+
+
+export declare type CollateralHolding = {
+  operator: damlTypes.Party;
+  holdingId: string;
+  institution: damlTypes.Party;
+  asset: string;
+  amount: damlTypes.Numeric;
+  yield: damlTypes.Numeric;
+  haircut: damlTypes.Numeric;
+  expiry: damlTypes.Optional<damlTypes.Time>;
+};
+
+export declare interface CollateralHoldingInterface {
+  UpdateHolding: damlTypes.Choice<CollateralHolding, UpdateHolding, damlTypes.ContractId<CollateralHolding>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<CollateralHolding, undefined>>;
+  Archive: damlTypes.Choice<CollateralHolding, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<CollateralHolding, undefined>>;
+}
+export declare const CollateralHolding:
+  damlTypes.Template<CollateralHolding, undefined, '#nexus-example:CollateralRouter:CollateralHolding'> &
+  damlTypes.ToInterface<CollateralHolding, never> &
+  CollateralHoldingInterface;
+
+export declare namespace CollateralHolding {
+}
+
+
+
 export declare type ArchivePolicy = {
 };
 
@@ -170,7 +175,7 @@ export declare const ArchivePolicy:
 ;
 
 
-export declare type UpdatePolicy = {
+export declare type UpdateCollateralPolicy = {
   newRuleType: RuleType;
   newPriorityList: string[];
   newMinLtv: damlTypes.Numeric;
@@ -181,8 +186,8 @@ export declare type UpdatePolicy = {
   newActive: boolean;
 };
 
-export declare const UpdatePolicy:
-  damlTypes.Serializable<UpdatePolicy> & {
+export declare const UpdateCollateralPolicy:
+  damlTypes.Serializable<UpdateCollateralPolicy> & {
   }
 ;
 
@@ -203,7 +208,7 @@ export declare type CollateralPolicy = {
 };
 
 export declare interface CollateralPolicyInterface {
-  UpdatePolicy: damlTypes.Choice<CollateralPolicy, UpdatePolicy, damlTypes.ContractId<CollateralPolicy>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<CollateralPolicy, undefined>>;
+  UpdateCollateralPolicy: damlTypes.Choice<CollateralPolicy, UpdateCollateralPolicy, damlTypes.ContractId<CollateralPolicy>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<CollateralPolicy, undefined>>;
   ArchivePolicy: damlTypes.Choice<CollateralPolicy, ArchivePolicy, {}, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<CollateralPolicy, undefined>>;
   Archive: damlTypes.Choice<CollateralPolicy, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<CollateralPolicy, undefined>>;
 }
@@ -213,6 +218,108 @@ export declare const CollateralPolicy:
   CollateralPolicyInterface;
 
 export declare namespace CollateralPolicy {
+}
+
+
+
+export declare type UpdateServicePolicy = {
+  newPolicy: CollateralPolicy;
+};
+
+export declare const UpdateServicePolicy:
+  damlTypes.Serializable<UpdateServicePolicy> & {
+  }
+;
+
+
+export declare type TerminateAgreement = {
+};
+
+export declare const TerminateAgreement:
+  damlTypes.Serializable<TerminateAgreement> & {
+  }
+;
+
+
+export declare type ServiceAgreement = {
+  operator: damlTypes.Party;
+  institution: damlTypes.Party;
+  agreementId: string;
+  policy: CollateralPolicy;
+  tier: string;
+  status: AgreementStatus;
+  createdAt: damlTypes.Time;
+  acceptedAt: damlTypes.Optional<damlTypes.Time>;
+};
+
+export declare interface ServiceAgreementInterface {
+  TerminateAgreement: damlTypes.Choice<ServiceAgreement, TerminateAgreement, damlTypes.ContractId<ServiceAgreement>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<ServiceAgreement, undefined>>;
+  UpdateServicePolicy: damlTypes.Choice<ServiceAgreement, UpdateServicePolicy, damlTypes.ContractId<ServiceAgreement>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<ServiceAgreement, undefined>>;
+  Archive: damlTypes.Choice<ServiceAgreement, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<ServiceAgreement, undefined>>;
+}
+export declare const ServiceAgreement:
+  damlTypes.Template<ServiceAgreement, undefined, '#nexus-example:CollateralRouter:ServiceAgreement'> &
+  damlTypes.ToInterface<ServiceAgreement, never> &
+  ServiceAgreementInterface;
+
+export declare namespace ServiceAgreement {
+}
+
+
+
+export declare type SetUnderReview = {
+};
+
+export declare const SetUnderReview:
+  damlTypes.Serializable<SetUnderReview> & {
+  }
+;
+
+
+export declare type RejectRequest = {
+  rejectionReason: string;
+};
+
+export declare const RejectRequest:
+  damlTypes.Serializable<RejectRequest> & {
+  }
+;
+
+
+export declare type AcceptRequest = {
+  agreementId: string;
+  approvedPolicy: CollateralPolicy;
+};
+
+export declare const AcceptRequest:
+  damlTypes.Serializable<AcceptRequest> & {
+  }
+;
+
+
+export declare type JoinRequest = {
+  applicant: damlTypes.Party;
+  operator: damlTypes.Party;
+  companyName: string;
+  companyId: string;
+  requestedTier: string;
+  contactEmail: string;
+  submittedAt: damlTypes.Time;
+  status: OnboardingStatus;
+};
+
+export declare interface JoinRequestInterface {
+  AcceptRequest: damlTypes.Choice<JoinRequest, AcceptRequest, damlTypes.ContractId<ServiceAgreement>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<JoinRequest, undefined>>;
+  RejectRequest: damlTypes.Choice<JoinRequest, RejectRequest, damlTypes.ContractId<JoinRequest>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<JoinRequest, undefined>>;
+  SetUnderReview: damlTypes.Choice<JoinRequest, SetUnderReview, damlTypes.ContractId<JoinRequest>, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<JoinRequest, undefined>>;
+  Archive: damlTypes.Choice<JoinRequest, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> & damlTypes.ChoiceFrom<damlTypes.Template<JoinRequest, undefined>>;
+}
+export declare const JoinRequest:
+  damlTypes.Template<JoinRequest, undefined, '#nexus-example:CollateralRouter:JoinRequest'> &
+  damlTypes.ToInterface<JoinRequest, never> &
+  JoinRequestInterface;
+
+export declare namespace JoinRequest {
 }
 
 
@@ -252,6 +359,33 @@ export declare namespace CollateralAssetMetadata {
 
 
 
+export declare type OnboardingStatus =
+  | 'OnboardingPending'
+  | 'UnderReview'
+  | 'OnboardingApproved'
+  | 'OnboardingRejected'
+;
+
+export declare const OnboardingStatus:
+  damlTypes.Serializable<OnboardingStatus> & {
+  }
+& { readonly keys: OnboardingStatus[] } & { readonly [e in OnboardingStatus]: e }
+;
+
+
+export declare type AgreementStatus =
+  | 'AgreementPending'
+  | 'AgreementActive'
+  | 'AgreementTerminated'
+;
+
+export declare const AgreementStatus:
+  damlTypes.Serializable<AgreementStatus> & {
+  }
+& { readonly keys: AgreementStatus[] } & { readonly [e in AgreementStatus]: e }
+;
+
+
 export declare type RoutingOption = {
   assets: string[];
   amounts: damlTypes.Numeric[];
@@ -266,11 +400,11 @@ export declare const RoutingOption:
 
 
 export declare type RouteStatus =
-  | 'Pending'
-  | 'Approved'
-  | 'Rejected'
-  | 'Executed'
-  | 'Failed'
+  | 'RoutePending'
+  | 'RouteApproved'
+  | 'RouteRejected'
+  | 'RouteExecuted'
+  | 'RouteFailed'
 ;
 
 export declare const RouteStatus:

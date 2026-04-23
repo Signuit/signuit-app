@@ -366,6 +366,9 @@ importers:
       '@nexus-framework/orpc':
         specifier: workspace:*
         version: link:../../framework/orpc
+      '@nexus-framework/react':
+        specifier: workspace:*
+        version: link:../../framework/react
       '@nexus/api':
         specifier: workspace:*
         version: link:../../packages/api

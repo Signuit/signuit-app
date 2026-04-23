@@ -114,11 +114,11 @@ function RouteComponent() {
 										</TableCell>
 										<TableCell>
 											<Badge
-												variant={s.payload.status === "Pending" ? "secondary" : "default"}
+												variant={s.payload.status === "RoutePending" ? "secondary" : "default"}
 												className={
-													s.payload.status === "Pending"
+													s.payload.status === "RoutePending"
 														? "bg-yellow-500/10 text-yellow-600 border-yellow-200"
-														: s.payload.status === "Approved"
+														: s.payload.status === "RouteApproved"
 															? "bg-green-500/10 text-green-600 border-green-200"
 															: "bg-red-500/10 text-red-600 border-red-200"
 												}
@@ -127,7 +127,7 @@ function RouteComponent() {
 											</Badge>
 										</TableCell>
 										<TableCell className="text-right">
-											{s.payload.status === "Pending" && (
+											{s.payload.status === "RoutePending" && (
 												<div className="flex justify-end gap-2">
 													<Button
 														variant="outline"
@@ -147,7 +147,7 @@ function RouteComponent() {
 													</Button>
 												</div>
 											)}
-											{s.payload.status !== "Pending" && (
+											{s.payload.status !== "RoutePending" && (
 												<Button variant="ghost" size="sm" disabled>
 													Processed
 												</Button>

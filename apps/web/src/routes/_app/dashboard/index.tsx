@@ -110,7 +110,7 @@ function HoldingsSummaryCard() {
 
 function PendingSuggestionsCard() {
 	const { data: suggestions } = useSuggestions();
-	const pending = suggestions?.filter((s) => s.payload.status === "Pending");
+	const pending = suggestions?.filter((s) => s.payload.status === "RoutePending");
 
 	return (
 		<Card>

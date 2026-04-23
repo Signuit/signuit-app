@@ -9,11 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SandboxAuthRouteImport } from './routes/sandbox-auth'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppDashboardIndexRouteImport } from './routes/_app/dashboard/index'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
+import { Route as ApiNexusAuthSplatRouteImport } from './routes/api/nexus-auth/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppDashboardSuggestionsRouteImport } from './routes/_app/dashboard/suggestions'
 import { Route as AppDashboardPolicyRouteImport } from './routes/_app/dashboard/policy'
@@ -25,6 +27,11 @@ import { Route as AppDashboardUsersIndexRouteImport } from './routes/_app/dashbo
 import { Route as AppDashboardSettingsIndexRouteImport } from './routes/_app/dashboard/settings/index'
 import { Route as AppDashboardUsersSettingsRouteImport } from './routes/_app/dashboard/users/settings'
 
+const SandboxAuthRoute = SandboxAuthRouteImport.update({
+  id: '/sandbox-auth',
+  path: '/sandbox-auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -47,6 +54,11 @@ const AppDashboardIndexRoute = AppDashboardIndexRouteImport.update({
 const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
   id: '/api/rpc/$',
   path: '/api/rpc/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNexusAuthSplatRoute = ApiNexusAuthSplatRouteImport.update({
+  id: '/api/nexus-auth/$',
+  path: '/api/nexus-auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -106,6 +118,7 @@ const AppDashboardUsersSettingsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/sandbox-auth': typeof SandboxAuthRoute
   '/dashboard/audit': typeof AppDashboardAuditRoute
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/dashboard/generate': typeof AppDashboardGenerateRoute
@@ -113,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/policy': typeof AppDashboardPolicyRoute
   '/dashboard/suggestions': typeof AppDashboardSuggestionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/nexus-auth/$': typeof ApiNexusAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/dashboard/': typeof AppDashboardIndexRoute
   '/dashboard/users/settings': typeof AppDashboardUsersSettingsRoute
@@ -122,6 +136,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/sandbox-auth': typeof SandboxAuthRoute
   '/dashboard/audit': typeof AppDashboardAuditRoute
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/dashboard/generate': typeof AppDashboardGenerateRoute
@@ -129,6 +144,7 @@ export interface FileRoutesByTo {
   '/dashboard/policy': typeof AppDashboardPolicyRoute
   '/dashboard/suggestions': typeof AppDashboardSuggestionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/nexus-auth/$': typeof ApiNexusAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/dashboard': typeof AppDashboardIndexRoute
   '/dashboard/users/settings': typeof AppDashboardUsersSettingsRoute
@@ -140,6 +156,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/sandbox-auth': typeof SandboxAuthRoute
   '/_app/dashboard/audit': typeof AppDashboardAuditRoute
   '/_app/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/_app/dashboard/generate': typeof AppDashboardGenerateRoute
@@ -147,6 +164,7 @@ export interface FileRoutesById {
   '/_app/dashboard/policy': typeof AppDashboardPolicyRoute
   '/_app/dashboard/suggestions': typeof AppDashboardSuggestionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/nexus-auth/$': typeof ApiNexusAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/_app/dashboard/': typeof AppDashboardIndexRoute
   '/_app/dashboard/users/settings': typeof AppDashboardUsersSettingsRoute
@@ -158,6 +176,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/sandbox-auth'
     | '/dashboard/audit'
     | '/dashboard/components_lib'
     | '/dashboard/generate'
@@ -165,6 +184,7 @@ export interface FileRouteTypes {
     | '/dashboard/policy'
     | '/dashboard/suggestions'
     | '/api/auth/$'
+    | '/api/nexus-auth/$'
     | '/api/rpc/$'
     | '/dashboard/'
     | '/dashboard/users/settings'
@@ -174,6 +194,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/sandbox-auth'
     | '/dashboard/audit'
     | '/dashboard/components_lib'
     | '/dashboard/generate'
@@ -181,6 +202,7 @@ export interface FileRouteTypes {
     | '/dashboard/policy'
     | '/dashboard/suggestions'
     | '/api/auth/$'
+    | '/api/nexus-auth/$'
     | '/api/rpc/$'
     | '/dashboard'
     | '/dashboard/users/settings'
@@ -191,6 +213,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_app'
     | '/login'
+    | '/sandbox-auth'
     | '/_app/dashboard/audit'
     | '/_app/dashboard/components_lib'
     | '/_app/dashboard/generate'
@@ -198,6 +221,7 @@ export interface FileRouteTypes {
     | '/_app/dashboard/policy'
     | '/_app/dashboard/suggestions'
     | '/api/auth/$'
+    | '/api/nexus-auth/$'
     | '/api/rpc/$'
     | '/_app/dashboard/'
     | '/_app/dashboard/users/settings'
@@ -209,12 +233,21 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRouteRoute: typeof AppRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
+  SandboxAuthRoute: typeof SandboxAuthRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiNexusAuthSplatRoute: typeof ApiNexusAuthSplatRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sandbox-auth': {
+      id: '/sandbox-auth'
+      path: '/sandbox-auth'
+      fullPath: '/sandbox-auth'
+      preLoaderRoute: typeof SandboxAuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -248,6 +281,13 @@ declare module '@tanstack/react-router' {
       path: '/api/rpc/$'
       fullPath: '/api/rpc/$'
       preLoaderRoute: typeof ApiRpcSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/nexus-auth/$': {
+      id: '/api/nexus-auth/$'
+      path: '/api/nexus-auth/$'
+      fullPath: '/api/nexus-auth/$'
+      preLoaderRoute: typeof ApiNexusAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -357,7 +397,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRouteRoute: AppRouteRouteWithChildren,
   LoginRoute: LoginRoute,
+  SandboxAuthRoute: SandboxAuthRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiNexusAuthSplatRoute: ApiNexusAuthSplatRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
 }
 export const routeTree = rootRouteImport

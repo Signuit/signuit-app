@@ -7,15 +7,14 @@ import DA.Date
 
 test_collateral_routing : Script ()
 test_collateral_routing = script do
-  -- 1. Setup parties
   operator <- allocateParty "SignUIT"
   institution <- allocateParty "VantageCapital"
   counterparty <- allocateParty "PrimeBank"
-
+  
   let now = time (date 2026 Apr 22) 14 30 0
 
-  -- 2. Create CollateralAssetMetadata
-  usycMeta <- submit operator do
+  -- 1. Create CollateralAssetMetadata
+  submit operator do
     createCmd CollateralAssetMetadata with
       operator = operator
       assetSymbol = "USYC"
@@ -24,7 +23,7 @@ test_collateral_routing = script do
       eligible = True
       updatedAt = now
 
-  -- 3. Create CollateralPolicy
+  -- 2. Create CollateralPolicy
   policyCid <- submitMulti [operator, institution] [] do
     createCmd CollateralPolicy with
       operator = operator
@@ -40,9 +39,10 @@ test_collateral_routing = script do
       active = True
       createdAt = now
 
-  -- 4. Create CollateralHolding
-  holdingCid <- submit institution do
+  -- 3. Create CollateralHolding (institution-only signatory, operator as observer)
+  submit institution do
     createCmd CollateralHolding with
+      operator = operator
       holdingId = "HOLD-USYC-001"
       institution = institution
       asset = "USYC"
@@ -51,40 +51,42 @@ test_collateral_routing = script do
       haircut = 0.02
       expiry = None
 
-  -- 5. Trigger Margin Call
+  -- 4. Trigger Margin Call
   marginCallCid <- submit counterparty do
     createCmd MarginCall with
       callId = "MC-001"
+      operator = operator
       institution = institution
       counterparty = counterparty
       amountRequired = 500000.0
       currency = "USD"
       dueBy = time (date 2026 Apr 22) 17 0 0
-      status = Pending
+      status = RoutePending
       createdAt = now
 
-  -- 6. Create Routing Suggestion (Simulated backend result)
+  -- 5. Create Routing Suggestion (institution-only)
   suggestionCid <- submit institution do
     createCmd RoutingSuggestion with
       routeId = "ROUTE-001"
       institution = institution
+      operator = operator
       marginCallId = "MC-001"
       amountRequired = 500000.0
       suggestedAssets = ["USYC"]
-      suggestedAmounts = [510204.08] -- 500000 / 0.98
+      suggestedAmounts = [510204.08]
       estimatedOpportunityCost = 25.0
       opportunityCostBps = 15.0
       alternativeOptions = []
       expiryWarnings = []
       explanation = "Cheapest to deliver based on 4.5% yield"
-      status = Pending
+      status = RoutePending
       createdAt = now
 
-  -- 7. Approve Suggestion
+  -- 6. Approve Suggestion (institution-only decision)
   allocationCid <- submit institution do
-    exerciseCmd suggestionCid ApproveSuggestion
+    exerciseCmd suggestionCid ApproveSuggestion with approvedBy = institution
 
-  -- 8. Satisfy Margin Call
+  -- 7. Satisfy Margin Call
   submit counterparty do
     exerciseCmd marginCallCid SatisfyMarginCall
 

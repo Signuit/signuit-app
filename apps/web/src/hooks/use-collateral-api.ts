@@ -135,7 +135,7 @@ export function useStats() {
 	return {
 		totalHoldingsValue: holdings?.reduce((sum, h) => sum + parseFloat(h.payload.amount), 0) || 0,
 
-		pendingSuggestions: suggestions?.filter((s) => s.payload.status === "Pending").length || 0,
+		pendingSuggestions: suggestions?.filter((s) => s.payload.status === "RoutePending").length || 0,
 
 		totalAllocations: audit?.length || 0,
 

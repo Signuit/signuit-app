@@ -46,7 +46,7 @@ export const collateralRouter = {
 	}),
 
 	updatePolicy: ledgerProcedure.input(UpdatePolicySchema).handler(({ input, context }) => {
-		return context.ledger.CollateralPolicy.exercise(input.contractId, "UpdatePolicy", {
+		return context.ledger.CollateralPolicy.exercise(input.contractId, "UpdateCollateralPolicy", {
 			newRuleType: input.ruleType,
 			newPriorityList: input.priorityList,
 			newMinLtv: input.minLtv.toString(),
@@ -65,6 +65,7 @@ export const collateralRouter = {
 
 	createHolding: ledgerProcedure.input(CreateHoldingSchema).handler(({ input, context }) => {
 		return context.ledger.CollateralHolding.create({
+			operator: context.partyId, // SignUIT operator from session
 			holdingId: input.holdingId,
 			institution: context.partyId,
 			asset: input.asset,
@@ -150,6 +151,7 @@ export const collateralRouter = {
 			return context.ledger.RoutingSuggestion.create({
 				routeId: `ROUTE-${Date.now()}`,
 				institution: context.partyId,
+				operator: context.partyId, // TODO: Get actual operator from session
 				marginCallId: input.marginCallId,
 				amountRequired: input.amountRequired.toString(),
 				suggestedAssets: ctdResult.selectedAssets.map((a) => a.symbol),
@@ -159,10 +161,10 @@ export const collateralRouter = {
 					(ctdResult.totalOpportunityCost / input.amountRequired) *
 					10000
 				).toString(),
-				alternativeOptions: [], // Could be populated if engine supports it
+				alternativeOptions: [],
 				expiryWarnings: [],
 				explanation: ctdResult.explanation,
-				status: "Pending",
+				status: "RoutePending",
 				createdAt: new Date().toISOString(),
 			});
 		}),
@@ -170,11 +172,9 @@ export const collateralRouter = {
 	approveSuggestion: ledgerProcedure
 		.input(ApproveSuggestionSchema)
 		.handler(({ input, context }) => {
-			return context.ledger.RoutingSuggestion.exercise(
-				input.suggestionCid,
-				"ApproveSuggestion",
-				{},
-			);
+			return context.ledger.RoutingSuggestion.exercise(input.suggestionCid, "ApproveSuggestion", {
+				approvedBy: context.partyId,
+			});
 		}),
 
 	rejectSuggestion: ledgerProcedure.input(RejectSuggestionSchema).handler(({ input, context }) => {

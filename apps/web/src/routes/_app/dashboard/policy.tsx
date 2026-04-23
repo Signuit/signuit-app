@@ -146,7 +146,7 @@ function RouteComponent() {
 										>
 											<span className="font-medium">{rule._1}</span>
 											<div className="flex gap-1">
-												{rule._2.map((asset) => (
+												{rule._2.map((asset: string) => (
 													<Badge key={asset} variant="secondary" className="text-[10px]">
 														{asset}
 													</Badge>

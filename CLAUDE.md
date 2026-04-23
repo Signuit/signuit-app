@@ -104,3 +104,54 @@ bun --hot ./index.ts
 ```
 
 For more information, read the Bun API docs in `node_modules/bun-types/docs/**.mdx`.
+
+---
+
+## SignUIT CollateralRouter — Architecture
+
+### Core Principle
+> **"Operator as infrastructure, not gatekeeper"**
+
+### Multi-Party Model
+
+| Party | Role | Description |
+|-------|------|-------------|
+| **SignUIT** | Operator | Network orchestrator, infrastructure |
+| **VantageCapital** | Institution | Asset owner, routing decision-maker |
+| **PrimeBank** | Counterparty | Issues margin calls |
+
+### Ownership Model
+
+| Template | Signatory | Observer | Controller |
+|----------|----------|----------|------------|
+| `JoinRequest` | institution | operator | operator |
+| `ServiceAgreement` | institution + operator | — | — |
+| `CollateralPolicy` | **institution** | operator | institution |
+| `CollateralHolding` | **institution** | operator | institution |
+| `MarginCall` | counterparty | institution, operator | counterparty |
+| `RoutingSuggestion` | **institution** | operator | — |
+| `AllocationRecord` | **institution** | operator | institution |
+
+### Key Design Rules
+
+1. **Onboarding:** Institution applies → Operator accepts (self-service model)
+2. **Routing:** Institution-only approval. Operator observes but does NOT gate.
+3. **Auto-approve:** Disabled in MVP. Phase 2 only, for low-risk policy-bounded cases.
+4. **Co-signatures:** Minimize. Institution owns their own approvals.
+
+### Workflow
+
+```
+1. JoinRequest       → Institution submits
+2. ServiceAgreement → Operator accepts
+3. CollateralHolding→ Institution creates (operator observes)
+4. MarginCall       → Counterparty creates
+5. RoutingSuggestion→ Institution creates (operator observes)
+6. AllocationRecord→ Institution approves (sole decision)
+```
+
+### Relevant Files
+
+- `sandbox/daml/CollateralRouter.daml` — Smart contracts
+- `sandbox/daml/SeedData.daml` — Demo script
+- `apps/web/src/lib/nexus-types.ts` — TypeScript bindings

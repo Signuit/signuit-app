@@ -20,6 +20,7 @@ export * from "./plugins/canton-ledger";
 export * from "./plugins/pqs-database";
 export * from "./plugins/session-auth";
 export * from "./query/pqs-engine";
+export * from "./server/auth-handler";
 export * from "./types/client";
 
 // ─── createNexusServerClient (low-level plugin API) ──────────────────────────
