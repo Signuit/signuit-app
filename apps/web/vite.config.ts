@@ -16,4 +16,11 @@ export default defineConfig({
 		host: true,
 		strictPort: true,
 	},
+	ssr: {
+		external: [
+			"@daml.js/nexus-example-0.0.1",
+			"@daml.js/daml-prim-DA-Types-1.0.0",
+			"@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0",
+		],
+	},
 });

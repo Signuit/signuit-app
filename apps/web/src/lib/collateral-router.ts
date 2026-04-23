@@ -8,7 +8,7 @@ import {
 	RejectSuggestionSchema,
 	UpdatePolicySchema,
 } from "@nexus/api/schemas/collateral";
-import { ledgerProcedure } from "./api";
+import { ledgerProcedure } from "./procedures";
 
 /**
  * Collateral Router for SignUIT.
@@ -85,16 +85,16 @@ export const collateralRouter = {
 
 	/**
 	 * Generate CTD routing recommendation.
-	 * 
+	 *
 	 * Day 1 MVP: Creates a RoutingSuggestion that requires human approval.
 	 * The ops team must review and click "Approve" before execution.
-	 * 
+	 *
 	 * Flow:
 	 * 1. Fetch policy and holdings from Canton
 	 * 2. Run off-chain CTD algorithm (3-second calculation)
 	 * 3. Create RoutingSuggestion contract on Canton (recommendation)
 	 * 4. Wait for human to approve/reject
-	 * 
+	 *
 	 * Phase 2: When policy.autoApprove = true, approval can be automatic.
 	 */
 	generateSuggestion: ledgerProcedure

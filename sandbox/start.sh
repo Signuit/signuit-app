@@ -44,6 +44,7 @@ for i in $(seq 1 60); do
   fi
   sleep 1
 done
+  sleep 5
 
 # Upload DAR (suppress warnings, show only result)
 echo "Uploading $DAR..."
