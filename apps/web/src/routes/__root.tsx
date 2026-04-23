@@ -1,4 +1,6 @@
 import { Toaster } from "@nexus/ui/components/sonner";
+import { ThemeProvider } from "@nexus/ui/components/theme-provider";
+import { TooltipProvider } from "@nexus/ui/components/tooltip";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
@@ -6,9 +8,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import type { orpc } from "@/utils/orpc";
 
-import Header from "../components/header";
-
-import appCss from "../index.css?url";
+import "../index.css";
 export interface RouterAppContext {
 	orpc: typeof orpc;
 	queryClient: QueryClient;
@@ -28,12 +28,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 				title: "My App",
 			},
 		],
-		links: [
-			{
-				rel: "stylesheet",
-				href: appCss,
-			},
-		],
+		links: [],
 	}),
 
 	component: RootDocument,
@@ -41,19 +36,22 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootDocument() {
 	return (
-		<html lang="en" className="dark">
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<HeadContent />
 			</head>
 			<body>
-				<div className="grid h-svh grid-rows-[auto_1fr]">
-					<Header />
-					<Outlet />
-				</div>
-				<Toaster richColors />
-				<TanStackRouterDevtools position="bottom-left" />
-				<ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
-				<Scripts />
+				<ThemeProvider>
+					<TooltipProvider>
+						<div className="">
+							<Outlet />
+						</div>
+						<Toaster richColors />
+						<TanStackRouterDevtools position="bottom-right" />
+						<ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
+						<Scripts />
+					</TooltipProvider>
+				</ThemeProvider>
 			</body>
 		</html>
 	);
