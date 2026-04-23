@@ -25,7 +25,11 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "My App",
+				title: "SignUIT - Collateral Routing Recommendation Engine",
+			},
+			{
+				name: "description",
+				content: "SignUIT is a policy-based collateral routing recommendation engine on Canton Network, enabling institutional-grade efficiency with human-in-the-loop oversight.",
 			},
 		],
 		links: [],
