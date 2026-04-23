@@ -1,0 +1,92 @@
+module CollateralRouterTest where
+
+import Daml.Script
+import CollateralRouter
+import DA.Time
+import DA.Date
+
+test_collateral_routing : Script ()
+test_collateral_routing = script do
+  -- 1. Setup parties
+  operator <- allocateParty "SignUIT"
+  institution <- allocateParty "VantageCapital"
+  counterparty <- allocateParty "PrimeBank"
+
+  let now = time (date 2026 Apr 22) 14 30 0
+
+  -- 2. Create CollateralAssetMetadata
+  usycMeta <- submit operator do
+    createCmd CollateralAssetMetadata with
+      operator = operator
+      assetSymbol = "USYC"
+      currentYield = 0.045
+      haircut = 0.02
+      eligible = True
+      updatedAt = now
+
+  -- 3. Create CollateralPolicy
+  policyCid <- submitMulti [operator, institution] [] do
+    createCmd CollateralPolicy with
+      operator = operator
+      institution = institution
+      policyId = "CTD-POLICY-001"
+      ruleType = CTD
+      priorityList = ["USYC", "USDC"]
+      minLtv = 0.95
+      maxHaircut = 0.10
+      counterpartyRules = [("PrimeBank", ["USYC", "USDC"])]
+      autoApprove = False
+      notificationEmail = Some "ops@vantage.capital"
+      active = True
+      createdAt = now
+
+  -- 4. Create CollateralHolding
+  holdingCid <- submit institution do
+    createCmd CollateralHolding with
+      holdingId = "HOLD-USYC-001"
+      institution = institution
+      asset = "USYC"
+      amount = 1000000.0
+      yield = 0.045
+      haircut = 0.02
+      expiry = None
+
+  -- 5. Trigger Margin Call
+  marginCallCid <- submit counterparty do
+    createCmd MarginCall with
+      callId = "MC-001"
+      institution = institution
+      counterparty = counterparty
+      amountRequired = 500000.0
+      currency = "USD"
+      dueBy = time (date 2026 Apr 22) 17 0 0
+      status = Pending
+      createdAt = now
+
+  -- 6. Create Routing Suggestion (Simulated backend result)
+  suggestionCid <- submit institution do
+    createCmd RoutingSuggestion with
+      routeId = "ROUTE-001"
+      institution = institution
+      marginCallId = "MC-001"
+      amountRequired = 500000.0
+      suggestedAssets = ["USYC"]
+      suggestedAmounts = [510204.08] -- 500000 / 0.98
+      estimatedOpportunityCost = 25.0
+      opportunityCostBps = 15.0
+      alternativeOptions = []
+      expiryWarnings = []
+      explanation = "Cheapest to deliver based on 4.5% yield"
+      status = Pending
+      createdAt = now
+
+  -- 7. Approve Suggestion
+  allocationCid <- submit institution do
+    exerciseCmd suggestionCid ApproveSuggestion
+
+  -- 8. Satisfy Margin Call
+  submit counterparty do
+    exerciseCmd marginCallCid SatisfyMarginCall
+
+  debug "Collateral routing test completed successfully"
+  return ()

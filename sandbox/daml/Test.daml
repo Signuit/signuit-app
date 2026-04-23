@@ -1,19 +1,21 @@
 module Test where
 
 import Daml.Script
-import MultisigWallet
+import Iou
 
-test_simple : Script ()
-test_simple = script do
-  debug "TEST SIMPLE START"
+test_iou : Script ()
+test_iou = script do
+  debug "TEST IOUs START"
   alice <- allocateParty "Alice"
   bob <- allocateParty "Bob"
-  charlie <- allocateParty "Charlie"
-  walletCid <- submitMulti [alice, bob, charlie] [] do
-    createCmd MultisigWallet with
-      walletId  = "test-wallet"
-      owners    = [alice, bob, charlie]
-      threshold = 2
-      custodian = alice
-  debug "TEST SIMPLE END"
+  
+  iouCid <- submit alice do
+    createCmd Iou with
+      issuer = alice
+      owner = alice
+      amount = 100.00
+      currency = "USD"
+      observers = [bob]
+  
+  debug "TEST IOUs END"
   return ()
