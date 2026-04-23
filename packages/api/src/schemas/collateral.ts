@@ -30,6 +30,7 @@ export const GenerateSuggestionSchema = z.object({
 	amountRequired: z.number().positive(),
 	policyId: z.string().min(1),
 	durationDays: z.number().int().positive().optional(),
+	counterpartyName: z.string().optional(), // For counterparty-specific eligibility
 });
 
 export const ApproveSuggestionSchema = z.object({

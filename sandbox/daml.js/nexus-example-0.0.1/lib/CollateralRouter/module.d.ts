@@ -5,8 +5,8 @@
 import * as jtv from '@mojotech/json-type-validation';
 import * as damlTypes from '@daml/types';
 
-import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from 'daml.js/daml-prim-DA-Types-1.0.0';
-import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from 'daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
+import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from '@daml.js/daml-prim-DA-Types-1.0.0';
+import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from '@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
 
 export declare type UpdateHolding = {
   newAmount: damlTypes.Numeric;
@@ -92,7 +92,7 @@ export declare type AllocationRecord = {
   assetsSent: string[];
   amountsSent: damlTypes.Numeric[];
   ruleApplied: string;
-  ctdSavingsBps: damlTypes.Numeric;
+  opportunityCostBps: damlTypes.Numeric;
   approvedBy: damlTypes.Party;
   executedAt: damlTypes.Time;
   status: RouteStatus;
@@ -137,7 +137,7 @@ export declare type RoutingSuggestion = {
   amountRequired: damlTypes.Numeric;
   suggestedAssets: string[];
   suggestedAmounts: damlTypes.Numeric[];
-  ctdSavings: damlTypes.Numeric;
+  estimatedOpportunityCost: damlTypes.Numeric;
   opportunityCostBps: damlTypes.Numeric;
   alternativeOptions: RoutingOption[];
   expiryWarnings: string[];

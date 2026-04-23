@@ -1,4 +1,4 @@
-import { calculateCTD } from "@nexus/api/engines/ctd-engine";
+import { type CounterpartyRules, calculateCTD } from "@nexus/api/engines/ctd-engine";
 import {
 	ApproveSuggestionSchema,
 	CollateralQuerySchema,
@@ -28,7 +28,10 @@ export const collateralRouter = {
 			priorityList: input.priorityList,
 			minLtv: input.minLtv.toString(),
 			maxHaircut: input.maxHaircut.toString(),
-			counterpartyRules: input.counterpartyRules ?? [],
+			counterpartyRules: (input.counterpartyRules ?? []).map(([name, assets]) => ({
+				_1: name,
+				_2: assets,
+			})),
 			autoApprove: input.autoApprove,
 			notificationEmail: input.notificationEmail ?? null,
 			active: true,
@@ -48,7 +51,10 @@ export const collateralRouter = {
 			newPriorityList: input.priorityList,
 			newMinLtv: input.minLtv.toString(),
 			newMaxHaircut: input.maxHaircut.toString(),
-			newCounterpartyRules: input.counterpartyRules ?? [],
+			newCounterpartyRules: (input.counterpartyRules ?? []).map(([name, assets]) => ({
+				_1: name,
+				_2: assets,
+			})),
 			newAutoApprove: input.autoApprove,
 			newNotificationEmail: input.notificationEmail ?? null,
 			newActive: input.active,
@@ -96,7 +102,19 @@ export const collateralRouter = {
 			// 2. Fetch holdings
 			const holdings = await context.ledger.CollateralHolding.findMany({});
 
-			// 3. Run CTD calculation (off-chain)
+			// 3. Extract counterparty rules if specified
+			let counterpartyRules: CounterpartyRules | undefined;
+			if (input.counterpartyName && policy.counterpartyRules) {
+				const rule = policy.counterpartyRules.find((r) => r._1 === input.counterpartyName);
+				if (rule) {
+					counterpartyRules = {
+						counterpartyName: rule._1,
+						acceptableAssets: rule._2,
+					};
+				}
+			}
+
+			// 4. Run CTD calculation (off-chain)
 			const ctdResult = calculateCTD(
 				holdings.map((h) => ({
 					symbol: h.payload.asset,
@@ -111,13 +129,14 @@ export const collateralRouter = {
 				parseFloat(policy.minLtv),
 				parseFloat(policy.maxHaircut),
 				input.durationDays,
+				counterpartyRules,
 			);
 
 			if (ctdResult.selectedAssets.length === 0) {
 				throw new Error(ctdResult.explanation);
 			}
 
-			// 4. Create RoutingSuggestion contract on Canton
+			// 5. Create RoutingSuggestion contract on Canton
 			return context.ledger.RoutingSuggestion.create({
 				routeId: `ROUTE-${Date.now()}`,
 				institution: context.partyId,
@@ -125,7 +144,7 @@ export const collateralRouter = {
 				amountRequired: input.amountRequired.toString(),
 				suggestedAssets: ctdResult.selectedAssets.map((a) => a.symbol),
 				suggestedAmounts: ctdResult.selectedAssets.map((a) => a.amount.toString()),
-				ctdSavings: ctdResult.savingsVsUSDC.toString(),
+				estimatedOpportunityCost: ctdResult.totalOpportunityCost.toString(),
 				opportunityCostBps: (
 					(ctdResult.totalOpportunityCost / input.amountRequired) *
 					10000

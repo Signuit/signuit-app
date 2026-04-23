@@ -55,7 +55,7 @@ T+1 or T+2 settlement             →   Settlement triggered after approval
 
 | Rule | Description |
 |------|-------------|
-| **Cheapest-to-Deliver (CTD)** | Selects collateral with lowest opportunity cost |
+| **Cheapest-to-Deliver (CTD)** | Preserves yield by sending non-yielding assets first |
 | **Expiry-First** | Prioritizes collateral nearing maturity |
 | **Yield Maximizer** | Keeps highest-yielding assets deployed |
 
@@ -69,7 +69,7 @@ T+1 or T+2 settlement             →   Settlement triggered after approval
 5. RoutingSuggestion created on Canton
 6. User approves or rejects
 7. AllocationRecord created (immutable audit trail)
-8. Savings report: estimated CTD benefit logged
+8. Efficiency report: opportunity cost analysis logged
 ```
 
 ---
@@ -138,7 +138,7 @@ Navigate to `http://localhost:3001`:
 
 1. **Configure Policy**: Set priority order (USYC → UST → USDC)
 2. **Simulate Margin Call**: Trigger a $15M margin call
-3. **View Suggestion**: See CTD recommendation with savings
+3. **View Suggestion**: See CTD recommendation with opportunity cost analysis
 4. **Approve**: Click approve to execute
 5. **Audit**: View immutable record in dashboard
 
@@ -146,36 +146,75 @@ Navigate to `http://localhost:3001`:
 
 ## Demo Walkthrough
 
-### Scenario: $15M Margin Call (5 minutes)
+### Scenario: $15M Margin Call
+
+**Context:** VantageCapital receives a $15M margin call from PrimeBank at 3:47 PM ET. Required by 4:00 PM ET.
 
 ```
-Step 1 — Trigger Fires
-  Margin call #MC-4821 received: $15M required
+Step 1 — Margin Call Trigger
+  Margin call #MC-4821 received
+  Amount required: $15.0M USD
+  Deadline: 13 minutes
   
-Step 2 — CTD Calculation
-  Available holdings:
-    USYC:  $8.2M (yield: 4.5%, haircut: 2%)
-    UST:  $12.0M (yield: 4.2%, haircut: 5%)
-    USDC: $25.0M (yield: 0%, haircut: 0%)
+Step 2 — CTD Engine Analyzes Holdings
+  Available collateral:
+    • USDC:  $25.0M (yield: 0%, LTV: 100%, expires: never)
+    • UST:   $12.0M (yield: 4.2%, LTV: 95%, expires: 2027-06-15)
+    • USYC:  $8.2M (yield: 4.5%, LTV: 98%, expires: 2027-09-20)
     
-  CTD Result:
-    $8.2M USYC + $7.3M UST = $15.0M ✓
-    Savings vs USDC: $1,849/night
+  Opportunity cost calculation:
+    • USDC → $0.00/day (no yield to lose)
+    • UST  → $51.70/day (lost yield on $15M equivalent)
+    • USYC → $55.48/day (lost yield on $15M equivalent)
 
-Step 3 — User Approves
-  Click "Approve" on suggestion screen
-  Settlement executes on Canton
+Step 3 — CTD Recommendation
+  ✓ Selected: $15.0M USDC
+  
+  Why USDC?
+    ✓ Zero opportunity cost (no yield sacrificed)
+    ✓ 100% LTV (no over-collateralization needed)
+    ✓ Instant settlement, maximum liquidity
+    ✓ Preserves $20.2M of yield-bearing assets
+    ✓ Keeps USYC + UST earning ~$2,300/day combined
+    
+  Value delivered:
+    • Decision time: 3 seconds (vs 30-minute manual process)
+    • Policy compliance: automatic eligibility checking
+    • Audit trail: immutable record on Canton
+    • Capital efficiency: yield-bearing assets preserved
 
-Step 4 — Audit Trail
-  AllocationRecord #88341 created
-  Chain: policy used → assets chosen → timestamp
+Step 4 — User Approves
+  Ops team reviews suggestion
+  Clicks "Approve" at 3:48 PM ET
+  Settlement initiated on Canton ledger
+
+Step 5 — Audit Trail Created
+  AllocationRecord created on-chain
+  Contract ID: #00c4f1e8b3a2...
+  Traceable: policy used → assets selected → approver → timestamp
+  Immutable: cannot be altered or deleted
+```
+
+**What if USDC wasn't available?**
+
+If USDC holdings were insufficient:
+```
+Scenario: $30M margin call, but only $25M USDC available
+
+CTD Result:
+  $25.0M USDC (exhaust non-yielding first)
+  + $5.26M UST (next cheapest: 4.2% yield, 95% LTV)
+  = $30.0M ✓
+
+This proves the algorithm is intelligent, not just "always USDC."
+It falls back to yield-bearing assets only when necessary.
 ```
 
 ### User Journey Screens
 
 | Screen | Purpose |
 |--------|----------|
-| **Dashboard** | Portfolio overview, today's savings, active routes |
+| **Dashboard** | Portfolio overview, today's efficiency, active routes |
 | **Policy** | Configure CTD rules, priority order, constraints |
 | **Routing** | View pending suggestions, approve/reject |
 | **Audit** | Searchable record of all executed routes |
@@ -214,7 +253,7 @@ template RoutingSuggestion
     amountRequired : Decimal
     suggestedAsset : Text
     suggestedAmount: Decimal
-    ctdSavings     : Decimal
+    estimatedOpportunityCost : Decimal
     status         : Text
   where
     signatory institution
@@ -230,7 +269,7 @@ template AllocationRecord
     assetSent      : Text
     amountSent     : Decimal
     ruleApplied    : Text
-    ctdSavingsBps  : Decimal
+    opportunityCostBps : Decimal
     approvedBy     : Party
     status         : Text
   where

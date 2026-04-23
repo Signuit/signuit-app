@@ -139,7 +139,7 @@ template RoutingSuggestion
     amountRequired   : Decimal     -- Amount needed
     suggestedAssets  : [Text]      -- Asset symbols in priority order
     suggestedAmounts : [Decimal]   -- Amounts of each asset
-    ctdSavings       : Decimal     -- Estimated savings vs USDC baseline
+    estimatedOpportunityCost : Decimal  -- Opportunity cost over duration (in USD)
     opportunityCostBps : Decimal    -- vs USDC baseline
     alternativeOptions : [RoutingOption] -- Alternative selections
     expiryWarnings   : [Text]      -- Assets expiring soon
@@ -163,8 +163,8 @@ template RoutingSuggestion
           marginCallId   = marginCallId
           assetsSent     = suggestedAssets
           amountsSent    = suggestedAmounts
-          ruleApplied    = show status
-          ctdSavingsBps  = ctdSavings
+          ruleApplied    = "CTD"
+          opportunityCostBps = (estimatedOpportunityCost / amountRequired) * 10000.0
           approvedBy     = institution
           executedAt     = now
           status         = Executed
@@ -186,7 +186,7 @@ template AllocationRecord
     assetsSent     : [Text]       -- Assets delivered
     amountsSent    : [Decimal]    -- Amounts of each asset
     ruleApplied    : Text        -- Rule type used (CTD, ExpiryFirst, etc)
-    ctdSavingsBps  : Decimal    -- Savings basis points vs baseline
+    opportunityCostBps : Decimal   -- Opportunity cost in basis points
     approvedBy     : Party       -- Who approved
     executedAt     : Time        -- Execution timestamp
     status         : RouteStatus  -- Executed or Failed

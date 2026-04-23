@@ -7,6 +7,11 @@ export interface Asset {
 	expiry?: string;
 }
 
+export interface CounterpartyRules {
+	counterpartyName: string;
+	acceptableAssets: string[];
+}
+
 export interface CTDSelection {
 	symbol: string;
 	amount: number;
@@ -16,7 +21,6 @@ export interface CTDSelection {
 export interface CTDResult {
 	selectedAssets: CTDSelection[];
 	totalOpportunityCost: number;
-	savingsVsUSDC: number;
 	explanation: string;
 	alternatives: CTDResult[];
 }
@@ -24,9 +28,32 @@ export interface CTDResult {
 /**
  * Cheapest-to-Deliver Algorithm
  *
- * Per business plan: "selects collateral with lowest opportunity cost"
- * Formula: opportunity_cost = (yield × amount) / (1 - haircut)
- * (Simplified duration to 1 year for comparison purposes, or can be passed as param)
+ * STRATEGY: Yield Preservation
+ *
+ * How it works:
+ * 1. Calculate opportunity cost for each asset = (yield × duration) / LTV
+ * 2. Sort ASCENDING (lowest cost first)
+ * 3. Select assets starting from lowest opportunity cost
+ *
+ * Result:
+ * - Non-yielding assets (USDC at 0% yield) have $0 opportunity cost → sent first
+ * - Yield-bearing assets (USYC, UST) are preserved to continue earning income
+ * - Institutions maximize capital efficiency by keeping high-yield assets deployed
+ *
+ * Example:
+ * - USDC (0% yield) → cost = $0 → selected first ✓
+ * - UST (4.2% yield) → cost = ~$52/day on $15M → fallback
+ * - USYC (4.5% yield) → cost = ~$55/day on $15M → last resort
+ *
+ * This is the economically rational default for margin call responses.
+ *
+ * @param holdings - Available collateral assets
+ * @param amountRequired - Collateral amount needed
+ * @param priorityList - Institutional preference order (tie-breaker only)
+ * @param minLtv - Minimum loan-to-value ratio (e.g., 0.90 = 90%)
+ * @param maxHaircut - Maximum acceptable haircut (e.g., 0.10 = 10%)
+ * @param durationDays - Time horizon for opportunity cost calculation (default: 30)
+ * @param counterpartyRules - Optional: filter by counterparty eligibility
  */
 export function calculateCTD(
 	holdings: Asset[],
@@ -35,12 +62,25 @@ export function calculateCTD(
 	minLtv: number,
 	maxHaircut: number,
 	durationDays = 30, // Default to 30 day duration for margin call
+	counterpartyRules?: CounterpartyRules, // Optional: filter by counterparty eligibility
 ): CTDResult {
 	const durationFactor = durationDays / 365;
 
-	// 1. Filter and score assets
+	// 1. Filter by general eligibility and counterparty-specific rules
 	const eligibleAssets = holdings
-		.filter((h) => h.eligible && h.haircut <= maxHaircut)
+		.filter((h) => {
+			// Basic eligibility checks
+			if (!h.eligible || h.haircut > maxHaircut) return false;
+
+			// Counterparty-specific eligibility
+			if (counterpartyRules) {
+				if (!counterpartyRules.acceptableAssets.includes(h.symbol)) {
+					return false;
+				}
+			}
+
+			return true;
+		})
 		.map((h) => {
 			const ltv = 1 - h.haircut;
 			if (ltv < minLtv) return null;
@@ -100,24 +140,15 @@ export function calculateCTD(
 		return {
 			selectedAssets: [],
 			totalOpportunityCost: 0,
-			savingsVsUSDC: 0,
 			explanation: "Insufficient eligible collateral to satisfy margin call.",
 			alternatives: [],
 		};
 	}
 
-	// 4. Calculate savings vs USDC baseline
-	// USDC has 0 yield, so cost is 0.
-	// Savings = (Cost of USDC - Cost of Selected) ... wait, if USDC is 0, savings will be negative?
-	// Actually, usually "savings" in these demos implies that the "Yield Maximizer" rule
-	// might be the one generating savings by using assets that have the lowest cost.
-	// Let's just calculate the difference.
-	const savingsVsUSDC = 0 - totalOpportunityCost;
-
+	// 4. Return result with total opportunity cost
 	return {
 		selectedAssets,
 		totalOpportunityCost,
-		savingsVsUSDC,
 		explanation: `Selected ${selectedAssets.length} asset(s) with total opportunity cost of ${totalOpportunityCost.toFixed(2)} USD over ${durationDays} days.`,
 		alternatives: [], // Could be populated with next best combinations
 	};
