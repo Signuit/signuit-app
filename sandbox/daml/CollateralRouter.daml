@@ -87,7 +87,7 @@ template CollateralPolicy
     minLtv            : Decimal      -- Minimum LTV (e.g. 0.95)
     maxHaircut        : Decimal      -- Maximum haircut (e.g. 0.10)
     counterpartyRules : [(Text, [Text])] -- Map counterparty -> eligible assets
-    autoApprove       : Bool         -- Enable auto-approval
+    autoApprove       : Bool         -- Enable auto-approval (Phase 2 feature, False for Day 1 MVP)
     notificationEmail : Optional Text -- Alert on suggestions
     active            : Bool        -- Is policy active
     createdAt         : Time        -- Creation timestamp
@@ -128,8 +128,14 @@ template CollateralPolicy
       do return ()
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- RoutingSuggestion - Pending routing recommendation
+-- RoutingSuggestion - Pending routing recommendation (requires human approval)
 -- ─────────────────────────────────────────────────────────────────────────────
+
+-- Day 1 MVP: This contract represents a RECOMMENDATION that must be approved
+-- by a human before execution. The ops team reviews and exercises either
+-- ApproveSuggestion or RejectSuggestion choice.
+--
+-- Phase 2: When autoApprove=True in policy, this step can be automatic.
 
 template RoutingSuggestion
   with

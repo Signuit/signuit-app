@@ -2,7 +2,26 @@
 
 **"Your collateral, always where it needs to be."**
 
-A collateral operating system built on Canton Network that allows institutions to define their collateral policies once and automate eligible collateral routing with an immutable audit trail.
+A **policy-based collateral routing recommendation engine** built on Canton Network. 
+
+SignUIT computes the optimal eligible collateral in seconds, records recommendations 
+on-ledger, and requires human approval for execution (Day 1 MVP). Phase 2 enables 
+optional auto-execution with full audit trail.
+
+---
+
+## At a Glance
+
+**Day 1 MVP:**
+- 🧠 **Automated decisioning** — CTD algorithm evaluates holdings in 3 seconds
+- 🛡️ **Human approval required** — Ops team reviews before execution
+- 📜 **Immutable audit trail** — Every decision recorded on Canton
+- 🔒 **Privacy-preserving** — Canton's sub-transaction privacy model
+
+**Phase 2 Roadmap:**
+- 🚀 **Optional auto-execution** — Enable with `autoApprove = true`
+- 🌙 **Weekend/after-hours automation** — No human intervention needed
+- 📊 **Advanced analytics** — AI-powered optimization
 
 ---
 
@@ -39,16 +58,22 @@ In many institutions:
 
 ### Core Concept
 
-```
-Traditional Collateral Management:    SignUIT CollateralRouter:
+**Day 1 MVP: Recommendation Engine with Human Approval**
 
-Margin call received              →   Smart contract trigger fires
-Treasury team opens Excel         →   Rule engine evaluates policy
-Manual asset selection            →   Cheapest-to-deliver computed
-Phone call to counterparty        →   Suggestion presented with CTD rationale
-Human approval required          →   Human approves (Day 1)
-T+1 or T+2 settlement             →   Settlement triggered after approval
-       →   Phase 2: fully automated execution
+```
+Traditional (Manual):                  SignUIT CollateralRouter (Day 1):
+
+Margin call received               →   Smart contract trigger fires
+Treasury team opens Excel (30min)  →   CTD engine computes optimal (3 sec) ⚡
+Manual asset selection             →   Recommendation recorded on Canton 📜
+Compliance checking (manual)       →   Policy evaluation (automatic) ✓
+Human approval required            →   Human reviews and approves 🛡️
+Phone call / email confirmation    →   Settlement triggered after approval
+T+1 or T+2 settlement              →   On-ledger execution
+
+                                       Phase 2 (Roadmap):
+                                   →   Optional auto-execution (autoApprove=true)
+                                   →   Weekend/after-hours automation
 ```
 
 ### Three Rule Types (MVP)
@@ -61,15 +86,20 @@ T+1 or T+2 settlement             →   Settlement triggered after approval
 
 ### Transaction Lifecycle
 
+**Day 1 MVP Flow:**
+
 ```
 1. Trigger fires (margin call / schedule / manual)
-2. Rule engine reads current policy
+2. Rule engine reads current policy from Canton
 3. Holdings queried from Canton ledger
-4. CTD algorithm selects optimal collateral
-5. RoutingSuggestion created on Canton
-6. User approves or rejects
-7. AllocationRecord created (immutable audit trail)
-8. Efficiency report: opportunity cost analysis logged
+4. CTD algorithm computes optimal collateral (3 seconds) ⚡
+5. **RoutingSuggestion** created on Canton (recommendation recorded)
+6. 🚨 **HUMAN REVIEWS AND APPROVES** (or rejects) 🛡️
+7. **AllocationRecord** created (immutable audit trail)
+8. Opportunity cost analysis logged on-chain
+
+**Phase 2 Enhancement:**
+Step 6 becomes optional when `autoApprove = true` in CollateralPolicy
 ```
 
 ---
@@ -178,10 +208,11 @@ Step 3 — CTD Recommendation
     ✓ Keeps USYC + UST earning ~$2,300/day combined
     
   Value delivered:
-    • Decision time: 3 seconds (vs 30-minute manual process)
-    • Policy compliance: automatic eligibility checking
-    • Audit trail: immutable record on Canton
-    • Capital efficiency: yield-bearing assets preserved
+    • ⚡ Decision speed: 3 seconds vs 30-minute manual (600x faster)
+    • 🛡️ Human oversight: Ops team reviews before execution (risk management)
+    • ✓ Policy compliance: Automatic eligibility checking (regulatory comfort)
+    • 📜 Audit trail: Immutable record on Canton (cannot be altered)
+    • 💰 Capital efficiency: Yield-bearing assets preserved (~$2,300/day)
 
 Step 4 — User Approves
   Ops team reviews suggestion
@@ -346,23 +377,45 @@ cd apps/web && pnpm dev
 
 ## MVP Scope (HackCanton)
 
-### What's Included ✅
+### ✅ Day 1 MVP (Included)
 
-- [x] Policy configuration (priority order, LTV, haircut)
-- [x] CTD calculation engine
-- [x] Routing suggestion workflow
-- [x] Approval/rejection UI
-- [x] Audit trail dashboard
+**Core Functionality:**
+- [x] Policy configuration (priority order, LTV, haircut, counterparty rules)
+- [x] CTD calculation engine (3-second recommendations)
+- [x] **Routing recommendation workflow with human approval**
+- [x] Approval/rejection UI (ops team reviews suggestions)
+- [x] Immutable audit trail dashboard
 - [x] Canton testnet deployment
+- [x] `autoApprove: Bool` field in Daml (prepared for Phase 2)
 
-### What's NOT Included 🚫
+**Technical Stack:**
+- [x] Daml smart contracts on Canton
+- [x] Nexus Framework (type-safe ledger integration)
+- [x] TanStack Router + React 19
+- [x] Counterparty eligibility filtering
+- [x] Opportunity cost calculation (yield preservation)
 
-- [ ] Weekend automation
+### 🚀 Phase 2 Roadmap (Not in MVP)
+
+**Automation Enhancements:**
+- [ ] **Optional auto-execution** (autoApprove = true)
+- [ ] Weekend/after-hours automation without human oversight
+- [ ] Configurable auto-approve rules (e.g., "auto-approve if USDC-only")
+
+**Advanced Features:**
 - [ ] Yield Maximizer rules
-- [ ] Cross-border substitution
+- [ ] Expiry-First optimization
+- [ ] Cross-border collateral substitution
 - [ ] Live Chainlink oracle feeds
 - [ ] Multi-counterparty routing
-- [ ] Real payment execution
+- [ ] Real payment execution integration
+
+### 🚫 Explicitly Out of Scope
+
+- [ ] Fully autonomous operation (always requires policy setup)
+- [ ] Predictive margin call forecasting
+- [ ] Collateral borrowing/lending marketplace
+- [ ] Integration with legacy settlement systems
 
 ---
 
@@ -370,15 +423,56 @@ cd apps/web && pnpm dev
 
 **SignUIT CollateralRouter** is being developed for HackCanton Season #1.
 
-**Problem Statement:** 
+### Problem Statement
+
+**Current State:** 
 - 70% of firms report collateral delivery challenges
+- Manual decisioning takes 30+ minutes per margin call
 - Operational costs represent majority of trade cost  
 - No Canton-native collateral routing engine exists today
 
-**Solution:**
-- Policy suggestion engine with human approval (Day 1)
-- Automated execution opt-in (Phase 2)
-- Usage-based pricing
+**Pain Points:**
+- Excel-based asset selection prone to errors
+- No automated policy compliance checking
+- Lack of immutable audit trail for regulatory reporting
+- After-hours margin calls require human coordination
+
+### Solution Architecture
+
+**Day 1 MVP: Recommendation Engine**
+- **Automated decisioning:** CTD algorithm computes optimal collateral (3 seconds)
+- **Human approval required:** Ops team reviews before execution (regulatory comfort)
+- **Immutable audit trail:** Every decision recorded on Canton (compliance-ready)
+- **Privacy-preserving:** Sub-transaction privacy via Canton Network
+
+**Value Proposition (Day 1):**
+- 600x faster decision speed (3 sec vs 30 min)
+- Zero errors in policy compliance checking
+- Complete audit trail for regulators
+- Yield preservation via intelligent asset selection
+
+**Phase 2 Roadmap: Optional Automation**
+- **Opt-in auto-execution:** Institutions enable `autoApprove = true` when comfortable
+- **Selective automation:** e.g., "auto-approve USDC-only calls under $10M"
+- **Weekend/after-hours:** No human intervention for low-risk scenarios
+- **Full audit trail maintained:** Regardless of automation mode
+
+### Business Model
+
+**Pricing:**
+- Usage-based: Fee per routing recommendation generated
+- Enterprise tier: Auto-execution + advanced analytics
+- Volume discounts for high-frequency users
+
+**Target Customers:**
+- Large asset managers with daily margin calls
+- Prime brokers managing multi-counterparty relationships
+- Clearinghouses coordinating cross-institutional settlements
+
+**Go-to-Market:**
+- Launch: HackCanton demo (manual approval MVP)
+- Q3 2026: Phase 2 auto-execution beta
+- Q4 2026: General availability on Canton mainnet
 
 ---
 
