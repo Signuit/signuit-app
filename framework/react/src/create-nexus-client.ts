@@ -355,10 +355,16 @@ export async function createNexusClient<
 	);
 	const clientPlugins = options.plugins.filter((p): p is NexusClientPlugin => "getActions" in p);
 
+	// Auto-detect authBasePath from authPlugin if present
+	const authBasePath = options.plugins
+		.filter((p): p is NexusClientPlugin & { $authBasePath: string } => "$authBasePath" in p)
+		.at(0)?.$authBasePath;
+
 	const coreClient = await createNexus({
 		ledgerApiUrl: options.baseUrl,
 		apiPathPrefix: options.apiPathPrefix,
 		timeoutMs: options.timeoutMs,
+		authBasePath,
 		plugins: [
 			...serverPlugins,
 			{

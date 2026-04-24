@@ -48,6 +48,14 @@ export interface SandboxAuthOptions {
 export interface SandboxAuthPlugin extends NexusPlugin {
 	/** Get an administrative token for sandbox provisioning operations. NOT for production use. */
 	getAdminToken(): Promise<string>;
+	/**
+	 * Create a per-user token for the given userId and optional partyId.
+	 * Used by the auth handler to issue user-specific JWTs on login.
+	 * NOT for production use.
+	 */
+	createTokenForUser(userId: string, partyId?: string): Promise<string>;
+	/** Expose the sandbox secret for use in auth handler provisioning */
+	readonly secret: string;
 }
 
 // ─── sandboxAuth ──────────────────────────────────────────────────────────────
@@ -105,6 +113,17 @@ export function sandboxAuth(
 			getCachedToken: () => manager.getCachedToken(),
 		},
 		getAdminToken: () => manager.getAdminToken(),
+		/**
+		 * Create a one-off token for a specific user — used by the auth handler
+		 * when a user logs in so each session gets its own JWT.
+		 */
+		createTokenForUser: (userId: string, partyId?: string) =>
+			new JwtManager(
+				{ type: "sandbox", userId, secret: options.secret, partyId },
+				undefined,
+			).getToken(),
+		/** Expose secret so auth-handler can provision users without env lookup */
+		secret: options.secret,
 		setRefreshDispatcher: (cb: (t: string) => void) => {
 			dispatcher = cb;
 		},

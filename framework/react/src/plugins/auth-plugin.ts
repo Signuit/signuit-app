@@ -6,8 +6,13 @@
  * - useLogout() - Clear session
  * - useSession() - Get current session info
  * 
- * Works with the server-side auth handler created by `createAuthHandler()`.
+ * Also exports standalone async functions for use outside React components:
+ * - login(userId, basePath?) - Login without hooks
+ * - logout(basePath?)        - Logout without hooks
+ * - getSession(basePath?)    - Get session without hooks
  * 
+ * Works with the server-side auth handler created by `createAuthHandler()`.
+ *
  * @example
  * ```typescript
  * // lib/nexus-client.ts
@@ -19,13 +24,13 @@
  *   plugins: [authPlugin({ basePath: "/api/auth" })],
  * });
  * 
- * // components/LoginForm.tsx
+ * // components/LoginForm.tsx (hook usage)
  * const login = nexus.auth.useLogin();
  * login.mutate({ userId: "alice" });
  * 
- * // components/UserMenu.tsx
- * const session = nexus.auth.useSession();
- * const logout = nexus.auth.useLogout();
+ * // lib/auth-client.ts (standalone usage)
+ * import { login } from "@nexus-framework/react/plugins";
+ * await login("alice", "/api/nexus-auth");
  * ```
  */
 
@@ -173,10 +178,11 @@ const authKeys = {
  */
 export function authPlugin(config: AuthPluginConfig = {}): NexusClientPlugin<{
 	auth: AuthActions;
-}> {
+}> & { $authBasePath: string } {
 	const basePath = config.basePath || "/api/auth";
 
 	return {
+		$authBasePath: basePath,
 		id: "auth-client",
 
 		getActions: () => ({
@@ -272,3 +278,6 @@ export function authPlugin(config: AuthPluginConfig = {}): NexusClientPlugin<{
 		}),
 	};
 }
+
+// ─── Standalone async functions — re-exported from core (no React dependency) ─
+export { nexusGetSession, nexusLogin, nexusLogout } from "@nexus-framework/core";

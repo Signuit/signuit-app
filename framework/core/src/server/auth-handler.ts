@@ -245,8 +245,10 @@ async function handleSandboxLogin(
 			secret: sandboxConfig.secret,
 		});
 
-		// 2. Generate JWT token for this user
-		const token = await config.nexusServer.client.getToken();
+		// 2. Generate a per-user JWT token (not the global static token)
+		const token = sandboxConfig.createTokenForUser
+			? await sandboxConfig.createTokenForUser(userId, partyId)
+			: await config.nexusServer.client.getToken();
 
 		// 3. Create encrypted session cookie
 		const cookieValue = await config.sessionManager.createSessionCookie({
@@ -358,12 +360,12 @@ function detectAuthMode(nexusServer: AuthHandlerConfig["nexusServer"]): string {
 
 function extractSandboxConfig(
 	nexusServer: AuthHandlerConfig["nexusServer"],
-): { ledgerApiUrl: string; secret: string } | null {
+): { ledgerApiUrl: string; secret: string; createTokenForUser?: (userId: string, partyId?: string) => Promise<string> } | null {
 	try {
 		// Get ledgerApiUrl from client config
 		const ledgerApiUrl = nexusServer.client.config.ledgerApiUrl;
 
-		// Extract sandbox secret from auth plugin (follows sandbox-auth.ts pattern)
+		// Extract sandbox secret from auth plugin
 		const client = nexusServer.client as any;
 		const authPlugin = client._authPlugin;
 
@@ -371,12 +373,16 @@ function extractSandboxConfig(
 			return null;
 		}
 
-		// The sandbox secret is stored in the JwtManager config
-		// We need to get it from the plugin's internal state
-		// For now, we'll require it to be passed explicitly via environment
-		const secret = process.env.SANDBOX_SECRET ?? "secret";
+		// Prefer secret exposed directly on the plugin, fall back to env
+		const secret: string = authPlugin.secret ?? process.env.SANDBOX_SECRET ?? "secret";
 
-		return { ledgerApiUrl, secret };
+		// Expose per-user token creation if the plugin supports it
+		const createTokenForUser = authPlugin.createTokenForUser
+			? (userId: string, partyId?: string) =>
+				(authPlugin.createTokenForUser as (u: string, p?: string) => Promise<string>)(userId, partyId)
+			: undefined;
+
+		return { ledgerApiUrl, secret, createTokenForUser };
 	} catch {
 		return null;
 	}

@@ -419,11 +419,14 @@ export class NexusLedgerError extends NexusError {
 	}
 }
 
-// ─── Nexus Client & Config ───────────────────────────────────────────────────
-
 import type { PartyIdResolver } from "../auth/party-id-resolver";
 import type { SessionManager } from "../auth/session-manager";
 import type { CantonClient } from "../client/canton-client";
+import type {
+	NexusLoginResponse,
+	NexusLogoutResponse,
+	NexusSessionResponse,
+} from "../client/auth-client";
 import type { CommandSubmitter } from "../ledger/command-submitter";
 import type { ContractQuery } from "../ledger/contract-query";
 import type { InterfaceQuery } from "../ledger/interface-query";
@@ -451,6 +454,39 @@ export interface NexusClient {
 		partyId: PartyIdResolver;
 		/** Only present when a SessionManager is explicitly configured (e.g. Next.js server). */
 		session?: SessionManager;
+		/**
+		 * Establish a Canton nexus_session for the given userId.
+		 * Provisions the Canton party if needed (sandbox mode).
+		 *
+		 * @param userId  - Canton user ID, e.g. "VantageCapital"
+		 * @param basePath - Auth handler base path (default: "/api/auth")
+		 *
+		 * @example
+		 * ```ts
+		 * await nexus.auth.login("VantageCapital", "/api/nexus-auth");
+		 * ```
+		 */
+		login: (userId: string, basePath?: string) => Promise<NexusLoginResponse>;
+		/**
+		 * Destroy the current Canton nexus_session.
+		 *
+		 * @example
+		 * ```ts
+		 * await nexus.auth.logout("/api/nexus-auth");
+		 * ```
+		 */
+		logout: (basePath?: string) => Promise<NexusLogoutResponse>;
+		/**
+		 * Fetch the current Canton session.
+		 * Returns `{ authenticated: false }` when no session exists — never throws.
+		 *
+		 * @example
+		 * ```ts
+		 * const session = await nexus.auth.getSession("/api/nexus-auth");
+		 * if (session.authenticated) console.log(session.partyId);
+		 * ```
+		 */
+		getSession: (basePath?: string) => Promise<NexusSessionResponse>;
 	};
 	ledger: {
 		contracts: ContractQuery;
@@ -458,14 +494,7 @@ export interface NexusClient {
 		commands: CommandSubmitter;
 		identity: LedgerIdentity;
 	};
-	/**
-	 * Simplified query interface using Template-based inference.
-	 * Returns all active contracts matching the template.
-	 */
 	query: ContractQuery["query"];
-	/**
-	 * Simplified choice execution interface using Template/Choice-based inference.
-	 */
 	exercise: CommandSubmitter["exercise"];
 	getToken: () => Promise<string>;
 	getCachedToken: () => string | null;

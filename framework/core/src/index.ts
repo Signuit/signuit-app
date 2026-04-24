@@ -1,5 +1,6 @@
 import { PartyIdResolver } from "./auth/party-id-resolver";
 import { CantonClient } from "./client/canton-client";
+import { nexusGetSession, nexusLogin, nexusLogout } from "./client/auth-client";
 import { CommandSubmitter } from "./ledger/command-submitter";
 import { ContractQuery } from "./ledger/contract-query";
 import { InterfaceQuery } from "./ledger/interface-query";
@@ -18,6 +19,14 @@ export {
 } from "./auth/plugins/sandbox-auth";
 export { generateEncryptionKey, SessionManager } from "./auth/session-manager";
 export { CantonClient } from "./client/canton-client";
+export {
+	nexusGetSession,
+	nexusLogin,
+	nexusLogout,
+	type NexusLoginResponse,
+	type NexusLogoutResponse,
+	type NexusSessionResponse,
+} from "./client/auth-client";
 export { DEFAULT_PAGE_SIZE, DEFAULT_TIMEOUT_MS, DEFAULT_WS_PING_INTERVAL_MS } from "./config";
 export { CommandSubmitter } from "./ledger/command-submitter";
 export { ContractQuery } from "./ledger/contract-query";
@@ -89,6 +98,8 @@ export async function createNexus<
 	ledgerApiUrl: string;
 	apiPathPrefix?: string;
 	timeoutMs?: number;
+	/** Base path for the Canton auth handler. Used as default for nexus.auth.login/logout/getSession. */
+	authBasePath?: string;
 	plugins: TPlugins;
 }): Promise<NexusClient & InferNexusClientPlugins<TPlugins>> {
 	const authPlugin = options.plugins.find((p) => p.auth);
@@ -130,6 +141,9 @@ export async function createNexus<
 		http,
 		auth: {
 			partyId: new PartyIdResolver(http),
+			login: (userId, basePath) => nexusLogin(userId, basePath ?? options.authBasePath),
+			logout: (basePath) => nexusLogout(basePath ?? options.authBasePath),
+			getSession: (basePath) => nexusGetSession(basePath ?? options.authBasePath),
 		},
 		ledger: {
 			contracts,
