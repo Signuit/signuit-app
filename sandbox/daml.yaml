@@ -14,3 +14,4 @@ script-options:
 codegen:
   js:
     output-directory: daml.js
+    scope: "@daml.js"

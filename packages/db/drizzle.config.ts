@@ -1,8 +1,10 @@
 import dotenv from "dotenv";
 import { defineConfig } from "drizzle-kit";
 
+import path from "node:path";
+
 dotenv.config({
-	path: "../../apps/web/.env",
+	path: path.resolve(process.cwd(), "../../apps/web/.env"),
 });
 
 export default defineConfig({
@@ -10,6 +12,6 @@ export default defineConfig({
 	out: "./src/migrations",
 	dialect: "sqlite",
 	dbCredentials: {
-		url: process.env.DATABASE_URL || "./local.db",
+		url: process.env.DATABASE_URL || "",
 	},
 });
