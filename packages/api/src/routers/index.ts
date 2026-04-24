@@ -24,6 +24,10 @@ import { protectedProcedure, publicProcedure } from "../procedures";
 export const baseAppRouter = {
 	healthCheck: publicProcedure.input(z.void()).handler(() => "OK" as const),
 
+	getSession: protectedProcedure.input(z.void()).handler(({ context }) => ({
+		user: context.session?.user,
+	})),
+
 	me: protectedProcedure.input(z.void()).handler(({ context }) => ({
 		id: context.session?.user.id,
 		email: context.session?.user.email,
