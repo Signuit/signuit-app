@@ -13,15 +13,14 @@ export const DEMO_CREDENTIALS = {
 export async function demoLogin(role: keyof typeof DEMO_CREDENTIALS) {
 	const credentials = DEMO_CREDENTIALS[role];
 
-	await authClient.signIn.email(
-		{
-			email: credentials.email,
-			password: credentials.password,
-		},
-		{
-			onSuccess: () => {
-				console.log("Demo login successful");
-			},
-		},
-	);
+	const result = await authClient.signIn.email({
+		email: credentials.email,
+		password: credentials.password,
+	});
+
+	if (result.error) {
+		throw new Error(result.error.message ?? "Demo login failed");
+	}
+
+	return result;
 }

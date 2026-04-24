@@ -5,7 +5,6 @@ import App from "./App.tsx";
 
 import "./style.css";
 
-// biome-ignore lint/style/noNonNullAssertion: false positive, root element is guaranteed to exist
 ReactDOM.createRoot(document.getElementById("root")!).render(
 	<React.StrictMode>
 		<App />

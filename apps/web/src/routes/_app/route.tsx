@@ -1,14 +1,14 @@
 import { SidebarInset, SidebarProvider } from "@nexus/ui/components/sidebar";
 import { SiteHeader } from "@nexus/ui/components/site-header";
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ensureSession } from "@/functions/ensure-session";
 
 export const Route = createFileRoute("/_app")({
 	component: AppLayout,
-	beforeLoad: async ({ context }) => {
-		if (!context.session) {
-			throw redirect({ to: "/login" });
-		}
+	beforeLoad: async () => {
+		const session = await ensureSession();
+		return { session };
 	},
 });
 

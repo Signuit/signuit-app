@@ -1,10 +1,12 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { SignupForm } from "@/components/signup-form";
+import { getSession } from "@/functions/ensure-session";
 
 export const Route = createFileRoute("/signup")({
-	beforeLoad: async ({ context }) => {
-		if (context.session) {
+	beforeLoad: async () => {
+		const session = await getSession();
+		if (session) {
 			throw redirect({ to: "/dashboard" });
 		}
 	},

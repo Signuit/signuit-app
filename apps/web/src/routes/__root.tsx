@@ -13,11 +13,6 @@ import "../index.css";
 export interface RouterAppContext {
 	orpc: typeof orpc;
 	queryClient: QueryClient;
-	session: { user: { id: string; email: string; role?: string } } | null;
-}
-
-export async function getSession(context: RouterAppContext) {
-	return context.queryClient.ensureQueryData(context.orpc.auth.getSession.queryOptions());
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({

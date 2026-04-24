@@ -1,9 +1,4 @@
-import {
-	Field,
-	FieldError,
-	FieldGroup,
-	FieldLabel,
-} from "@nexus/ui/components/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@nexus/ui/components/field";
 import { Input } from "@nexus/ui/components/input";
 import { useForm } from "@tanstack/react-form";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -48,8 +43,16 @@ export function SignupForm() {
 		<div className="w-full max-w-[480px] px-6 flex flex-col items-center">
 			{/* SignUIT Logo */}
 			<div className="mb-8">
-				<img src="/assets/logo_white.png" alt="SignUIT Logo" className="h-10 w-auto hidden dark:block" />
-				<img src="/assets/logo_black.png" alt="SignUIT Logo" className="h-10 w-auto block dark:hidden" />
+				<img
+					src="/assets/logo_white.png"
+					alt="SignUIT Logo"
+					className="h-10 w-auto hidden dark:block"
+				/>
+				<img
+					src="/assets/logo_black.png"
+					alt="SignUIT Logo"
+					className="h-10 w-auto block dark:hidden"
+				/>
 			</div>
 
 			{/* Title */}
@@ -81,10 +84,7 @@ export function SignupForm() {
 					<form.Field name="name">
 						{(field) => (
 							<Field>
-								<FieldLabel
-									htmlFor={field.name}
-									className="text-foreground text-sm font-medium"
-								>
+								<FieldLabel htmlFor={field.name} className="text-foreground text-sm font-medium">
 									Full Name
 								</FieldLabel>
 								<Input
@@ -109,10 +109,7 @@ export function SignupForm() {
 					<form.Field name="email">
 						{(field) => (
 							<Field>
-								<FieldLabel
-									htmlFor={field.name}
-									className="text-foreground text-sm font-medium"
-								>
+								<FieldLabel htmlFor={field.name} className="text-foreground text-sm font-medium">
 									Email
 								</FieldLabel>
 								<Input
@@ -137,10 +134,7 @@ export function SignupForm() {
 					<form.Field name="password">
 						{(field) => (
 							<Field>
-								<FieldLabel
-									htmlFor={field.name}
-									className="text-foreground text-sm font-medium"
-								>
+								<FieldLabel htmlFor={field.name} className="text-foreground text-sm font-medium">
 									Password
 								</FieldLabel>
 								<Input
@@ -181,9 +175,14 @@ export function SignupForm() {
 			{/* Footer */}
 			<p className="text-muted-foreground text-xs mt-10 text-center leading-relaxed max-w-[320px]">
 				By continuing, you agree to our{" "}
-				<button type="button" className="text-foreground hover:underline underline-offset-2">Terms</button>
-				{" "}and{" "}
-				<button type="button" className="text-foreground hover:underline underline-offset-2">Privacy Policy</button>.
+				<button type="button" className="text-foreground hover:underline underline-offset-2">
+					Terms
+				</button>{" "}
+				and{" "}
+				<button type="button" className="text-foreground hover:underline underline-offset-2">
+					Privacy Policy
+				</button>
+				.
 			</p>
 		</div>
 	);
