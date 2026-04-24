@@ -29,26 +29,18 @@ export const DEMO_CREDENTIALS = {
 export async function demoLogin(role: keyof typeof DEMO_CREDENTIALS) {
 	const credentials = DEMO_CREDENTIALS[role];
 
-	// Step 1: signIn — if user doesn't exist yet, sign up first
-	let result = await authClient.signIn.email({
+	// Always try signUp first (idempotent — user exists? 422 happens, we ignore it)
+	await authClient.signUp.email({
+		email: credentials.email,
+		password: credentials.password,
+		name: credentials.name,
+	});
+
+	// Then signIn
+	const result = await authClient.signIn.email({
 		email: credentials.email,
 		password: credentials.password,
 	});
-
-	if (result.error?.status === 401 || result.error?.status === 404) {
-		const signUpResult = await authClient.signUp.email({
-			email: credentials.email,
-			password: credentials.password,
-			name: credentials.name,
-		});
-		if (signUpResult.error) {
-			throw new Error(signUpResult.error.message ?? "Demo signup failed");
-		}
-		result = await authClient.signIn.email({
-			email: credentials.email,
-			password: credentials.password,
-		});
-	}
 
 	if (result.error) {
 		throw new Error(result.error.message ?? "Demo login failed");
@@ -59,3 +51,4 @@ export async function demoLogin(role: keyof typeof DEMO_CREDENTIALS) {
 
 	return result;
 }
+

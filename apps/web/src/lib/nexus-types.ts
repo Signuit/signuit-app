@@ -1,4 +1,6 @@
-import { CollateralRouter } from "@daml.js/nexus-example-0.0.1";
+import * as DamlPackage from "@daml.js/nexus-example-0.0.1";
+
+const { CollateralRouter } = DamlPackage;
 
 /**
  * Centralized Daml template types for Nexus.

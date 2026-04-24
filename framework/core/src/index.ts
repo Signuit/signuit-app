@@ -103,15 +103,12 @@ export async function createNexus<
 	plugins: TPlugins;
 }): Promise<NexusClient & InferNexusClientPlugins<TPlugins>> {
 	const authPlugin = options.plugins.find((p) => p.auth);
-	if (!authPlugin?.auth) {
-		throw new Error(
-			"createNexus: at least one plugin must provide authentication. " +
-				"Use sandboxAuth(), jwtAuth(), or oidcAuth().",
-		);
-	}
 
-	const getToken = () =>
-		authPlugin.auth?.getToken() ?? Promise.reject(new Error("No auth plugin provided"));
+	// Auth plugin is optional in browser/client-only mode.
+	// Canton requests go through a server proxy (/api/ledger) which handles auth server-side.
+	const getToken = authPlugin?.auth
+		? () => authPlugin.auth!.getToken()
+		: () => Promise.resolve("");
 
 	// Collect middleware from all plugins
 	const middlewares: FetchMiddleware[] = options.plugins
