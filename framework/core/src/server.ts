@@ -3,6 +3,7 @@
 
 import type { SessionManager } from "./auth/session-manager";
 import { CantonClient } from "./client/canton-client";
+import { ContractQuery } from "./ledger/contract-query";
 import { KyselyPqsEngine } from "./query/pqs-engine";
 import type {
 	CommandQueryOperations,
@@ -266,15 +267,23 @@ export async function createNexusServer<
 
 				const ops: CommandQueryOperations<unknown> = {
 					findMany: async (findOptions?: PqsFindOptions<unknown>) => {
-						if (!pqsEngine) {
-							throw new Error(
-								"Nexus: findMany() requires pqsUrl. " +
-									"Use nexus.client.ledger.contracts.fetchActiveContracts() for Canton HTTP.",
-							);
+						if (pqsEngine) {
+							const rows = await pqsEngine.findMany(partyId, templateId, findOptions);
+							// biome-ignore lint/suspicious/noExplicitAny: payload is opaque at this level
+							return rows as any[];
 						}
-						const rows = await pqsEngine.findMany(partyId, templateId, findOptions);
-						// biome-ignore lint/suspicious/noExplicitAny: payload is opaque at this level
-						return rows as any[];
+
+						// Fallback to Canton HTTP ACS
+						const http = getHttp();
+						const query = new ContractQuery(http);
+						const response = await query.fetchAllActiveContracts({
+							templateId,
+							parties: actAs,
+							pageSize: findOptions?.limit,
+						});
+
+						// Return raw contracted payloads to match PQS format
+						return response.map((c: any) => ({ contractId: c.contractId, payload: c.payload }));
 					},
 
 					findById: async (contractId: string) => {

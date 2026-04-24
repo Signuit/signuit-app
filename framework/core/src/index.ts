@@ -1,6 +1,6 @@
 import { PartyIdResolver } from "./auth/party-id-resolver";
-import { CantonClient } from "./client/canton-client";
 import { nexusGetSession, nexusLogin, nexusLogout } from "./client/auth-client";
+import { CantonClient } from "./client/canton-client";
 import { CommandSubmitter } from "./ledger/command-submitter";
 import { ContractQuery } from "./ledger/contract-query";
 import { InterfaceQuery } from "./ledger/interface-query";
@@ -18,15 +18,15 @@ export {
 	sandboxAuth,
 } from "./auth/plugins/sandbox-auth";
 export { generateEncryptionKey, SessionManager } from "./auth/session-manager";
-export { CantonClient } from "./client/canton-client";
 export {
-	nexusGetSession,
-	nexusLogin,
-	nexusLogout,
 	type NexusLoginResponse,
 	type NexusLogoutResponse,
 	type NexusSessionResponse,
+	nexusGetSession,
+	nexusLogin,
+	nexusLogout,
 } from "./client/auth-client";
+export { CantonClient } from "./client/canton-client";
 export { DEFAULT_PAGE_SIZE, DEFAULT_TIMEOUT_MS, DEFAULT_WS_PING_INTERVAL_MS } from "./config";
 export { CommandSubmitter } from "./ledger/command-submitter";
 export { ContractQuery } from "./ledger/contract-query";

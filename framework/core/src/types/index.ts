@@ -421,12 +421,12 @@ export class NexusLedgerError extends NexusError {
 
 import type { PartyIdResolver } from "../auth/party-id-resolver";
 import type { SessionManager } from "../auth/session-manager";
-import type { CantonClient } from "../client/canton-client";
 import type {
 	NexusLoginResponse,
 	NexusLogoutResponse,
 	NexusSessionResponse,
 } from "../client/auth-client";
+import type { CantonClient } from "../client/canton-client";
 import type { CommandSubmitter } from "../ledger/command-submitter";
 import type { ContractQuery } from "../ledger/contract-query";
 import type { InterfaceQuery } from "../ledger/interface-query";

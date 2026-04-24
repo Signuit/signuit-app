@@ -29,18 +29,26 @@ export const DEMO_CREDENTIALS = {
 export async function demoLogin(role: keyof typeof DEMO_CREDENTIALS) {
 	const credentials = DEMO_CREDENTIALS[role];
 
-	// Always try signUp first (idempotent — user exists? 422 happens, we ignore it)
-	await authClient.signUp.email({
+	// Step 1: Better Auth Login
+	// Always try signUp first (idempotent — if user exists, we'll try signIn)
+	const signUp = await authClient.signUp.email({
 		email: credentials.email,
 		password: credentials.password,
 		name: credentials.name,
 	});
 
-	// Then signIn
-	const result = await authClient.signIn.email({
-		email: credentials.email,
-		password: credentials.password,
-	});
+	let result: { data: any; error: any };
+
+	if (signUp.data) {
+		// Created and signed in automatically (autoSignIn: true is default)
+		result = signUp;
+	} else {
+		// User probably exists, try signIn
+		result = await authClient.signIn.email({
+			email: credentials.email,
+			password: credentials.password,
+		});
+	}
 
 	if (result.error) {
 		throw new Error(result.error.message ?? "Demo login failed");
@@ -51,4 +59,3 @@ export async function demoLogin(role: keyof typeof DEMO_CREDENTIALS) {
 
 	return result;
 }
-

@@ -1,11 +1,12 @@
 import { createAuthHandler } from "@nexus-framework/core/server";
 import { createFileRoute } from "@tanstack/react-router";
-import { nexus, sessionManager } from "@/lib/nexus-server";
+import { nexus, sandboxAuthOptions, sessionManager } from "@/lib/nexus-server";
 
 const authHandler = createAuthHandler({
 	nexusServer: nexus,
 	sessionManager,
 	basePath: "/api/nexus-auth",
+	sandboxOptions: sandboxAuthOptions,
 });
 
 export const Route = createFileRoute("/api/nexus-auth/$")({

@@ -398,7 +398,16 @@ export async function createNexusClient<
 		}),
 	) as InferNexusClientPlugins<TPlugins> & Record<string, unknown>;
 
-	const client = { ...coreClient, ...actions } as NexusClientInstance<
+	// Merge core client with plugin actions. 
+	// We handle 'auth' specially to preserve core methods (login, logout, etc) alongside hooks.
+	const client = { 
+		...coreClient, 
+		...actions,
+		auth: {
+			...coreClient.auth,
+			...(actions.auth as Record<string, unknown>),
+		}
+	} as NexusClientInstance<
 		InferNexusClientPlugins<TPlugins>,
 		TTypes
 	>;

@@ -24,6 +24,8 @@
  * ```
  */
 
+import { JwtManager } from "../auth/jwt-manager";
+import type { SandboxAuthOptions } from "../auth/plugins/sandbox-auth";
 import type { SessionManager } from "../auth/session-manager";
 import { provisionSandboxUser } from "../ledger/sandbox-provision";
 import type { NexusServer } from "../server";
@@ -70,6 +72,12 @@ export interface AuthHandlerConfig {
 	 * Callback invoked after successful logout.
 	 */
 	onLogoutSuccess?: (userId?: string) => void | Promise<void>;
+
+	/**
+	 * Explicit sandbox options for provisioning.
+	 * If provided, used instead of auto-detecting the plugin from nexusServer.
+	 */
+	sandboxOptions?: SandboxAuthOptions;
 }
 
 interface LoginRequest {
@@ -190,7 +198,7 @@ async function handleLogin(req: Request, config: AuthHandlerConfig): Promise<Res
 		console.log(`[Auth Handler] Login request for user: ${userId}`);
 
 		// Detect auth mode from nexusServer
-		const authMode = detectAuthMode(config.nexusServer);
+		const authMode = detectAuthMode(config);
 
 		if (authMode === "sandbox") {
 			return handleSandboxLogin(userId, config);
@@ -224,7 +232,7 @@ async function handleSandboxLogin(
 ): Promise<Response> {
 	try {
 		// Extract sandbox config from nexusServer
-		const sandboxConfig = extractSandboxConfig(config.nexusServer);
+		const sandboxConfig = extractSandboxConfig(config);
 
 		if (!sandboxConfig) {
 			return jsonResponse<ErrorResponse>(
@@ -346,9 +354,13 @@ async function handleSession(req: Request, config: AuthHandlerConfig): Promise<R
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────
 
-function detectAuthMode(nexusServer: AuthHandlerConfig["nexusServer"]): string {
+function detectAuthMode(config: AuthHandlerConfig): string {
+	if (config.sandboxOptions) {
+		return "sandbox";
+	}
+
 	// Access internal auth plugin (follows existing pattern from route-handler.ts)
-	const client = nexusServer.client as any;
+	const client = config.nexusServer.client as any;
 	const authPlugin = client._authPlugin;
 
 	if (!authPlugin) {
@@ -359,9 +371,26 @@ function detectAuthMode(nexusServer: AuthHandlerConfig["nexusServer"]): string {
 }
 
 function extractSandboxConfig(
-	nexusServer: AuthHandlerConfig["nexusServer"],
+	config: AuthHandlerConfig,
 ): { ledgerApiUrl: string; secret: string; createTokenForUser?: (userId: string, partyId?: string) => Promise<string> } | null {
 	try {
+		const nexusServer = config.nexusServer;
+
+		// 1. Prefer explicit checkbox options
+		if (config.sandboxOptions) {
+			const { secret } = config.sandboxOptions;
+			const ledgerApiUrl = nexusServer.client.config.ledgerApiUrl;
+
+			return {
+				ledgerApiUrl,
+				secret,
+				createTokenForUser: async (userId: string, partyId?: string) => {
+					return new JwtManager({ type: "sandbox", userId, secret, partyId }).getToken();
+				},
+			};
+		}
+
+		// 2. Fall back to auto-detection from client._authPlugin
 		// Get ledgerApiUrl from client config
 		const ledgerApiUrl = nexusServer.client.config.ledgerApiUrl;
 
@@ -383,7 +412,8 @@ function extractSandboxConfig(
 			: undefined;
 
 		return { ledgerApiUrl, secret, createTokenForUser };
-	} catch {
+	} catch (error) {
+		console.debug("[Auth Handler] Failed to extract sandbox config:", error);
 		return null;
 	}
 }
