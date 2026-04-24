@@ -48,7 +48,7 @@ function RouteComponent() {
 			} else {
 				toast.warning("Not authenticated");
 			}
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Connection test failed");
 		}
 	}

@@ -3,11 +3,11 @@ import { createContext } from "@nexus/api/context";
 import { collateralRouter } from "./collateral-router";
 
 export const appRouter = {
-  ...baseAppRouter,
-  auth: {
-    getSession: baseAppRouter.getSession,
-  },
-  collateral: collateralRouter,
+	...baseAppRouter,
+	auth: {
+		getSession: baseAppRouter.getSession,
+	},
+	collateral: collateralRouter,
 };
 
 export type AppRouter = typeof appRouter;

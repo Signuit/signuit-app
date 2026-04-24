@@ -15,7 +15,7 @@ function RouteComponent() {
 	return (
 		<div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-background to-background/80">
 			<DemoUserCards />
-			
+
 			<div className="my-8 flex items-center gap-4">
 				<div className="h-px w-16 bg-border" />
 				<span className="text-sm text-muted-foreground">veya</span>

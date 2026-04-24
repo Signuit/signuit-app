@@ -21,8 +21,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRightIcon, FileTextIcon, TrendingUpIcon, WalletIcon, ZapIcon } from "lucide-react";
 import * as RechartsPrimitive from "recharts";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { useAuditTrail, useHoldings, useStats, useSuggestions } from "@/hooks/use-collateral-api";
 import { useAuthRole } from "@/hooks/use-auth";
+import { useAuditTrail, useHoldings, useStats, useSuggestions } from "@/hooks/use-collateral-api";
 
 export const Route = createFileRoute("/_app/dashboard/")({
 	component: RouteComponent,
@@ -61,12 +61,8 @@ function RoleBadge({ role }: { role: string }) {
 		operator: { label: "Operator", color: "bg-emerald-500", text: "SignUIT" },
 	};
 	const c = config[role as keyof typeof config] || config.institution;
-	
-	return (
-		<Badge className={`${c.color} text-white hover:${c.color}`}>
-			{c.text}
-		</Badge>
-	);
+
+	return <Badge className={`${c.color} text-white hover:${c.color}`}>{c.text}</Badge>;
 }
 
 function HoldingsSummaryCard() {
@@ -322,7 +318,7 @@ function CounterpartyView() {
 
 function OperatorView() {
 	const { totalHoldingsValue, pendingSuggestions, totalAllocations, isLoading } = useStats();
-	
+
 	return (
 		<div className="flex flex-col gap-6">
 			<Card>
@@ -375,7 +371,6 @@ function RouteComponent() {
 				return <OperatorView />;
 			case "counterparty":
 				return <CounterpartyView />;
-			case "institution":
 			default:
 				return (
 					<>
@@ -426,7 +421,11 @@ function RouteComponent() {
 			<div className="flex flex-wrap gap-3 items-center justify-between">
 				<div className="flex flex-wrap gap-3">
 					<Link to="/dashboard/generate">
-						<Button size="sm" variant="default" className="bg-primary hover:bg-primary/90 shadow-lg">
+						<Button
+							size="sm"
+							variant="default"
+							className="bg-primary hover:bg-primary/90 shadow-lg"
+						>
 							<ZapIcon className="size-4 mr-2" />⚡ Generate Suggestion
 						</Button>
 					</Link>
