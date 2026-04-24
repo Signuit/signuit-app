@@ -202,13 +202,13 @@ export function LoginForm() {
 							className={cn(
 								"group flex items-center gap-2.5 p-2 rounded-xl border border-border/40 bg-muted/5 transition-all text-left",
 								"hover:bg-muted/20 hover:border-border/60 active:scale-[0.98] disabled:opacity-50",
-								role === "operator" ? "col-span-2" : "col-span-1",
+								role === "operator" ? "col-span-2 justify-center" : "col-span-1",
 							)}
 						>
 							<div className="p-2 rounded-lg bg-muted/20 shrink-0 group-hover:bg-background transition-colors">
 								<Icon className={cn("w-3.5 h-3.5", color, "opacity-70 group-hover:opacity-100")} />
 							</div>
-							<div className="flex flex-col min-w-0">
+							<div className={cn("flex flex-col min-w-0", role === "operator" && "items-center")}>
 								<div className="text-[11px] font-bold tracking-tight truncate uppercase">
 									{isDemoLoading === role ? "..." : label}
 								</div>
