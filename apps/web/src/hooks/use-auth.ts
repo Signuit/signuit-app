@@ -6,17 +6,10 @@ export type UserRole = "institution" | "counterparty" | "operator";
 export function useAuthRole() {
 	const { data: session, isLoading } = useQuery(orpc.auth.getSession.queryOptions());
 
-	const userEmail = session?.user?.email;
+	const user = session?.user as { role?: UserRole } | undefined;
+	const role: UserRole = user?.role ?? "institution";
 
-	const role: UserRole = userEmail?.includes("demo-vantage@signuit.app")
-		? "institution"
-		: userEmail?.includes("demo-primebank@signuit.app")
-			? "counterparty"
-			: userEmail?.includes("demo-operator@signuit.app")
-				? "operator"
-				: "institution";
-
-	return { role, userEmail, isLoading };
+	return { role, isLoading };
 }
 
 export function useIsDemo() {

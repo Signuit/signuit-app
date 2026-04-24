@@ -9,7 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SandboxAuthRouteImport } from './routes/sandbox-auth'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -27,9 +27,9 @@ import { Route as AppDashboardUsersIndexRouteImport } from './routes/_app/dashbo
 import { Route as AppDashboardSettingsIndexRouteImport } from './routes/_app/dashboard/settings/index'
 import { Route as AppDashboardUsersSettingsRouteImport } from './routes/_app/dashboard/users/settings'
 
-const SandboxAuthRoute = SandboxAuthRouteImport.update({
-  id: '/sandbox-auth',
-  path: '/sandbox-auth',
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -118,7 +118,7 @@ const AppDashboardUsersSettingsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/sandbox-auth': typeof SandboxAuthRoute
+  '/signup': typeof SignupRoute
   '/dashboard/audit': typeof AppDashboardAuditRoute
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/dashboard/generate': typeof AppDashboardGenerateRoute
@@ -136,7 +136,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/sandbox-auth': typeof SandboxAuthRoute
+  '/signup': typeof SignupRoute
   '/dashboard/audit': typeof AppDashboardAuditRoute
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/dashboard/generate': typeof AppDashboardGenerateRoute
@@ -156,7 +156,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteRouteWithChildren
   '/login': typeof LoginRoute
-  '/sandbox-auth': typeof SandboxAuthRoute
+  '/signup': typeof SignupRoute
   '/_app/dashboard/audit': typeof AppDashboardAuditRoute
   '/_app/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/_app/dashboard/generate': typeof AppDashboardGenerateRoute
@@ -176,7 +176,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/sandbox-auth'
+    | '/signup'
     | '/dashboard/audit'
     | '/dashboard/components_lib'
     | '/dashboard/generate'
@@ -194,7 +194,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
-    | '/sandbox-auth'
+    | '/signup'
     | '/dashboard/audit'
     | '/dashboard/components_lib'
     | '/dashboard/generate'
@@ -213,7 +213,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_app'
     | '/login'
-    | '/sandbox-auth'
+    | '/signup'
     | '/_app/dashboard/audit'
     | '/_app/dashboard/components_lib'
     | '/_app/dashboard/generate'
@@ -233,7 +233,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRouteRoute: typeof AppRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
-  SandboxAuthRoute: typeof SandboxAuthRoute
+  SignupRoute: typeof SignupRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiNexusAuthSplatRoute: typeof ApiNexusAuthSplatRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
@@ -241,11 +241,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sandbox-auth': {
-      id: '/sandbox-auth'
-      path: '/sandbox-auth'
-      fullPath: '/sandbox-auth'
-      preLoaderRoute: typeof SandboxAuthRouteImport
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -397,7 +397,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRouteRoute: AppRouteRouteWithChildren,
   LoginRoute: LoginRoute,
-  SandboxAuthRoute: SandboxAuthRoute,
+  SignupRoute: SignupRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiNexusAuthSplatRoute: ApiNexusAuthSplatRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,

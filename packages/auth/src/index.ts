@@ -4,7 +4,7 @@ import { env } from "@nexus/env/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { DEMO_USERS } from "./demo-users";
+import { DEMO_USERS } from "@nexus/db/seed/demo-users";
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {

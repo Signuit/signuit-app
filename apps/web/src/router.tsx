@@ -11,7 +11,13 @@ export const getRouter = () => {
 		routeTree,
 		scrollRestoration: true,
 		defaultPreloadStaleTime: 0,
-		context: { orpc, queryClient },
+		context: {
+			orpc,
+			queryClient,
+			get session() {
+				return queryClient.getQueryData(orpc.auth.getSession.queryKey()) ?? null;
+			},
+		},
 		defaultPendingComponent: () => <Loader />,
 		defaultNotFoundComponent: () => <div>Not Found</div>,
 		Wrap: ({ children }) => (
