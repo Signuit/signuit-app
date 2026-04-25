@@ -18,7 +18,7 @@ import {
 	TableRow,
 } from "@nexus/ui/components/table";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRightIcon, FileTextIcon, TrendingUpIcon, WalletIcon, ZapIcon } from "lucide-react";
+import { ArrowRightIcon, FileTextIcon, TrendingUpIcon, WalletIcon } from "lucide-react";
 import * as RechartsPrimitive from "recharts";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { useAuthRole } from "@/hooks/use-auth";
@@ -53,17 +53,6 @@ const chartData = [
 	{ month: "May", desktop: 209, mobile: 130 },
 	{ month: "June", desktop: 214, mobile: 140 },
 ];
-
-function RoleBadge({ role }: { role: string }) {
-	const config = {
-		institution: { label: "Institution", color: "bg-blue-500", text: "Vantage Capital" },
-		counterparty: { label: "Counterparty", color: "bg-amber-500", text: "Prime Bank" },
-		operator: { label: "Operator", color: "bg-emerald-500", text: "SignUIT" },
-	};
-	const c = config[role as keyof typeof config] || config.institution;
-
-	return <Badge className={`${c.color} text-white hover:${c.color}`}>{c.text}</Badge>;
-}
 
 function HoldingsSummaryCard() {
 	const { data: holdings } = useHoldings();
@@ -303,14 +292,8 @@ function CounterpartyView() {
 			</CardHeader>
 			<CardContent className="flex flex-col gap-4">
 				<p className="text-sm text-muted-foreground">
-					As Prime Bank (Counterparty), you can issue margin calls to institutions.
+					As a Counterparty, you can issue margin calls to institutions.
 				</p>
-				<Link to="/dashboard/generate">
-					<Button>
-						<ZapIcon className="size-4 mr-2" />
-						Issue Margin Call
-					</Button>
-				</Link>
 			</CardContent>
 		</Card>
 	);
@@ -327,7 +310,7 @@ function OperatorView() {
 				</CardHeader>
 				<CardContent>
 					<p className="text-sm text-muted-foreground mb-4">
-						As SignUIT Operator, you can observe the entire network.
+						As an Operator, you can observe the entire network.
 					</p>
 					<div className="grid gap-4 md:grid-cols-3">
 						<StatCard
@@ -418,21 +401,6 @@ function RouteComponent() {
 
 	return (
 		<div className="flex flex-col gap-6">
-			<div className="flex flex-wrap gap-3 items-center justify-between">
-				<div className="flex flex-wrap gap-3">
-					<Link to="/dashboard/generate">
-						<Button
-							size="sm"
-							variant="default"
-							className="bg-primary hover:bg-primary/90 shadow-lg"
-						>
-							<ZapIcon className="size-4 mr-2" />⚡ Generate Suggestion
-						</Button>
-					</Link>
-				</div>
-				<RoleBadge role={role} />
-			</div>
-
 			{renderByRole()}
 		</div>
 	);

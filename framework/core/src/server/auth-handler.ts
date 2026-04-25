@@ -2,9 +2,10 @@
  * Auto-generated auth route handler for Canton applications.
  * 
  * Provides zero-boilerplate authentication endpoints:
- * - POST /login  - User login with Canton provisioning
- * - POST /logout - Session termination
- * - GET  /session - Current session info
+ * - POST /login    - User login with Canton provisioning
+ * - POST /logout   - Session termination
+ * - GET  /session  - Current session info
+ * - GET  /refresh  - Refresh session cookie (extend TTL)
  * 
  * Follows the Canton ledger proxy pattern (catch-all routes).
  * 
@@ -158,6 +159,10 @@ export function createAuthHandler(config: AuthHandlerConfig): (req: Request) => 
 
 			if (path === "/session" && req.method === "GET") {
 				return handleSession(req, config);
+			}
+
+			if (path === "/refresh" && req.method === "GET") {
+				return handleRefresh(req, config);
 			}
 
 			// 404 for unknown routes
@@ -345,6 +350,51 @@ async function handleSession(req: Request, config: AuthHandlerConfig): Promise<R
 			{
 				success: false,
 				error: "Session check failed",
+				details: error instanceof Error ? error.message : String(error),
+			},
+			500,
+		);
+	}
+}
+
+async function handleRefresh(req: Request, config: AuthHandlerConfig): Promise<Response> {
+	try {
+		const session = await config.sessionManager.getSessionFromRequest(req);
+
+		if (!session) {
+			return jsonResponse<ErrorResponse>(
+				{ success: false, error: "No valid session to refresh. Please login again." },
+				401,
+			);
+		}
+
+		console.log(`[Auth Handler] Refreshing session for user: ${session.userId}`);
+
+		// Re-create the session cookie with a fresh TTL
+		const cookieValue = await config.sessionManager.createSessionCookie({
+			userId: session.userId,
+			partyId: session.partyId,
+			token: session.token,
+		});
+
+		console.log(`[Auth Handler] Session refreshed for user: ${session.userId}`);
+
+		return jsonResponse<SessionResponse>(
+			{
+				authenticated: true,
+				userId: session.userId,
+				partyId: session.partyId,
+				expiresAt: Date.now() + config.sessionManager.ttlMs,
+			},
+			200,
+			{ "Set-Cookie": cookieValue },
+		);
+	} catch (error) {
+		console.error("[Auth Handler] Session refresh failed:", error);
+		return jsonResponse<ErrorResponse>(
+			{
+				success: false,
+				error: "Session refresh failed",
 				details: error instanceof Error ? error.message : String(error),
 			},
 			500,

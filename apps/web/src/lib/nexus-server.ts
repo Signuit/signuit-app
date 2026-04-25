@@ -7,6 +7,12 @@ const SESSION_SECRET = process.env.SESSION_SECRET;
 const SANDBOX_USER_ID = process.env.SANDBOX_USER_ID ?? "alice";
 const SANDBOX_SECRET = process.env.SANDBOX_SECRET ?? "secret";
 
+// Session TTL: configurable via NEXUS_SESSION_TTL_HOURS
+// Default: 24h in development, 2h in production
+const SESSION_TTL_HOURS = process.env.NEXUS_SESSION_TTL_HOURS
+	? Number.parseInt(process.env.NEXUS_SESSION_TTL_HOURS, 10)
+	: process.env.NODE_ENV === "production" ? 2 : 24;
+
 // Only use encryption if the key is a valid hex string and not the placeholder
 const isValidHex = (s?: string) => s && /^[0-9a-fA-F]+$/.test(s) && s.length % 2 === 0;
 const isPlaceholder = SESSION_SECRET === "generate_a_32_byte_hex_key_here";
@@ -21,6 +27,7 @@ export const sandboxAuthOptions: SandboxAuthOptions = {
 
 export const sessionManager = new SessionManager({
 	encryptionKey,
+	ttlMs: SESSION_TTL_HOURS * 60 * 60 * 1000,
 });
 
 export const nexus = await createNexusServer({

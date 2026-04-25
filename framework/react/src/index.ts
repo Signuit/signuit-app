@@ -94,3 +94,7 @@ export {
 	invalidateContractQueries,
 	nexusKeys,
 } from "./query/query-keys";
+
+// ─── Hooks ────────────────────────────────────────────────────────────────────
+export type { UseSessionRefreshOptions } from "./hooks/use-session-refresh";
+export { useSessionRefresh } from "./hooks/use-session-refresh";

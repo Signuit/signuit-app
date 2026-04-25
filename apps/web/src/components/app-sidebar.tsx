@@ -21,7 +21,6 @@ import {
 	LayoutDashboardIcon,
 	SettingsIcon,
 	WalletIcon,
-	ZapIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import type * as React from "react";
@@ -67,16 +66,6 @@ const mainNavItems = linkOptions([
 	},
 ]);
 
-const secondaryNavItems = linkOptions([
-	{
-		to: "/dashboard/generate",
-		label: "⚡ Generate Suggestion",
-		icon: <ZapIcon />,
-		activeOptions: { exact: true },
-		className: "bg-primary/10 hover:bg-primary/20", // Highlight for demo
-	},
-]);
-
 function TeamSwitcherGroup({
 	organizations,
 	currentOrganization,
@@ -109,30 +98,6 @@ function NavMainItems() {
 					{mainNavItems.map((item) => (
 						<SidebarMenuItem key={item.label}>
 							<Link {...item} preload="intent">
-								{({ isActive }) => (
-									<SidebarMenuButton tooltip={item.label} isActive={isActive}>
-										{item.icon}
-										<span>{item.label}</span>
-									</SidebarMenuButton>
-								)}
-							</Link>
-						</SidebarMenuItem>
-					))}
-				</SidebarMenu>
-			</SidebarGroupContent>
-		</SidebarGroup>
-	);
-}
-
-function NavSecondaryItems() {
-	return (
-		<SidebarGroup className="mt-auto">
-			<SidebarGroupLabel>More</SidebarGroupLabel>
-			<SidebarGroupContent>
-				<SidebarMenu>
-					{secondaryNavItems.map((item) => (
-						<SidebarMenuItem key={item.label}>
-							<Link {...item}>
 								{({ isActive }) => (
 									<SidebarMenuButton tooltip={item.label} isActive={isActive}>
 										{item.icon}
@@ -194,7 +159,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					onOrganizationChange={handleOrganizationChange}
 				/>
 				<NavMainItems />
-				<NavSecondaryItems />
 			</SidebarContent>
 			<SidebarFooter>
 				<NavUser user={user} />

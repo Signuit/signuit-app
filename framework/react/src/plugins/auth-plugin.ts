@@ -37,6 +37,7 @@
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { NexusClientPlugin } from "./tanstack-query";
+import { useSessionRefresh } from "../hooks/use-session-refresh";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -68,6 +69,24 @@ export interface AuthPluginConfig {
 	 * Callback invoked when logout fails.
 	 */
 	onLogoutError?: (error: Error) => void;
+
+	/**
+	 * Automatically refresh the session cookie before it expires.
+	 * @default true
+	 */
+	autoRefresh?: boolean;
+
+	/**
+	 * How many ms before expiry to trigger auto-refresh.
+	 * @default 5 * 60 * 1000 (5 minutes)
+	 */
+	refreshBeforeExpiryMs?: number;
+
+	/**
+	 * How often (ms) to check if a refresh is needed.
+	 * @default 60 * 1000 (1 minute)
+	 */
+	refreshCheckIntervalMs?: number;
 }
 
 export interface LoginRequest {
@@ -253,7 +272,7 @@ export function authPlugin(config: AuthPluginConfig = {}): NexusClientPlugin<{
 				},
 
 				useSession: (options?: { enabled?: boolean; refetchInterval?: number | false }) => {
-					return useQuery<SessionResponse>({
+					const query = useQuery<SessionResponse>({
 						queryKey: authKeys.session,
 						queryFn: async (): Promise<SessionResponse> => {
 							const response = await fetch(`${basePath}/session`, {
@@ -273,6 +292,17 @@ export function authPlugin(config: AuthPluginConfig = {}): NexusClientPlugin<{
 						enabled: options?.enabled ?? true,
 						retry: false, // Don't retry failed session checks
 					});
+
+					// Auto-refresh: wire up session expiry to useSessionRefresh
+					useSessionRefresh({
+						basePath,
+						expiresAt: query.data?.authenticated ? query.data.expiresAt : undefined,
+						enabled: config.autoRefresh ?? true,
+						refreshBeforeExpiryMs: config.refreshBeforeExpiryMs,
+						checkIntervalMs: config.refreshCheckIntervalMs,
+					});
+
+					return query;
 				},
 			},
 		}),

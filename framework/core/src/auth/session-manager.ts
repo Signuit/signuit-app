@@ -22,15 +22,20 @@ interface SessionManagerOptions {
 
 export class SessionManager {
 	public readonly cookieName: string;
-	private readonly ttlMs: number;
+	private readonly _ttlMs: number;
 	private readonly secure: boolean;
 	private readonly domain?: string;
 	private readonly path: string;
 	private readonly encryptionKey?: string;
 
+	/** Session TTL in milliseconds */
+	get ttlMs(): number {
+		return this._ttlMs;
+	}
+
 	constructor(options: SessionManagerOptions = {}) {
 		this.cookieName = options.cookieName ?? SESSION_COOKIE_NAME;
-		this.ttlMs = options.ttlMs ?? DEFAULT_SESSION_TTL_MS;
+		this._ttlMs = options.ttlMs ?? DEFAULT_SESSION_TTL_MS;
 		this.secure = options.secure ?? process.env.NODE_ENV === "production";
 		this.domain = options.domain;
 		this.path = options.path ?? "/";
@@ -44,7 +49,7 @@ export class SessionManager {
 	 * Call this in your API route/server action after successful auth.
 	 */
 	async createSessionCookie(session: Omit<NexusSession, "expiresAt">): Promise<string> {
-		const expiresAt = Date.now() + this.ttlMs;
+		const expiresAt = Date.now() + this._ttlMs;
 		const fullSession: NexusSession = { ...session, expiresAt };
 		const payload = await this.serializeSession(fullSession);
 
