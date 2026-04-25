@@ -1,6 +1,6 @@
 <div align="center">
   <br>
-  <img src="assets/logo_black.png" alt="SignUIT" width="320">
+  <img src="assets/logo_white.png" alt="SignUIT" width="320">
   <br><br>
   <strong>Policy-Based Collateral Routing Engine on Canton Network</strong>
   <br>
