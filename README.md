@@ -590,7 +590,7 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 <div align="center">
   <br>
-  <img src="assets/logo_black.png" alt="SignUIT" width="120">
+  <img src="assets/logo_white.png" alt="SignUIT" width="120">
   <br><br>
   <strong>SignUIT</strong>
   <br>
