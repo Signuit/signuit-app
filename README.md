@@ -1,40 +1,52 @@
-# SignUIT CollateralRouter
+<div align="center">
+  <br>
+  <img src="assets/logo_black.png" alt="SignUIT" width="320">
+  <br><br>
+  <strong>Policy-Based Collateral Routing Engine on Canton Network</strong>
+  <br>
+  <sub>Compute optimal collateral in 3 seconds. Record on-ledger. Approve with confidence.</sub>
+  <br><br>
 
-**"Your collateral, always where it needs to be."**
+  [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+  [![Build](https://img.shields.io/github/actions/workflow/status/signuit/signuit-app/ci.yml?branch=main&label=CI)](https://github.com/signuit/signuit-app/actions)
+  [![Canton Network](https://img.shields.io/badge/Canton_Network-Powered-0A0A0A?logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==)](https://www.canton.network/)
+  [![Daml](https://img.shields.io/badge/Daml_SDK-3.4.11-00B4D8)](https://docs.daml.com/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 
-A **policy-based collateral routing recommendation engine** built on Canton Network. 
+  <br>
 
-SignUIT computes the optimal eligible collateral in seconds, records recommendations 
-on-ledger, and requires human approval for execution (Day 1 MVP). Phase 2 enables 
-optional auto-execution with full audit trail.
+  [Getting Started](#getting-started) · [Architecture](#architecture) · [API Reference](#api-reference) · [Contributing](#contributing)
+</div>
+
+<br>
 
 ---
 
-## At a Glance
+## Overview
 
-**Day 1 MVP:**
-- 🧠 **Automated decisioning** — CTD algorithm evaluates holdings in 3 seconds
-- 🛡️ **Human approval required** — Ops team reviews before execution
-- 📜 **Immutable audit trail** — Every decision recorded on Canton
-- 🔒 **Privacy-preserving** — Canton's sub-transaction privacy model
+**SignUIT CollateralRouter** is a policy-based collateral routing recommendation engine built on the [Canton Network](https://www.canton.network/). It automates the selection of optimal collateral for margin calls using a Cheapest-to-Deliver (CTD) algorithm, records every recommendation as an immutable smart contract on-ledger, and enforces human approval before execution.
 
-**Phase 2 Roadmap:**
-- 🚀 **Optional auto-execution** — Enable with `autoApprove = true`
-- 🌙 **Weekend/after-hours automation** — No human intervention needed
-- 📊 **Advanced analytics** — AI-powered optimization
+The platform replaces manual spreadsheet-based workflows that take 30+ minutes with automated, policy-compliant decisioning in under 3 seconds — while preserving full human oversight and producing a complete audit trail for regulatory reporting.
 
 ---
 
 ## Table of Contents
 
-- [Quick Start](#quick-start-60-seconds)
+- [Overview](#overview)
 - [The Problem](#the-problem)
+- [Key Features](#key-features)
 - [How It Works](#how-it-works)
 - [Architecture](#architecture)
-- [Demo Walkthrough](#demo-walkthrough)
-- [Daml Contracts](#dam-contracts)
-- [Technical Stack](#technical-stack)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Smart Contracts](#smart-contracts)
+- [CTD Engine](#ctd-engine)
+- [API Reference](#api-reference)
+- [Project Structure](#project-structure)
+- [Roadmap](#roadmap)
 - [Contributing](#contributing)
+- [License](#license)
 
 ---
 
@@ -45,109 +57,219 @@ Institutions managing tokenized assets on Canton still rely on significant human
 > *"70% of firms report delivery challenges. Operational costs can represent the majority of total trade cost."*
 > — ValueExchange / Canton Network, Jan 2026
 
-In many institutions:
-- Intrday collateral decisions are made using spreadsheets and manual coordination
-- Cheapest-to-deliver (CTD) optimization requires expensive proprietary systems
-- Collateral remains idle outside business hours, representing unrealized yield
+**Current state at most institutions:**
 
-**SignUIT CollateralRouter fills that gap** — the engine that helps assets already on Canton work as efficiently as possible.
+| Challenge | Impact |
+|-----------|--------|
+| Excel-based asset selection | Error-prone, 30+ min per margin call |
+| No automated policy compliance | Regulatory risk, manual checking |
+| No immutable audit trail | Difficult regulatory reporting |
+| After-hours margin calls | Require human coordination around the clock |
+| No Canton-native routing engine | Integration gap in the ecosystem |
+
+SignUIT CollateralRouter fills this gap — the engine that helps assets already on Canton work as efficiently as possible.
+
+---
+
+## Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **CTD Optimization** | Cheapest-to-Deliver algorithm computes optimal collateral selection in 3 seconds, minimizing opportunity cost |
+| **On-Ledger Audit Trail** | Every routing decision is recorded as an immutable Daml smart contract on Canton — traceable, tamper-proof |
+| **Policy Engine** | Configurable routing rules (CTD, Expiry-First, Yield Maximizer) with LTV, haircut, and counterparty constraints |
+| **Multi-Party Privacy** | Canton's sub-transaction privacy ensures sensitive positions are only visible to relevant parties |
+| **Human-in-the-Loop** | All routing suggestions require explicit approval before execution — automated decisioning, manual control |
+| **Role-Based Access** | Distinct dashboards for Institution (asset owner), Counterparty (margin caller), and Operator (network) |
+| **Yield Preservation** | Algorithm prioritizes non-yielding assets first, preserving yield-bearing positions in the portfolio |
+| **Real-Time Updates** | WebSocket streaming with TanStack Query integration for live contract state synchronization |
 
 ---
 
 ## How It Works
 
-### Core Concept
-
-**Day 1 MVP: Recommendation Engine with Human Approval**
+### Traditional vs. SignUIT
 
 ```
-Traditional (Manual):                  SignUIT CollateralRouter (Day 1):
-
-Margin call received               →   Smart contract trigger fires
-Treasury team opens Excel (30min)  →   CTD engine computes optimal (3 sec) ⚡
-Manual asset selection             →   Recommendation recorded on Canton 📜
-Compliance checking (manual)       →   Policy evaluation (automatic) ✓
-Human approval required            →   Human reviews and approves 🛡️
-Phone call / email confirmation    →   Settlement triggered after approval
-T+1 or T+2 settlement              →   On-ledger execution
-
-                                       Phase 2 (Roadmap):
-                                   →   Optional auto-execution (autoApprove=true)
-                                   →   Weekend/after-hours automation
+Traditional (Manual)                      SignUIT CollateralRouter
+─────────────────────────                 ─────────────────────────
+Margin call received                  →   Smart contract trigger
+Treasury opens Excel         (30 min) →   CTD engine computes          (3 sec)
+Manual asset selection                →   Recommendation on Canton
+Compliance check (manual)             →   Policy evaluation (automatic)
+Phone call / email                    →   Human reviews and approves
+T+1 or T+2 settlement                →   On-ledger execution
 ```
-
-### Three Rule Types (MVP)
-
-| Rule | Description |
-|------|-------------|
-| **Cheapest-to-Deliver (CTD)** | Preserves yield by sending non-yielding assets first |
-| **Expiry-First** | Prioritizes collateral nearing maturity |
-| **Yield Maximizer** | Keeps highest-yielding assets deployed |
 
 ### Transaction Lifecycle
 
-**Day 1 MVP Flow:**
-
 ```
-1. Trigger fires (margin call / schedule / manual)
-2. Rule engine reads current policy from Canton
-3. Holdings queried from Canton ledger
-4. CTD algorithm computes optimal collateral (3 seconds) ⚡
-5. **RoutingSuggestion** created on Canton (recommendation recorded)
-6. 🚨 **HUMAN REVIEWS AND APPROVES** (or rejects) 🛡️
-7. **AllocationRecord** created (immutable audit trail)
-8. Opportunity cost analysis logged on-chain
-
-**Phase 2 Enhancement:**
-Step 6 becomes optional when `autoApprove = true` in CollateralPolicy
+1. TRIGGER        Margin call received (counterparty creates MarginCall contract)
+2. EVALUATE       CTD engine reads active CollateralPolicy from Canton
+3. COMPUTE        Holdings queried, opportunity cost calculated per asset
+4. RECOMMEND      RoutingSuggestion created on-ledger (immutable record)
+5. APPROVE        Ops team reviews and approves (or rejects)
+6. SETTLE         AllocationRecord created — full audit trail on Canton
 ```
+
+### Routing Rule Types
+
+| Rule | Strategy | Use Case |
+|------|----------|----------|
+| **Cheapest-to-Deliver** | Minimize opportunity cost by sending non-yielding assets first | Default — maximizes capital efficiency |
+| **Expiry-First** | Prioritize collateral nearing maturity | Treasury management, reducing rollover risk |
+| **Yield Maximizer** | Keep highest-yielding assets deployed | Aggressive yield optimization strategies |
 
 ---
 
 ## Architecture
 
+### System Overview
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│              SignUIT CollateralRouter                        │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐   │
-│  │  Web UI    │    │ Policy UI   │    │  Dashboard │   │
-│  │ (TanStack) │    │  (Config)   │    │  (Audit)   │   │
-│  └─────┬──────┘    └──────┬──────┘    └──────┬──────┘   │
-│        │                  │                  │             │
-│  ┌─────┴──────────────────┴────────────��─────┴─────┐ │
-│  │              Nexus Framework (@nexus-framework)       │ │
-│  │         Type-safe Canton + TanStack Query           │ │
-│  └─────────────────────┬───────────────────────────────┘ │
-│                        │                                  │
-│  ┌─────────────────────┴───────────────────────────────┐ │
-│  │              Canton Ledger                          │ │
-│  │   CollateralPolicy • RoutingSuggestion •           │ │
-│  │                 AllocationRecord                     │ │
-│  └────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                      SignUIT CollateralRouter                         │
+│                                                                      │
+│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐            │
+│  │  Dashboard    │   │  Policy      │   │  Audit       │            │
+│  │  (Portfolio)  │   │  (Config)    │   │  (Trail)     │            │
+│  └──────┬───────┘   └──────┬───────┘   └──────┬───────┘            │
+│         │                  │                   │                     │
+│  ┌──────┴──────────────────┴───────────────────┴──────┐             │
+│  │            TanStack Router + React 19               │             │
+│  │         TanStack Query · oRPC · Zod Schemas         │             │
+│  └─────────────────────┬──────────────────────────────┘             │
+│                        │                                             │
+│  ┌─────────────────────┴──────────────────────────────┐             │
+│  │              Nexus Framework                        │             │
+│  │     Type-safe Canton client · Session management    │             │
+│  │     JWT auth · Party ID resolution · SSR support    │             │
+│  └─────────────────────┬──────────────────────────────┘             │
+│                        │                                             │
+│  ┌─────────────────────┴──────────────────────────────┐             │
+│  │        Canton Network (JSON Ledger API)             │             │
+│  │                                                     │             │
+│  │   CollateralPolicy    RoutingSuggestion             │             │
+│  │   CollateralHolding   AllocationRecord              │             │
+│  │   MarginCall          ServiceAgreement              │             │
+│  └─────────────────────────────────────────────────────┘             │
+└──────────────────────────────────────────────────────────────────────┘
 ```
+
+### Multi-Party Model
+
+SignUIT operates on a strict multi-party ownership model. The core design principle: **"Operator as infrastructure, not gatekeeper."** Institutions own their routing decisions; the operator observes but does not gate approvals.
+
+| Party | Role | Responsibility |
+|-------|------|----------------|
+| **SignUIT** | Operator | Network orchestration, infrastructure, market data |
+| **Institution** | Asset Owner | Collateral management, routing decisions, approvals |
+| **Counterparty** | Margin Caller | Issues margin calls, receives collateral |
+
+### Contract Ownership
+
+| Template | Signatory | Observer | Controller |
+|----------|-----------|----------|------------|
+| `JoinRequest` | Institution | Operator | Operator |
+| `ServiceAgreement` | Institution + Operator | — | — |
+| `CollateralPolicy` | Institution + Operator | — | Institution |
+| `CollateralHolding` | Institution | Operator | Institution |
+| `MarginCall` | Counterparty | Institution, Operator | Counterparty |
+| `RoutingSuggestion` | Institution | Operator | Institution |
+| `AllocationRecord` | Institution | Operator | Institution |
 
 ---
 
-## Quick Start (60 seconds)
+## Tech Stack
 
-> Prerequisites: Bun, Canton Sandbox running on `http://localhost:7575`
+### Frontend
 
-### 1. Install dependencies
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| React | 19.x | UI framework |
+| TanStack Router | 1.x | File-based routing with SSR (TanStack Start) |
+| TanStack Query | 5.x | Server state management, cache invalidation |
+| Tailwind CSS | 4.x | Utility-first styling |
+| shadcn/ui | — | Component library (59 components, Radix-based) |
+| Recharts | — | Data visualization |
+| Framer Motion | — | Animations |
+
+### Backend
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Nexus Framework | Custom | Type-safe Canton SDK (auth, sessions, ledger client) |
+| oRPC | 1.x | End-to-end type-safe RPC layer |
+| Better Auth | 1.x | Authentication (email/password, session management) |
+| Drizzle ORM | 0.45.x | Database ORM with migration support |
+| libSQL / Turso | — | SQLite database (local + cloud) |
+| Zod | 4.x | Runtime schema validation |
+
+### Smart Contracts
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Daml | SDK 3.4.11 | Smart contract language |
+| Canton Network | Sandbox | Privacy-preserving distributed ledger |
+| Daml Codegen JS | — | TypeScript binding generation from Daml |
+
+### Infrastructure
+
+| Technology | Purpose |
+|------------|---------|
+| pnpm | Package management (workspaces) |
+| Turborepo | Monorepo build orchestration |
+| Biome | Linting and formatting |
+| Bun | Runtime (preferred) |
+| GitHub Actions | CI/CD pipeline |
+| Docker | Canton sandbox containerization |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+| Requirement | Version |
+|-------------|---------|
+| [Bun](https://bun.sh/) | Latest |
+| [pnpm](https://pnpm.io/) | 10.x+ |
+| [Daml SDK](https://docs.daml.com/getting-started/installation.html) | 3.4.x |
+| [Docker](https://www.docker.com/) | Latest (for Canton sandbox) |
+
+### 1. Clone and Install
 
 ```bash
+git clone https://github.com/signuit/signuit-app.git
+cd signuit-app
 pnpm install
 ```
 
-### 2. Build Daml contracts
+### 2. Configure Environment
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your configuration:
+
+```env
+DATABASE_URL=file:local.db
+BETTER_AUTH_SECRET=<32-character-secret>
+BETTER_AUTH_URL=http://localhost:3001
+CORS_ORIGIN=http://localhost:3001
+CANTON_API_URL=http://127.0.0.1:7575
+SESSION_SECRET=<32-byte-hex-key>
+```
+
+### 3. Start Canton Sandbox
 
 ```bash
 cd sandbox
 daml start
 ```
 
-In another terminal:
+In a separate terminal, build and generate TypeScript bindings:
 
 ```bash
 cd sandbox
@@ -155,338 +277,324 @@ daml build
 daml codegen js -o ./daml.js .daml/dist/*-0.0.1.dar
 ```
 
-### 3. Start the web app
+### 4. Initialize Database
 
 ```bash
-cd apps/web
+cd packages/db
+pnpm db:push
+pnpm db:seed
+```
+
+### 5. Start the Platform
+
+```bash
 pnpm dev
 ```
 
-### 4. Demo workflow
+The web application will be available at `http://localhost:3001`.
 
-Navigate to `http://localhost:3001`:
+### Demo Accounts
 
-1. **Configure Policy**: Set priority order (USYC → UST → USDC)
-2. **Simulate Margin Call**: Trigger a $15M margin call
-3. **View Suggestion**: See CTD recommendation with opportunity cost analysis
-4. **Approve**: Click approve to execute
-5. **Audit**: View immutable record in dashboard
+Three pre-configured accounts are available for testing the multi-party workflow:
 
----
+| Role | Email | Party |
+|------|-------|-------|
+| Institution | `demo-vantage@signuit.app` | VantageCapital |
+| Counterparty | `demo-primebank@signuit.app` | PrimeBank |
+| Operator | `demo-operator@signuit.app` | SignUIT |
 
-## Demo Walkthrough
-
-### Scenario: $15M Margin Call
-
-**Context:** VantageCapital receives a $15M margin call from PrimeBank at 3:47 PM ET. Required by 4:00 PM ET.
-
-```
-Step 1 — Margin Call Trigger
-  Margin call #MC-4821 received
-  Amount required: $15.0M USD
-  Deadline: 13 minutes
-  
-Step 2 — CTD Engine Analyzes Holdings
-  Available collateral:
-    • USDC:  $25.0M (yield: 0%, LTV: 100%, expires: never)
-    • UST:   $12.0M (yield: 4.2%, LTV: 95%, expires: 2027-06-15)
-    • USYC:  $8.2M (yield: 4.5%, LTV: 98%, expires: 2027-09-20)
-    
-  Opportunity cost calculation:
-    • USDC → $0.00/day (no yield to lose)
-    • UST  → $51.70/day (lost yield on $15M equivalent)
-    • USYC → $55.48/day (lost yield on $15M equivalent)
-
-Step 3 — CTD Recommendation
-  ✓ Selected: $15.0M USDC
-  
-  Why USDC?
-    ✓ Zero opportunity cost (no yield sacrificed)
-    ✓ 100% LTV (no over-collateralization needed)
-    ✓ Instant settlement, maximum liquidity
-    ✓ Preserves $20.2M of yield-bearing assets
-    ✓ Keeps USYC + UST earning ~$2,300/day combined
-    
-  Value delivered:
-    • ⚡ Decision speed: 3 seconds vs 30-minute manual (600x faster)
-    • 🛡️ Human oversight: Ops team reviews before execution (risk management)
-    • ✓ Policy compliance: Automatic eligibility checking (regulatory comfort)
-    • 📜 Audit trail: Immutable record on Canton (cannot be altered)
-    • 💰 Capital efficiency: Yield-bearing assets preserved (~$2,300/day)
-
-Step 4 — User Approves
-  Ops team reviews suggestion
-  Clicks "Approve" at 3:48 PM ET
-  Settlement initiated on Canton ledger
-
-Step 5 — Audit Trail Created
-  AllocationRecord created on-chain
-  Contract ID: #00c4f1e8b3a2...
-  Traceable: policy used → assets selected → approver → timestamp
-  Immutable: cannot be altered or deleted
-```
-
-**What if USDC wasn't available?**
-
-If USDC holdings were insufficient:
-```
-Scenario: $30M margin call, but only $25M USDC available
-
-CTD Result:
-  $25.0M USDC (exhaust non-yielding first)
-  + $5.26M UST (next cheapest: 4.2% yield, 95% LTV)
-  = $30.0M ✓
-
-This proves the algorithm is intelligent, not just "always USDC."
-It falls back to yield-bearing assets only when necessary.
-```
-
-### User Journey Screens
-
-| Screen | Purpose |
-|--------|----------|
-| **Dashboard** | Portfolio overview, today's efficiency, active routes |
-| **Policy** | Configure CTD rules, priority order, constraints |
-| **Routing** | View pending suggestions, approve/reject |
-| **Audit** | Searchable record of all executed routes |
+> Password for all demo accounts: `password`
 
 ---
 
-## Daml Contracts
+## Smart Contracts
 
-### Three Core Templates
+SignUIT uses 8 Daml templates to model the full collateral routing lifecycle. All contracts are defined in `sandbox/daml/CollateralRouter.daml`.
 
-**1. CollateralPolicy** — Institution routing rules
+### Core Templates
+
+**CollateralPolicy** — Institution-defined routing rules
 
 ```daml
 template CollateralPolicy
   with
-    operator      : Party
-    institution   : Party
-    policyId      : Text
-    ruleType      : Text
-    priorityList  : [Text]
-    minLtv        : Decimal
-    maxHaircut    : Decimal
-    active        : Bool
+    operator       : Party
+    institution    : Party
+    policyId       : Text
+    ruleType       : RuleType          -- CTD | ExpiryFirst | YieldMax
+    priorityList   : [Text]
+    minLtv         : Decimal
+    maxHaircut     : Decimal
+    counterpartyRules : [CounterpartyRule]
+    autoApprove    : Bool              -- Reserved for Phase 2
+    active         : Bool
   where
     signatory operator, institution
 ```
 
-**2. RoutingSuggestion** — Pending recommendation
+**RoutingSuggestion** — Pending recommendation awaiting approval
 
 ```daml
 template RoutingSuggestion
   with
-    routeId        : Text
     institution    : Party
+    operator       : Party
+    routeId        : Text
     marginCallId   : Text
-    amountRequired : Decimal
-    suggestedAsset : Text
-    suggestedAmount: Decimal
-    estimatedOpportunityCost : Decimal
-    status         : Text
+    options        : [RoutingOption]   -- Ranked asset selections
+    selectedOption : Int
+    status         : RouteStatus       -- Pending | Approved | Rejected
+    createdAt      : Text
   where
     signatory institution
+    observer operator
 ```
 
-**3. AllocationRecord** — Immutable audit trail
+**AllocationRecord** — Immutable, tamper-proof audit trail
 
 ```daml
 template AllocationRecord
   with
-    routeId        : Text
     institution    : Party
-    assetSent      : Text
-    amountSent     : Decimal
-    ruleApplied    : Text
+    operator       : Party
+    routeId        : Text
+    marginCallId   : Text
+    assetsUsed     : [Text]
+    amountsUsed    : [Decimal]
+    totalAmount    : Decimal
     opportunityCostBps : Decimal
+    ruleApplied    : Text
     approvedBy     : Party
-    status         : Text
+    approvedAt     : Text
+    status         : RouteStatus
   where
     signatory institution
+    observer operator
+```
+
+### Onboarding Workflow
+
+```
+1. JoinRequest         Institution submits application
+2. ServiceAgreement    Operator reviews and accepts
+3. CollateralHolding   Institution registers collateral positions
+4. CollateralPolicy    Institution configures routing rules
+5. MarginCall          Counterparty issues margin call
+6. RoutingSuggestion   CTD engine generates recommendation
+7. AllocationRecord    Institution approves — audit trail created
 ```
 
 ---
 
-## Technical Stack
+## CTD Engine
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | TanStack Router, TanStack Query, React 19 |
-| **Framework** | Nexus Framework (@nexus-framework) |
-| **Ledger** | Canton Network JSON API |
-| **Auth** | Better Auth / Canton Sandbox |
-| **Styling** | Tailwind CSS v4 |
+The Cheapest-to-Deliver engine is the core optimization algorithm. It selects collateral that minimizes opportunity cost — the yield sacrificed by posting an asset as collateral.
 
-### Nexus Framework Features Used
+### Algorithm
 
-- **Typed Namespaces** — `nexus.CollateralPolicy.useContracts()` with full type inference
-- **TanStack Query Integration** — Automatic query key factories and cache invalidation
-- **Consensus-Aware Mutations** — Wait for transaction finality, not just HTTP 200
-- **WebSocket Streaming** — Real-time contract updates
-- **Session Management** — Encrypted HttpOnly cookies
+```
+For each eligible asset:
+    opportunity_cost = (yield × duration_factor) / LTV
+
+Filter by:
+    - Eligibility rules
+    - Maximum haircut threshold
+    - Counterparty-specific acceptance rules
+
+Sort ascending by opportunity_cost
+
+Select greedily until margin requirement is satisfied
+```
+
+### Example: $15M Margin Call
+
+VantageCapital receives a $15M margin call from PrimeBank. Available holdings:
+
+| Asset | Amount | Yield | LTV | Opportunity Cost |
+|-------|--------|-------|-----|-----------------|
+| USDC | $25.0M | 0.00% | 100% | **$0.00/day** |
+| UST | $12.0M | 4.20% | 95% | $51.70/day |
+| USYC | $8.2M | 4.50% | 98% | $55.48/day |
+
+**Result:** The engine selects $15.0M USDC — zero opportunity cost. The remaining $20.2M in yield-bearing assets (USYC + UST) continues earning ~$2,300/day.
+
+**Fallback scenario** (insufficient USDC): For a $30M call, the engine exhausts $25M USDC first, then adds $5.26M UST (next cheapest). It does not blindly default to a single asset — it optimizes across the full portfolio.
+
+**Source:** [`packages/api/src/engines/ctd-engine.ts`](packages/api/src/engines/ctd-engine.ts)
 
 ---
 
-## Development
+## API Reference
 
-### Project Structure
+All API endpoints are served via oRPC at `/api/rpc/*` with end-to-end type safety.
+
+### Collateral Operations
+
+| Endpoint | Type | Description |
+|----------|------|-------------|
+| `collateral.createPolicy` | Mutation | Create a new CollateralPolicy on Canton |
+| `collateral.updatePolicy` | Mutation | Exercise UpdateCollateralPolicy choice |
+| `collateral.listPolicies` | Query | List all active policies |
+| `collateral.createHolding` | Mutation | Register a new CollateralHolding |
+| `collateral.listHoldings` | Query | List all holdings |
+| `collateral.generateSuggestion` | Mutation | Run CTD algorithm and create RoutingSuggestion |
+| `collateral.approveSuggestion` | Mutation | Approve suggestion (creates AllocationRecord) |
+| `collateral.rejectSuggestion` | Mutation | Reject suggestion |
+| `collateral.listSuggestions` | Query | List all routing suggestions |
+| `collateral.listAllocations` | Query | List all allocation records (audit trail) |
+
+### Authentication
+
+| Endpoint | Type | Description |
+|----------|------|-------------|
+| `auth.getSession` | Query | Get current authenticated session |
+| `me` | Query | Get current user profile |
+| `healthCheck` | Query | Service health check |
+
+### Auth Flow
+
+SignUIT uses dual authentication:
+
+1. **Better Auth** (`/api/auth/*`) — User registration, login, session management (SQLite-backed)
+2. **Nexus Auth** (`/api/nexus-auth/*`) — Canton ledger session management (JWT tokens, party allocation, encrypted HttpOnly cookies)
+
+Both sessions are established on login and maintained via secure cookies.
+
+---
+
+## Project Structure
 
 ```
 signuit-app/
-├── apps/web/              # TanStack Router web app
-│   ├── src/
-│   │   ├── routes/       # Page routes
-│   │   ├── lib/         # Nexus client/server
-│   │   ├── components/  # UI components
-│   │   └── data/        # Mock assets, CTD engine
+├── apps/
+│   ├── web/                 # Main web application (TanStack Start)
+│   │   ├── src/
+│   │   │   ├── routes/      # File-based routing
+│   │   │   ├── components/  # UI components
+│   │   │   ├── hooks/       # React hooks (Canton API, auth)
+│   │   │   └── lib/         # Server config, Canton client, procedures
+│   │   └── public/          # Static assets
+│   ├── docs/                # Documentation site (Fumadocs)
+│   ├── native/              # Mobile application (Expo + React Native)
+│   └── extension/           # Browser extension (WXT)
+│
+├── packages/
+│   ├── api/                 # oRPC routers, CTD engine, Zod schemas
+│   ├── auth/                # Better Auth configuration
+│   ├── db/                  # Drizzle ORM, SQLite schema, seeds
+│   ├── env/                 # Type-safe environment variables (t3-env)
+│   ├── ui/                  # Shared UI components (59 shadcn/Radix components)
+│   └── config/              # Shared TypeScript configuration
+│
+├── framework/
+│   ├── core/                # Nexus Framework — Canton client, auth, sessions
+│   ├── react/               # React hooks, TanStack Query integration
+│   ├── orpc/                # oRPC middleware layer
+│   ├── pqs/                 # Participant Query Store client
+│   └── cli/                 # create-nexus-app CLI scaffolder
+│
 ├── sandbox/
-│   └── daml/            # Daml smart contracts
-│       └── CollateralRouter.daml
-├── framework/            # Nexus Framework packages
-│   ├── core/            # CantonClient, auth
-│   └── react/           # React hooks, plugins
-└── packages/            # Shared packages
-    └── api/             # ORPC procedures
-```
-
-### Running Locally
-
-```bash
-# 1. Start Canton Sandbox
-daml sandbox sandbox/.daml/dist/*-0.0.1.dar
-
-# 2. Build Daml (in sandbox dir)
-daml build && daml codegen js -o ./daml.js .daml/dist/*-0.0.1.dar
-
-# 3. Start web app
-cd apps/web && pnpm dev
+│   ├── daml/                # Daml smart contracts
+│   │   ├── CollateralRouter.daml
+│   │   ├── SeedData.daml
+│   │   └── CollateralRouterTest.daml
+│   ├── daml.js/             # Generated TypeScript bindings
+│   └── docker-compose.yml   # Canton sandbox containerization
+│
+├── turbo.json               # Turborepo pipeline configuration
+├── biome.json               # Linter and formatter configuration
+├── pnpm-workspace.yaml      # Workspace definition
+└── package.json
 ```
 
 ### Key Commands
 
 | Command | Description |
 |---------|-------------|
-| `pnpm dev` | Start web app in development |
-| `pnpm build` | Build for production |
-| `daml build` | Compile Daml contracts |
-| `daml start` | Start Canton Sandbox |
+| `pnpm dev` | Start all applications in development mode |
+| `pnpm build` | Build all packages and applications |
+| `pnpm check` | Run typecheck + lint across the monorepo |
+| `pnpm test` | Run test suites |
+| `daml build` | Compile Daml smart contracts |
+| `daml start` | Start Canton sandbox |
+| `daml codegen js -o ./daml.js .daml/dist/*-0.0.1.dar` | Generate TypeScript bindings |
 
 ---
 
-## MVP Scope (HackCanton)
+## Roadmap
 
-### ✅ Day 1 MVP (Included)
+### Current Release
 
-**Core Functionality:**
-- [x] Policy configuration (priority order, LTV, haircut, counterparty rules)
-- [x] CTD calculation engine (3-second recommendations)
-- [x] **Routing recommendation workflow with human approval**
-- [x] Approval/rejection UI (ops team reviews suggestions)
-- [x] Immutable audit trail dashboard
-- [x] Canton testnet deployment
-- [x] `autoApprove: Bool` field in Daml (prepared for Phase 2)
-
-**Technical Stack:**
-- [x] Daml smart contracts on Canton
-- [x] Nexus Framework (type-safe ledger integration)
-- [x] TanStack Router + React 19
+- [x] Cheapest-to-Deliver optimization engine (3-second recommendations)
+- [x] Policy configuration (rule type, priority order, LTV, haircut, counterparty rules)
+- [x] Routing recommendation workflow with mandatory human approval
+- [x] Immutable audit trail on Canton (AllocationRecord contracts)
+- [x] Multi-party role-based dashboards (Institution, Counterparty, Operator)
+- [x] Dual authentication (Better Auth + Canton session management)
 - [x] Counterparty eligibility filtering
-- [x] Opportunity cost calculation (yield preservation)
+- [x] Opportunity cost analysis with yield preservation
+- [x] Real-time contract state synchronization via WebSocket
 
-### 🚀 Phase 2 Roadmap (Not in MVP)
+### Planned
 
-**Automation Enhancements:**
-- [ ] **Optional auto-execution** (autoApprove = true)
-- [ ] Weekend/after-hours automation without human oversight
-- [ ] Configurable auto-approve rules (e.g., "auto-approve if USDC-only")
-
-**Advanced Features:**
-- [ ] Yield Maximizer rules
-- [ ] Expiry-First optimization
+- [ ] Optional auto-execution (`autoApprove = true` in CollateralPolicy)
+- [ ] Configurable auto-approve rules (e.g., USDC-only calls under $10M)
+- [ ] After-hours / weekend automation for low-risk scenarios
+- [ ] Expiry-First and Yield Maximizer rule implementations
 - [ ] Cross-border collateral substitution
-- [ ] Live Chainlink oracle feeds
-- [ ] Multi-counterparty routing
-- [ ] Real payment execution integration
+- [ ] Live oracle price feeds (Chainlink integration)
+- [ ] Multi-counterparty simultaneous routing
+- [ ] Payment execution integration
+- [ ] Advanced analytics and reporting dashboard
 
-### 🚫 Explicitly Out of Scope
+### Out of Scope
 
-- [ ] Fully autonomous operation (always requires policy setup)
-- [ ] Predictive margin call forecasting
-- [ ] Collateral borrowing/lending marketplace
-- [ ] Integration with legacy settlement systems
+- Fully autonomous operation (always requires initial policy setup)
+- Predictive margin call forecasting
+- Collateral borrowing/lending marketplace
+- Legacy settlement system integration
 
 ---
 
-## Business Context
+## Contributing
 
-**SignUIT CollateralRouter** is being developed for HackCanton Season #1.
+Contributions are welcome. Please follow these guidelines:
 
-### Problem Statement
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Make your changes
+4. Run checks: `pnpm check`
+5. Commit with a descriptive message
+6. Open a Pull Request
 
-**Current State:** 
-- 70% of firms report collateral delivery challenges
-- Manual decisioning takes 30+ minutes per margin call
-- Operational costs represent majority of trade cost  
-- No Canton-native collateral routing engine exists today
+### Development Setup
 
-**Pain Points:**
-- Excel-based asset selection prone to errors
-- No automated policy compliance checking
-- Lack of immutable audit trail for regulatory reporting
-- After-hours margin calls require human coordination
+```bash
+pnpm install          # Install all dependencies
+pnpm dev              # Start development servers
+pnpm check            # Run typecheck + lint
+pnpm test             # Run tests
+```
 
-### Solution Architecture
+### Code Style
 
-**Day 1 MVP: Recommendation Engine**
-- **Automated decisioning:** CTD algorithm computes optimal collateral (3 seconds)
-- **Human approval required:** Ops team reviews before execution (regulatory comfort)
-- **Immutable audit trail:** Every decision recorded on Canton (compliance-ready)
-- **Privacy-preserving:** Sub-transaction privacy via Canton Network
-
-**Value Proposition (Day 1):**
-- 600x faster decision speed (3 sec vs 30 min)
-- Zero errors in policy compliance checking
-- Complete audit trail for regulators
-- Yield preservation via intelligent asset selection
-
-**Phase 2 Roadmap: Optional Automation**
-- **Opt-in auto-execution:** Institutions enable `autoApprove = true` when comfortable
-- **Selective automation:** e.g., "auto-approve USDC-only calls under $10M"
-- **Weekend/after-hours:** No human intervention for low-risk scenarios
-- **Full audit trail maintained:** Regardless of automation mode
-
-### Business Model
-
-**Pricing:**
-- Usage-based: Fee per routing recommendation generated
-- Enterprise tier: Auto-execution + advanced analytics
-- Volume discounts for high-frequency users
-
-**Target Customers:**
-- Large asset managers with daily margin calls
-- Prime brokers managing multi-counterparty relationships
-- Clearinghouses coordinating cross-institutional settlements
-
-**Go-to-Market:**
-- Launch: HackCanton demo (manual approval MVP)
-- Q3 2026: Phase 2 auto-execution beta
-- Q4 2026: General availability on Canton mainnet
+This project uses [Biome](https://biomejs.dev/) for linting and formatting. Configuration is in `biome.json`. Key rules: tabs for indentation, double quotes, semicolons always, 100-character line width.
 
 ---
 
 ## License
 
-Apache 2.0 — free to use, fork, and build on.
-
-> "Daml" and "Canton" are registered trademarks of Digital Asset Holdings, LLC. SignUIT is an independent open-source project and is not affiliated with or endorsed by Digital Asset.
+This project is licensed under the [Apache License 2.0](LICENSE).
 
 ---
 
-## References
-
-- [Canton Network](https://www.canton.network/)
-- [Nexus Framework](./README.md)
-- [ValueExchange / Canton Network Report](https://thevx.io/campaign/treasuries-on-chain-an-industry-case-for-change/)
-- [Daml Documentation](https://docs.daml.com/)
+<div align="center">
+  <br>
+  <img src="assets/logo_black.png" alt="SignUIT" width="120">
+  <br><br>
+  <strong>SignUIT</strong>
+  <br>
+  <sub>Built by Team SignUIT</sub>
+  <br><br>
+  <sub>"Daml" and "Canton" are registered trademarks of Digital Asset Holdings, LLC. SignUIT is an independent project and is not affiliated with or endorsed by Digital Asset.</sub>
+</div>
