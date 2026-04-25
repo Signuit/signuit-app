@@ -54,6 +54,57 @@ const chartData = [
 	{ month: "June", desktop: 214, mobile: 140 },
 ];
 
+function WelcomeCard({ role }: { role: string }) {
+	const content: Record<string, { title: string; description: string; actions: { label: string; to: any }[] }> = {
+		institution: {
+			title: "Welcome to CollateralRouter",
+			description: "Manage your collateral holdings and approve routing suggestions.",
+			actions: [
+				{ label: "View Holdings", to: "/dashboard/holdings" },
+				{ label: "Review Suggestions", to: "/dashboard/suggestions" },
+			],
+		},
+		counterparty: {
+			title: "Margin Call Management",
+			description: "Monitor margin calls and track allocation responses.",
+			actions: [
+				{ label: "View Margin Calls", to: "/dashboard/suggestions" },
+				{ label: "Check Audit Trail", to: "/dashboard/audit" },
+			],
+		},
+		operator: {
+			title: "Network Overview",
+			description: "Observe and monitor the entire CollateralRouter network.",
+			actions: [
+				{ label: "View Network Stats", to: "/dashboard" },
+				{ label: "Monitor Suggestions", to: "/dashboard/suggestions" },
+			],
+		},
+	};
+
+	const config = content[role] || content.institution;
+
+	return (
+		<Card className="bg-primary/5 border-primary/10">
+			<CardHeader>
+				<CardTitle className="text-2xl">{config.title}</CardTitle>
+				<p className="text-muted-foreground">{config.description}</p>
+			</CardHeader>
+			<CardContent>
+				<div className="flex gap-2">
+					{config.actions.map((action) => (
+						<Link key={action.to} to={action.to}>
+							<Button variant="outline" size="sm" className="bg-background">
+								{action.label}
+							</Button>
+						</Link>
+					))}
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
 function HoldingsSummaryCard() {
 	const { data: holdings } = useHoldings();
 
@@ -401,6 +452,7 @@ function RouteComponent() {
 
 	return (
 		<div className="flex flex-col gap-6">
+			<WelcomeCard role={role} />
 			{renderByRole()}
 		</div>
 	);

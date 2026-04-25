@@ -13,91 +13,118 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@nexus/ui/components/sidebar";
-import { TeamSwitcher } from "@nexus/ui/components/team-switcher";
-import { Link, linkOptions } from "@tanstack/react-router";
-import {
-	FileTextIcon,
-	HistoryIcon,
-	LayoutDashboardIcon,
-	SettingsIcon,
-	WalletIcon,
-} from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { FileTextIcon, HistoryIcon, LayoutDashboardIcon, SettingsIcon, WalletIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import type * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { nexus } from "@/lib/nexus-client";
+import { authClient } from "@/lib/auth-client";
+import { useAuthRole } from "@/hooks/use-auth";
 
-const organizations = [
-	{ id: "nexus", name: "Nexus Tech" },
-	{ id: "finance", name: "Finance Team" },
-	{ id: "dev", name: "Development" },
-];
+// Navigation Items Mapping
+function getNavItemsForRole(role: string) {
+	const baseItems = [
+		{
+			to: "/dashboard" as const,
+			label: "Dashboard",
+			icon: <LayoutDashboardIcon />,
+			activeOptions: { exact: true },
+		},
+	];
 
-// Define navigation items with linkOptions for type safety
-const mainNavItems = linkOptions([
-	{
-		to: "/dashboard",
-		label: "Dashboard",
-		icon: <LayoutDashboardIcon />,
-		activeOptions: { exact: true },
-	},
-	{
-		to: "/dashboard/holdings",
-		label: "Holdings",
-		icon: <WalletIcon />,
-		activeOptions: { exact: true },
-	},
-	{
-		to: "/dashboard/suggestions",
-		label: "Suggestions",
-		icon: <FileTextIcon />,
-		activeOptions: { exact: true },
-	},
-	{
-		to: "/dashboard/policy",
-		label: "Policy",
-		icon: <SettingsIcon />,
-		activeOptions: { exact: true },
-	},
-	{
-		to: "/dashboard/audit",
-		label: "Audit Trail",
-		icon: <HistoryIcon />,
-		activeOptions: { exact: true },
-	},
-]);
+	if (role === "institution") {
+		return [
+			...baseItems,
+			{
+				to: "/dashboard/holdings" as const,
+				label: "Holdings",
+				icon: <WalletIcon />,
+				activeOptions: { exact: true },
+			},
+			{
+				to: "/dashboard/suggestions" as const,
+				label: "Suggestions",
+				icon: <FileTextIcon />,
+				activeOptions: { exact: true },
+			},
+			{
+				to: "/dashboard/policy" as const,
+				label: "Policy",
+				icon: <SettingsIcon />,
+				activeOptions: { exact: true },
+			},
+			{
+				to: "/dashboard/audit" as const,
+				label: "Audit Trail",
+				icon: <HistoryIcon />,
+				activeOptions: { exact: true },
+			},
+		];
+	}
 
-function TeamSwitcherGroup({
-	organizations,
-	currentOrganization,
-	onOrganizationChange,
-}: {
-	organizations: { id: string; name: string }[];
-	currentOrganization: { id: string; name: string };
-	onOrganizationChange: (org: { id: string; name: string }) => void;
-}) {
-	return (
-		<SidebarGroup>
-			<SidebarGroupLabel>Teams</SidebarGroupLabel>
-			<SidebarGroupContent>
-				<TeamSwitcher
-					organizations={organizations}
-					currentOrganization={currentOrganization}
-					onOrganizationChange={onOrganizationChange}
-				/>
-			</SidebarGroupContent>
-		</SidebarGroup>
-	);
+	if (role === "counterparty") {
+		return [
+			...baseItems,
+			{
+				to: "/dashboard/suggestions" as const,
+				label: "Margin Calls",
+				icon: <FileTextIcon />,
+				activeOptions: { exact: true },
+			},
+			{
+				to: "/dashboard/audit" as const,
+				label: "Audit Trail",
+				icon: <HistoryIcon />,
+				activeOptions: { exact: true },
+			},
+		];
+	}
+
+	if (role === "operator") {
+		return [
+			...baseItems,
+			{
+				to: "/dashboard/holdings" as const,
+				label: "Network Holdings",
+				icon: <WalletIcon />,
+				activeOptions: { exact: true },
+			},
+			{
+				to: "/dashboard/suggestions" as const,
+				label: "All Suggestions",
+				icon: <FileTextIcon />,
+				activeOptions: { exact: true },
+			},
+			{
+				to: "/dashboard/policy" as const,
+				label: "All Policies",
+				icon: <SettingsIcon />,
+				activeOptions: { exact: true },
+			},
+			{
+				to: "/dashboard/audit" as const,
+				label: "Network Audit",
+				icon: <HistoryIcon />,
+				activeOptions: { exact: true },
+			},
+		];
+	}
+
+	return baseItems;
 }
 
-function NavMainItems() {
+function NavMainItems({ role }: { role: string }) {
+	const items = useMemo(() => getNavItemsForRole(role), [role]);
+
 	return (
 		<SidebarGroup>
 			<SidebarGroupLabel>Main</SidebarGroupLabel>
 			<SidebarGroupContent>
 				<SidebarMenu>
-					{mainNavItems.map((item) => (
+					{items.map((item) => (
 						<SidebarMenuItem key={item.label}>
-							<Link {...item} preload="intent">
+							<Link {...(item as any)} preload="intent">
 								{({ isActive }) => (
 									<SidebarMenuButton tooltip={item.label} isActive={isActive}>
 										{item.icon}
@@ -114,24 +141,38 @@ function NavMainItems() {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+	const { data: sessionData } = nexus.auth.useSession() as any;
+	const { role } = useAuthRole();
+	const logout = nexus.auth.useLogout();
+	const navigate = useNavigate();
+
 	const user = {
-		name: "User",
-		email: "user@example.com",
-		avatar: "/avatars/user.jpg",
+		name: sessionData?.user?.name || "Guest",
+		email: sessionData?.user?.email || "",
+		avatar: sessionData?.user?.image || "/avatars/user.jpg",
+		role: (sessionData?.user?.role as string) || role || "institution",
 	};
+
+	const handleLogout = async () => {
+		// Step 1: Sign out from Better Auth
+		await authClient.signOut();
+
+		// Step 2: Clear Nexus session
+		logout.mutate(undefined, {
+			onSuccess: () => {
+				navigate({ to: "/login" });
+			},
+		});
+	};
+
 	const { resolvedTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
-	const [currentOrganization, setCurrentOrganization] = useState(organizations[0]);
 
 	useEffect(() => {
 		setMounted(true);
 	}, []);
 
 	const isDark = mounted && resolvedTheme === "dark";
-
-	const handleOrganizationChange = (org: { id: string; name: string }) => {
-		setCurrentOrganization(org);
-	};
 
 	return (
 		<Sidebar collapsible="icon" {...props}>
@@ -153,15 +194,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				</SidebarMenu>
 			</SidebarHeader>
 			<SidebarContent>
-				<TeamSwitcherGroup
-					organizations={organizations}
-					currentOrganization={currentOrganization}
-					onOrganizationChange={handleOrganizationChange}
-				/>
-				<NavMainItems />
+				<NavMainItems role={user.role} />
 			</SidebarContent>
 			<SidebarFooter>
-				<NavUser user={user} />
+				<NavUser
+					user={user}
+					onLogout={handleLogout}
+					onAccountClick={() => navigate({ to: "/dashboard/settings" })}
+					onBillingClick={() => navigate({ to: "/dashboard/settings" })}
+					onNotificationsClick={() => navigate({ to: "/dashboard/settings" })}
+				/>
 			</SidebarFooter>
 		</Sidebar>
 	);

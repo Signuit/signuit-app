@@ -26,12 +26,20 @@ import {
 
 export function NavUser({
 	user,
+	onLogout,
+	onAccountClick,
+	onBillingClick,
+	onNotificationsClick,
 }: {
 	user: {
 		name: string;
 		email: string;
 		avatar: string;
 	};
+	onLogout?: () => void;
+	onAccountClick?: () => void;
+	onBillingClick?: () => void;
+	onNotificationsClick?: () => void;
 }) {
 	const { isMobile } = useSidebar();
 
@@ -75,21 +83,21 @@ export function NavUser({
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem>
+							<DropdownMenuItem onClick={onAccountClick}>
 								<CircleUserRoundIcon />
 								Account
 							</DropdownMenuItem>
-							<DropdownMenuItem>
+							<DropdownMenuItem onClick={onBillingClick}>
 								<CreditCardIcon />
 								Billing
 							</DropdownMenuItem>
-							<DropdownMenuItem>
+							<DropdownMenuItem onClick={onNotificationsClick}>
 								<BellIcon />
 								Notifications
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem>
+						<DropdownMenuItem onClick={onLogout}>
 							<LogOutIcon />
 							Log out
 						</DropdownMenuItem>
