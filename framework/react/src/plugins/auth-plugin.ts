@@ -36,8 +36,8 @@
 
 import type { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { NexusClientPlugin } from "./tanstack-query";
 import { useSessionRefresh } from "../hooks/use-session-refresh";
+import type { NexusClientPlugin } from "./tanstack-query";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

@@ -14,13 +14,19 @@ import {
 	SidebarMenuItem,
 } from "@nexus/ui/components/sidebar";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { FileTextIcon, HistoryIcon, LayoutDashboardIcon, SettingsIcon, WalletIcon } from "lucide-react";
+import {
+	FileTextIcon,
+	LayoutDashboardIcon,
+	SettingsIcon,
+	ShieldCheckIcon,
+	WalletIcon,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import type * as React from "react";
-import { useEffect, useState, useMemo } from "react";
-import { nexus } from "@/lib/nexus-client";
-import { authClient } from "@/lib/auth-client";
+import { useEffect, useMemo, useState } from "react";
 import { useAuthRole } from "@/hooks/use-auth";
+import { authClient } from "@/lib/auth-client";
+import { nexus } from "@/lib/nexus-client";
 
 // Navigation Items Mapping
 function getNavItemsForRole(role: string) {
@@ -57,7 +63,7 @@ function getNavItemsForRole(role: string) {
 			{
 				to: "/dashboard/audit" as const,
 				label: "Audit Trail",
-				icon: <HistoryIcon />,
+				icon: <ShieldCheckIcon />,
 				activeOptions: { exact: true },
 			},
 		];
@@ -75,7 +81,7 @@ function getNavItemsForRole(role: string) {
 			{
 				to: "/dashboard/audit" as const,
 				label: "Audit Trail",
-				icon: <HistoryIcon />,
+				icon: <ShieldCheckIcon />,
 				activeOptions: { exact: true },
 			},
 		];
@@ -105,7 +111,7 @@ function getNavItemsForRole(role: string) {
 			{
 				to: "/dashboard/audit" as const,
 				label: "Network Audit",
-				icon: <HistoryIcon />,
+				icon: <ShieldCheckIcon />,
 				activeOptions: { exact: true },
 			},
 		];

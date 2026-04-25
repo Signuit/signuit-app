@@ -11,7 +11,9 @@ const SANDBOX_SECRET = process.env.SANDBOX_SECRET ?? "secret";
 // Default: 24h in development, 2h in production
 const SESSION_TTL_HOURS = process.env.NEXUS_SESSION_TTL_HOURS
 	? Number.parseInt(process.env.NEXUS_SESSION_TTL_HOURS, 10)
-	: process.env.NODE_ENV === "production" ? 2 : 24;
+	: process.env.NODE_ENV === "production"
+		? 2
+		: 24;
 
 // Only use encryption if the key is a valid hex string and not the placeholder
 const isValidHex = (s?: string) => s && /^[0-9a-fA-F]+$/.test(s) && s.length % 2 === 0;

@@ -22,7 +22,7 @@ export const DEMO_CREDENTIALS = {
 		email: "demo-operator@signuit.app",
 		password: "demo-password-123",
 		name: "SignUIT Operator",
-		partyId: "SignUITOperator",
+		partyId: "SignUIT",
 	},
 } as const;
 

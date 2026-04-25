@@ -9,9 +9,11 @@ import {
 	TableHeader,
 	TableRow,
 } from "@nexus/ui/components/table";
+import { cn } from "@nexus/ui/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { CheckIcon, FileTextIcon, HistoryIcon, InfoIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
+import { useAuthRole } from "@/hooks/use-auth";
 import {
 	useApproveSuggestion,
 	useRejectSuggestion,
@@ -23,6 +25,7 @@ export const Route = createFileRoute("/_app/dashboard/suggestions")({
 });
 
 function RouteComponent() {
+	const { role } = useAuthRole();
 	const { data: suggestions, isLoading, error } = useSuggestions();
 	const approveMutation = useApproveSuggestion();
 	const rejectMutation = useRejectSuggestion();
@@ -45,124 +48,176 @@ function RouteComponent() {
 		}
 	};
 
+	const title =
+		role === "institution"
+			? "Routing Suggestions"
+			: role === "counterparty"
+				? "Margin Calls"
+				: "Network Suggestions";
+	const description =
+		role === "institution"
+			? "Manage pending collateral routing recommendations"
+			: role === "counterparty"
+				? "Monitor status of issued margin calls"
+				: "Observe system-wide collateral routing activity";
+
 	return (
-		<div className="flex flex-col gap-6">
+		<div className="flex flex-col gap-6 pb-12">
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-3">
-					<div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
-						<FileTextIcon className="text-primary size-5" />
+					<div className="size-10 rounded-lg bg-muted flex items-center justify-center">
+						<FileTextIcon className="text-muted-foreground size-5" />
 					</div>
 					<div>
-						<h1 className="text-3xl font-bold">Routing Suggestions</h1>
-						<p className="text-sm text-muted-foreground">
-							Manage pending collateral routing recommendations
-						</p>
+						<h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+						<p className="text-muted-foreground text-sm">{description}</p>
 					</div>
 				</div>
 			</div>
 
-			<Card>
-				<CardHeader>
-					<CardTitle>Pending Approvals</CardTitle>
+			<Card className="shadow-sm">
+				<CardHeader className="pb-3 text-sm">
+					<CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+						{role === "institution" ? "Pending Approvals" : "Active Ledger Records"}
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					{isLoading ? (
-						<div className="flex h-32 items-center justify-center">
-							<p className="text-muted-foreground animate-pulse">Fetching suggestions...</p>
+						<div className="flex h-64 flex-col items-center justify-center gap-4">
+							<div className="size-6 border-2 border-primary border-t-transparent animate-spin rounded-full" />
+							<p className="text-muted-foreground text-sm font-medium animate-pulse">
+								Syncing with Canton...
+							</p>
 						</div>
 					) : error ? (
-						<div className="text-center py-8 text-destructive">
-							<p>Error loading suggestions: {error.message}</p>
+						<div className="text-center py-12 bg-destructive/5 rounded-lg border border-destructive/10">
+							<p className="text-destructive font-medium">Failed to load ledger: {error.message}</p>
 						</div>
 					) : (
 						<Table>
 							<TableHeader>
-								<TableRow>
-									<TableHead>Route ID</TableHead>
-									<TableHead>Margin Call</TableHead>
-									<TableHead>Suggested Assets</TableHead>
-									<TableHead>Cost (bps)</TableHead>
-									<TableHead>Status</TableHead>
-									<TableHead className="text-right">Actions</TableHead>
+								<TableRow className="hover:bg-transparent border-muted/50">
+									<TableHead className="text-[10px] font-bold uppercase py-2">Route ID</TableHead>
+									<TableHead className="text-[10px] font-bold uppercase py-2">
+										Margin Call
+									</TableHead>
+									<TableHead className="text-[10px] font-bold uppercase py-2">
+										Allocation Plan
+									</TableHead>
+									<TableHead className="text-[10px] font-bold uppercase py-2 text-right">
+										Cost (bps)
+									</TableHead>
+									<TableHead className="text-[10px] font-bold uppercase py-2 text-right">
+										Status
+									</TableHead>
+									{role === "institution" && (
+										<TableHead className="text-[10px] font-bold uppercase py-2 text-right">
+											Decision
+										</TableHead>
+									)}
 								</TableRow>
 							</TableHeader>
 							<TableBody>
 								{suggestions?.map((s) => (
-									<TableRow key={s.contractId}>
-										<TableCell className="font-mono text-xs">{s.payload.routeId}</TableCell>
+									<TableRow
+										key={s.contractId}
+										className="group border-muted/30 hover:bg-muted/10 transition-colors"
+									>
+										<TableCell className="font-mono text-[10px] text-muted-foreground">
+											{s.payload.routeId}
+										</TableCell>
 										<TableCell>
 											<div className="flex flex-col">
-												<span className="font-medium">{s.payload.marginCallId}</span>
-												<span className="text-xs text-muted-foreground">
-													${parseFloat(s.payload.amountRequired).toLocaleString()}
+												<span className="font-semibold text-sm">{s.payload.marginCallId}</span>
+												<span className="text-[11px] font-medium text-primary">
+													${(parseFloat(s.payload.amountRequired) / 1_000_000).toFixed(1)}M
 												</span>
 											</div>
 										</TableCell>
 										<TableCell>
-											<div className="flex flex-wrap gap-1">
+											<div className="flex flex-wrap gap-1.5">
 												{s.payload.suggestedAssets.map((asset: string, i: number) => (
-													<Badge key={i} variant="outline" className="bg-primary/5">
-														{asset} (${parseFloat(s.payload.suggestedAmounts[i]).toLocaleString()})
+													<Badge
+														key={i}
+														variant="outline"
+														className="text-[10px] h-5 font-medium border-muted-foreground/20"
+													>
+														{asset}{" "}
+														<span className="ml-1 opacity-60">
+															(${(parseFloat(s.payload.suggestedAmounts[i]) / 1_000_000).toFixed(1)}
+															M)
+														</span>
 													</Badge>
 												))}
 											</div>
 										</TableCell>
-										<TableCell>
-											<span className="font-medium">
-												{parseFloat(s.payload.opportunityCostBps).toFixed(2)}
-											</span>
+										<TableCell className="text-right">
+											<div className="flex flex-col items-end">
+												<span className="font-semibold text-sm">
+													{parseFloat(s.payload.opportunityCostBps).toFixed(1)}
+												</span>
+												<span className="text-[9px] font-medium text-muted-foreground uppercase">
+													Bps
+												</span>
+											</div>
 										</TableCell>
-										<TableCell>
+										<TableCell className="text-right">
 											<Badge
-												variant={s.payload.status === "RoutePending" ? "secondary" : "default"}
-												className={
+												variant="secondary"
+												className={cn(
+													"border-transparent font-semibold text-[10px] px-2 py-0",
 													s.payload.status === "RoutePending"
-														? "bg-yellow-500/10 text-yellow-600 border-yellow-200"
+														? "bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400"
 														: s.payload.status === "RouteApproved"
-															? "bg-green-500/10 text-green-600 border-green-200"
-															: "bg-red-500/10 text-red-600 border-red-200"
-												}
+															? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
+															: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400",
+												)}
 											>
 												{s.payload.status}
 											</Badge>
 										</TableCell>
-										<TableCell className="text-right">
-											{s.payload.status === "RoutePending" && (
-												<div className="flex justify-end gap-2">
-													<Button
-														variant="outline"
-														size="sm"
-														className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-														onClick={() => handleReject(s.contractId)}
-													>
-														<XIcon className="size-4" />
-													</Button>
-													<Button
-														variant="default"
-														size="sm"
-														className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700"
-														onClick={() => handleApprove(s.contractId)}
-													>
-														<CheckIcon className="size-4" />
-													</Button>
-												</div>
-											)}
-											{s.payload.status !== "RoutePending" && (
-												<Button variant="ghost" size="sm" disabled>
-													Processed
-												</Button>
-											)}
-										</TableCell>
+										{role === "institution" && (
+											<TableCell className="text-right">
+												{s.payload.status === "RoutePending" && (
+													<div className="flex justify-end gap-2">
+														<Button
+															variant="ghost"
+															size="sm"
+															className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+															onClick={() => handleReject(s.contractId)}
+														>
+															<XIcon className="size-4 mr-1" />
+															Reject
+														</Button>
+														<Button
+															variant="default"
+															size="sm"
+															className="h-7 px-3 text-[11px] font-semibold"
+															onClick={() => handleApprove(s.contractId)}
+														>
+															<CheckIcon className="size-4 mr-1" />
+															Approve
+														</Button>
+													</div>
+												)}
+												{s.payload.status !== "RoutePending" && (
+													<span className="text-[10px] font-medium text-muted-foreground italic uppercase">
+														Processed
+													</span>
+												)}
+											</TableCell>
+										)}
 									</TableRow>
 								))}
 								{suggestions?.length === 0 && (
 									<TableRow>
-										<TableCell colSpan={6} className="h-32 text-center">
-											<div className="flex flex-col items-center gap-2 text-muted-foreground">
+										<TableCell
+											colSpan={role === "institution" ? 6 : 5}
+											className="h-48 text-center"
+										>
+											<div className="flex flex-col items-center gap-3 text-muted-foreground">
 												<HistoryIcon className="size-8 opacity-20" />
-												<p>
-													No suggestions found. Use the "Generate Suggestion" tool to create one.
-												</p>
+												<p className="font-medium text-sm">No suggestions found</p>
 											</div>
 										</TableCell>
 									</TableRow>
@@ -173,31 +228,31 @@ function RouteComponent() {
 				</CardContent>
 			</Card>
 
-			<div className="grid gap-6 md:grid-cols-2">
-				<Card className="bg-primary/5 border-primary/10">
+			<div className="grid gap-4 md:grid-cols-2">
+				<Card className="bg-muted/5 shadow-sm">
 					<CardHeader className="pb-2">
-						<CardTitle className="text-sm flex items-center gap-2 text-primary">
-							<InfoIcon className="size-4" />
+						<CardTitle className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 text-muted-foreground">
+							<InfoIcon className="size-3" />
 							Day 1 MVP Protocol
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-xs text-muted-foreground">
+						<p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
 							In Day 1 MVP, all routing suggestions created by the CTD engine are stored as
 							"Pending" contracts. Human approval is strictly required before any collateral is
 							moved or records are finalized.
 						</p>
 					</CardContent>
 				</Card>
-				<Card className="bg-secondary/5 border-secondary/10">
+				<Card className="bg-muted/5 shadow-sm">
 					<CardHeader className="pb-2">
-						<CardTitle className="text-sm flex items-center gap-2 text-secondary-foreground">
-							<HistoryIcon className="size-4" />
+						<CardTitle className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 text-muted-foreground">
+							<HistoryIcon className="size-3" />
 							Auto-Approval Roadmap
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-xs text-muted-foreground">
+						<p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
 							Phase 2 will allow policies to enable `autoApprove: true`. In this mode, the CTD
 							engine will automatically approve and execute suggestions that meet all policy
 							constraints without human intervention.

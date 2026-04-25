@@ -38,6 +38,9 @@ export type {
 	NexusClientInstance,
 } from "./create-nexus-client";
 export { createNexusClient } from "./create-nexus-client";
+// ─── Hooks ────────────────────────────────────────────────────────────────────
+export type { UseSessionRefreshOptions } from "./hooks/use-session-refresh";
+export { useSessionRefresh } from "./hooks/use-session-refresh";
 export type {
 	AuthActions,
 	AuthPluginConfig,
@@ -86,7 +89,6 @@ export type {
 	UseRightsAsResult,
 } from "./plugins/tanstack-query";
 export { tanstackQueryPlugin } from "./plugins/tanstack-query";
-
 // ─── Query Keys ───────────────────────────────────────────────────────────────
 export type { ContractQueryFilters, NexusQueryKey } from "./query/query-keys";
 export {
@@ -94,7 +96,3 @@ export {
 	invalidateContractQueries,
 	nexusKeys,
 } from "./query/query-keys";
-
-// ─── Hooks ────────────────────────────────────────────────────────────────────
-export type { UseSessionRefreshOptions } from "./hooks/use-session-refresh";
-export { useSessionRefresh } from "./hooks/use-session-refresh";

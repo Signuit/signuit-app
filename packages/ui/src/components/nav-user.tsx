@@ -1,6 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@nexus/ui/components/avatar";
+import { Badge } from "@nexus/ui/components/badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -35,6 +36,7 @@ export function NavUser({
 		name: string;
 		email: string;
 		avatar: string;
+		role?: string;
 	};
 	onLogout?: () => void;
 	onAccountClick?: () => void;
@@ -57,7 +59,17 @@ export function NavUser({
 								<AvatarFallback className="rounded-lg">CN</AvatarFallback>
 							</Avatar>
 							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-medium">{user.name}</span>
+								<div className="flex items-center gap-2">
+									<span className="truncate font-medium">{user.name}</span>
+									{user.role && (
+										<Badge
+											variant="outline"
+											className="text-[9px] px-1.5 py-0 h-4 font-bold uppercase"
+										>
+											{user.role}
+										</Badge>
+									)}
+								</div>
 								<span className="truncate text-xs text-muted-foreground">{user.email}</span>
 							</div>
 							<EllipsisVerticalIcon className="ml-auto size-4" />
@@ -76,7 +88,17 @@ export function NavUser({
 									<AvatarFallback className="rounded-lg">CN</AvatarFallback>
 								</Avatar>
 								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate font-medium">{user.name}</span>
+									<div className="flex items-center gap-2">
+										<span className="truncate font-medium">{user.name}</span>
+										{user.role && (
+											<Badge
+												variant="outline"
+												className="text-[9px] px-1.5 py-0 h-4 font-bold uppercase"
+											>
+												{user.role}
+											</Badge>
+										)}
+									</div>
 									<span className="truncate text-xs text-muted-foreground">{user.email}</span>
 								</div>
 							</div>

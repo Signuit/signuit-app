@@ -15,7 +15,7 @@ export const DEMO_USERS = [
 		email: "demo-operator@signuit.app",
 		name: "SignUIT Operator",
 		role: "operator" as const,
-		partyId: "SignUITOperator",
+		partyId: "SignUIT",
 	},
 ];
 
