@@ -20,6 +20,7 @@ import {
 	SettingsIcon,
 	ShieldCheckIcon,
 	WalletIcon,
+	ZapIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import type * as React from "react";
@@ -52,6 +53,12 @@ function getNavItemsForRole(role: string) {
 				to: "/dashboard/suggestions" as const,
 				label: "Suggestions",
 				icon: <FileTextIcon />,
+				activeOptions: { exact: true },
+			},
+			{
+				to: "/dashboard/generate" as const,
+				label: "Generate Route",
+				icon: <ZapIcon />,
 				activeOptions: { exact: true },
 			},
 			{

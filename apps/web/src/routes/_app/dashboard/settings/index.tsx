@@ -7,7 +7,7 @@ import { Label } from "@nexus/ui/components/label";
 import { Separator } from "@nexus/ui/components/separator";
 import { Switch } from "@nexus/ui/components/switch";
 import { createFileRoute } from "@tanstack/react-router";
-import { BellIcon, KeyRoundIcon, MonitorIcon, MoonIcon, PaletteIcon, UserIcon } from "lucide-react";
+import { BellIcon, InfoIcon, KeyRoundIcon, MonitorIcon, MoonIcon, PaletteIcon, UserIcon } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/_app/dashboard/settings/")({
@@ -244,6 +244,15 @@ function RouteComponent() {
 			<div>
 				<h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
 				<p className="text-muted-foreground">Manage your account settings and preferences.</p>
+			</div>
+
+			{/* Demo mode notice */}
+			<div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/5 px-4 py-3">
+				<InfoIcon className="size-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+				<p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+					Settings are in read-only mode for the Day 1 MVP demo. Profile updates and account
+					management will be available in Phase 2.
+				</p>
 			</div>
 			<div className="flex flex-1 flex-col gap-6 md:flex-row">
 				<aside className="w-full md:w-[220px] shrink-0">

@@ -21,7 +21,7 @@ export const collateralRouter = {
 
 	createPolicy: ledgerProcedure.input(CreatePolicySchema).handler(({ input, context }) => {
 		return context.ledger.CollateralPolicy.create({
-			operator: context.partyId,
+			operator: context.operatorPartyId,
 			institution: context.partyId,
 			policyId: input.policyId,
 			ruleType: input.ruleType,
@@ -126,6 +126,8 @@ export const collateralRouter = {
 			}
 
 			// 4. Run CTD calculation (off-chain)
+			// NOTE: ExpiryFirst and YieldMax rule types are planned for Phase 2.
+			// All policy.ruleType values currently execute the CTD (cheapest-to-deliver) algorithm.
 			const ctdResult = calculateCTD(
 				holdings.map((h) => ({
 					symbol: h.payload.asset,

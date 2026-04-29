@@ -428,14 +428,14 @@ function CounterpartyView() {
 					trendValue={pendingSuggestions > 0 ? "Pending action" : "Fulfilled"}
 					loading={isLoading}
 				/>
-				<StatCard
-					title="Cumulative Fulfillments"
-					value={totalAllocations}
-					icon={WalletIcon}
-					trend="up"
-					trendValue="+4 this week"
-					loading={isLoading}
-				/>
+			<StatCard
+				title="Cumulative Fulfillments"
+				value={totalAllocations}
+				icon={WalletIcon}
+				trend={totalAllocations > 0 ? "up" : null}
+				trendValue={`${totalAllocations} on-ledger`}
+				loading={isLoading}
+			/>
 			</div>
 
 			<div className="grid gap-6 lg:grid-cols-2">
@@ -452,14 +452,14 @@ function OperatorView() {
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="grid gap-4 md:grid-cols-3">
-				<StatCard
-					title="Network Assets"
-					value={`$${(totalHoldingsValue / 1_000_000).toFixed(1)}M`}
-					icon={WalletIcon}
-					trend="up"
-					trendValue="+2.5%"
-					loading={isLoading}
-				/>
+			<StatCard
+				title="Network Assets"
+				value={`$${(totalHoldingsValue / 1_000_000).toFixed(1)}M`}
+				icon={WalletIcon}
+				trend={totalHoldingsValue > 0 ? "up" : null}
+				trendValue="Live from Canton"
+				loading={isLoading}
+			/>
 				<StatCard
 					title="Global Suggestion Queue"
 					value={pendingSuggestions}
@@ -468,14 +468,14 @@ function OperatorView() {
 					trendValue={pendingSuggestions > 0 ? "Observer active" : "Silent"}
 					loading={isLoading}
 				/>
-				<StatCard
-					title="Executed Routes"
-					value={totalAllocations}
-					icon={TrendingUpIcon}
-					trend="up"
-					trendValue="+12 overall"
-					loading={isLoading}
-				/>
+			<StatCard
+				title="Executed Routes"
+				value={totalAllocations}
+				icon={TrendingUpIcon}
+				trend={totalAllocations > 0 ? "up" : null}
+				trendValue={`${totalAllocations} allocations`}
+				loading={isLoading}
+			/>
 			</div>
 
 			<div className="grid gap-6 lg:grid-cols-3">
@@ -502,14 +502,14 @@ function RouteComponent() {
 				return (
 					<>
 						<div className="grid gap-4 md:grid-cols-3">
-							<StatCard
-								title="Available Collateral"
-								value={`$${(totalHoldingsValue / 1_000_000).toFixed(1)}M`}
-								icon={WalletIcon}
-								trend="up"
-								trendValue="+2.5%"
-								loading={isLoading}
-							/>
+						<StatCard
+							title="Available Collateral"
+							value={`$${(totalHoldingsValue / 1_000_000).toFixed(1)}M`}
+							icon={WalletIcon}
+							trend={totalHoldingsValue > 0 ? "up" : null}
+							trendValue="Live from Canton"
+							loading={isLoading}
+						/>
 							<StatCard
 								title="Actionable Routes"
 								value={pendingSuggestions}
@@ -518,14 +518,14 @@ function RouteComponent() {
 								trendValue={pendingSuggestions > 0 ? "Approval Required" : "All Clear"}
 								loading={isLoading}
 							/>
-							<StatCard
-								title="Deployed Value"
-								value={totalAllocations}
-								icon={TrendingUpIcon}
-								trend="up"
-								trendValue="+12 recently"
-								loading={isLoading}
-							/>
+						<StatCard
+							title="Deployed Value"
+							value={totalAllocations}
+							icon={TrendingUpIcon}
+							trend={totalAllocations > 0 ? "up" : null}
+							trendValue={`${totalAllocations} allocations`}
+							loading={isLoading}
+						/>
 						</div>
 
 						<div className="grid gap-6 lg:grid-cols-[1fr_2fr]">

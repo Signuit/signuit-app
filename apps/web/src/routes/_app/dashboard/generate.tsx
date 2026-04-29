@@ -25,7 +25,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useApproveSuggestion, useGenerateSuggestion, usePolicies } from "@/hooks/use-collateral-api";
+import { useApproveSuggestion, useGenerateSuggestion, useHoldings, usePolicies } from "@/hooks/use-collateral-api";
 
 export const Route = createFileRoute("/_app/dashboard/generate")({
 	component: RouteComponent,
@@ -47,6 +47,7 @@ function RouteComponent() {
 	const [loadingProgress, setLoadingProgress] = useState(0);
 
 	const { data: policies } = usePolicies();
+	const { data: holdings } = useHoldings();
 	const generateMutation = useGenerateSuggestion();
 	const approveMutation = useApproveSuggestion();
 
@@ -243,18 +244,22 @@ function RouteComponent() {
 						</div>
 
 						<div className="grid grid-cols-1 gap-2 text-left bg-muted/50 p-4 rounded-lg">
-							<div className="flex items-center gap-2 text-xs">
-								<div className="size-2 rounded-full bg-green-500" />
-								<span>USDC Holdings: $25.0M (Available)</span>
-							</div>
-							<div className="flex items-center gap-2 text-xs">
-								<div className="size-2 rounded-full bg-green-500" />
-								<span>UST Holdings: $12.0M (Available)</span>
-							</div>
-							<div className="flex items-center gap-2 text-xs">
-								<div className="size-2 rounded-full bg-green-500" />
-								<span>USYC Holdings: $8.2M (Available)</span>
-							</div>
+							{holdings && holdings.length > 0 ? (
+								holdings.map((h) => (
+									<div key={h.contractId} className="flex items-center gap-2 text-xs">
+										<div className="size-2 rounded-full bg-green-500" />
+										<span>
+											{h.payload.asset}: $
+											{(parseFloat(h.payload.amount) / 1_000_000).toFixed(1)}M (Available)
+										</span>
+									</div>
+								))
+							) : (
+								<div className="flex items-center gap-2 text-xs text-muted-foreground">
+									<div className="size-2 rounded-full bg-primary animate-pulse" />
+									<span>Loading holdings from Canton...</span>
+								</div>
+							)}
 						</div>
 					</div>
 				</Card>

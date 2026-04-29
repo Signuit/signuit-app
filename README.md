@@ -303,7 +303,7 @@ Three pre-configured accounts are available for testing the multi-party workflow
 | Counterparty | `demo-primebank@signuit.app` | PrimeBank |
 | Operator | `demo-operator@signuit.app` | SignUIT |
 
-> Password for all demo accounts: `password`
+> Password for all demo accounts: `demo-password-123`
 
 ---
 
