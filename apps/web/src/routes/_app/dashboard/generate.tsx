@@ -25,7 +25,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useGenerateSuggestion, usePolicies } from "@/hooks/use-collateral-api";
+import { useApproveSuggestion, useGenerateSuggestion, usePolicies } from "@/hooks/use-collateral-api";
 
 export const Route = createFileRoute("/_app/dashboard/generate")({
 	component: RouteComponent,
@@ -48,6 +48,7 @@ function RouteComponent() {
 
 	const { data: policies } = usePolicies();
 	const generateMutation = useGenerateSuggestion();
+	const approveMutation = useApproveSuggestion();
 
 	const handleGenerate = async () => {
 		if (!policyId) {
@@ -413,13 +414,32 @@ function RouteComponent() {
 							</Button>
 							<Button
 								className="flex-1 h-14 text-lg bg-green-600 hover:bg-green-700 shadow-xl"
-								onClick={() => {
-									toast.success("Routing suggestion approved and sent to audit trail");
-									navigate({ to: "/dashboard/audit" });
+								disabled={approveMutation.isPending}
+								onClick={async () => {
+									try {
+										await approveMutation.mutateAsync({
+											suggestionCid: suggestionResult.contractId,
+										});
+										toast.success("Routing suggestion approved — allocation record created on Canton");
+										navigate({ to: "/dashboard/audit" });
+									} catch (err) {
+										toast.error(
+											`Approval failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+										);
+									}
 								}}
 							>
-								<CheckCircleIcon className="mr-2 size-5" />
-								Approve & Execute
+								{approveMutation.isPending ? (
+									<>
+										<div className="mr-2 size-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+										Approving on Canton...
+									</>
+								) : (
+									<>
+										<CheckCircleIcon className="mr-2 size-5" />
+										Approve & Execute
+									</>
+								)}
 							</Button>
 						</div>
 					</CardContent>

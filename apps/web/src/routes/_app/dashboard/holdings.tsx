@@ -2,6 +2,16 @@ import { Badge } from "@nexus/ui/components/badge";
 import { Button } from "@nexus/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@nexus/ui/components/card";
 import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@nexus/ui/components/dialog";
+import { Input } from "@nexus/ui/components/input";
+import { Label } from "@nexus/ui/components/label";
+import {
 	Table,
 	TableBody,
 	TableCell,
@@ -11,8 +21,10 @@ import {
 } from "@nexus/ui/components/table";
 import { createFileRoute } from "@tanstack/react-router";
 import { PlusIcon, WalletIcon } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { useAuthRole } from "@/hooks/use-auth";
-import { useHoldings } from "@/hooks/use-collateral-api";
+import { useCreateHolding, useHoldings } from "@/hooks/use-collateral-api";
 
 export const Route = createFileRoute("/_app/dashboard/holdings")({
 	component: RouteComponent,
@@ -21,9 +33,53 @@ export const Route = createFileRoute("/_app/dashboard/holdings")({
 function RouteComponent() {
 	const { role } = useAuthRole();
 	const { data: holdings, isLoading, error } = useHoldings();
+	const createHolding = useCreateHolding();
+	const [dialogOpen, setDialogOpen] = useState(false);
+
+	// Add Holding form state
+	const [asset, setAsset] = useState("");
+	const [amount, setAmount] = useState("");
+	const [yieldPct, setYieldPct] = useState("");
+	const [haircut, setHaircut] = useState("");
+
+	const handleAddHolding = async () => {
+		if (!asset || !amount || !yieldPct || !haircut) {
+			toast.error("All fields are required");
+			return;
+		}
+		try {
+			await createHolding.mutateAsync({
+				holdingId: `HOLD-${Date.now()}`,
+				asset: asset.toUpperCase().trim(),
+				amount: parseFloat(amount),
+				yield: parseFloat(yieldPct) / 100,
+				haircut: parseFloat(haircut) / 100,
+			});
+			toast.success(`Holding ${asset.toUpperCase()} added to Canton ledger`);
+			setDialogOpen(false);
+			setAsset("");
+			setAmount("");
+			setYieldPct("");
+			setHaircut("");
+		} catch (err) {
+			toast.error(`Failed: ${err instanceof Error ? err.message : "Unknown error"}`);
+		}
+	};
 
 	const totalValue =
 		holdings?.reduce((sum: number, h) => sum + parseFloat(h.payload.amount), 0) || 0;
+
+	const maxYield =
+		holdings && holdings.length > 0
+			? Math.max(...holdings.map((h) => parseFloat(h.payload.yield))) * 100
+			: null;
+
+	const avgLtv =
+		holdings && holdings.length > 0
+			? holdings.reduce((sum, h) => sum + (1 - parseFloat(h.payload.haircut)), 0) /
+				holdings.length *
+				100
+			: null;
 
 	const title = role === "operator" ? "Network Holdings" : "Collateral Holdings";
 	const description =
@@ -43,65 +99,69 @@ function RouteComponent() {
 						<p className="text-muted-foreground text-sm">{description}</p>
 					</div>
 				</div>
-				{role !== "operator" && (
-					<Button size="sm" className="gap-2">
-						<PlusIcon className="size-4" />
-						Add Holding
-					</Button>
-				)}
+			{role !== "operator" && (
+				<Button size="sm" className="gap-2" onClick={() => setDialogOpen(true)}>
+					<PlusIcon className="size-4" />
+					Add Holding
+				</Button>
+			)}
 			</div>
 
-			<div className="grid gap-4 md:grid-cols-3">
-				<Card className="shadow-sm">
-					<CardHeader className="pb-3 text-sm">
-						<CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-							Total Assets
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-3xl font-bold tracking-tight">
-							${(totalValue / 1_000_000).toFixed(1)}M
-						</div>
-						<div className="flex items-center gap-1.5 mt-1">
-							<Badge
-								variant="secondary"
-								className="text-[9px] bg-green-500/10 text-green-700 dark:text-green-400 border-transparent font-medium py-0"
-							>
-								+2.5%
-							</Badge>
-							<p className="text-[10px] text-muted-foreground font-medium">vs last month</p>
-						</div>
-					</CardContent>
-				</Card>
+		<div className="grid gap-4 md:grid-cols-3">
+			<Card className="shadow-sm">
+				<CardHeader className="pb-3 text-sm">
+					<CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+						Total Assets
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="text-3xl font-bold tracking-tight">
+						${(totalValue / 1_000_000).toFixed(1)}M
+					</div>
+					<div className="flex items-center gap-1.5 mt-1">
+						<Badge
+							variant="secondary"
+							className="text-[9px] bg-primary/10 text-primary border-transparent font-medium py-0"
+						>
+							{holdings?.length ?? 0} positions
+						</Badge>
+						<p className="text-[10px] text-muted-foreground font-medium">on Canton ledger</p>
+					</div>
+				</CardContent>
+			</Card>
 
-				<Card className="shadow-sm">
-					<CardHeader className="pb-3 text-sm">
-						<CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-							Yield Opportunities
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-3xl font-bold tracking-tight">4.5%</div>
-						<p className="text-[10px] text-muted-foreground font-medium mt-1">
-							Max available APY (USYC)
-						</p>
-					</CardContent>
-				</Card>
+			<Card className="shadow-sm">
+				<CardHeader className="pb-3 text-sm">
+					<CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+						Yield Opportunities
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="text-3xl font-bold tracking-tight">
+						{maxYield !== null ? `${maxYield.toFixed(2)}%` : "—"}
+					</div>
+					<p className="text-[10px] text-muted-foreground font-medium mt-1">
+						Max APY across holdings
+					</p>
+				</CardContent>
+			</Card>
 
-				<Card className="shadow-sm">
-					<CardHeader className="pb-3 text-sm">
-						<CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-							Liquidity Index
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-3xl font-bold tracking-tight text-primary">92%</div>
-						<p className="text-[10px] text-muted-foreground font-medium mt-1">
-							Net LTV across positions
-						</p>
-					</CardContent>
-				</Card>
-			</div>
+			<Card className="shadow-sm">
+				<CardHeader className="pb-3 text-sm">
+					<CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+						Avg Eligible LTV
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="text-3xl font-bold tracking-tight text-primary">
+						{avgLtv !== null ? `${avgLtv.toFixed(0)}%` : "—"}
+					</div>
+					<p className="text-[10px] text-muted-foreground font-medium mt-1">
+						Avg (1 − haircut) across positions
+					</p>
+				</CardContent>
+			</Card>
+		</div>
 
 			<Card className="shadow-sm overflow-hidden">
 				<CardHeader className="pb-3 text-sm">
@@ -177,7 +237,7 @@ function RouteComponent() {
 										</TableCell>
 										{role !== "operator" && (
 											<TableCell className="pr-6 text-right">
-												<Button variant="ghost" size="sm" className="h-7 text-xs font-medium">
+												<Button variant="ghost" size="sm" className="h-7 text-xs font-medium" disabled title="Individual position management coming in Phase 2">
 													Manage
 												</Button>
 											</TableCell>
@@ -202,6 +262,71 @@ function RouteComponent() {
 					)}
 				</CardContent>
 			</Card>
+
+			{/* Add Holding Dialog */}
+			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle>Add Collateral Holding</DialogTitle>
+						<DialogDescription>
+							Register a new tokenized asset position on the Canton ledger.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="grid gap-4 py-2">
+						<div className="grid gap-2">
+							<Label htmlFor="asset">Asset Symbol</Label>
+							<Input
+								id="asset"
+								placeholder="e.g. USYC"
+								value={asset}
+								onChange={(e) => setAsset(e.target.value)}
+							/>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="amount">Amount (USD)</Label>
+							<Input
+								id="amount"
+								type="number"
+								placeholder="e.g. 5000000"
+								value={amount}
+								onChange={(e) => setAmount(e.target.value)}
+							/>
+						</div>
+						<div className="grid grid-cols-2 gap-4">
+							<div className="grid gap-2">
+								<Label htmlFor="yield">Yield (APY %)</Label>
+								<Input
+									id="yield"
+									type="number"
+									step="0.01"
+									placeholder="e.g. 4.5"
+									value={yieldPct}
+									onChange={(e) => setYieldPct(e.target.value)}
+								/>
+							</div>
+							<div className="grid gap-2">
+								<Label htmlFor="haircut">Haircut (%)</Label>
+								<Input
+									id="haircut"
+									type="number"
+									step="0.1"
+									placeholder="e.g. 2"
+									value={haircut}
+									onChange={(e) => setHaircut(e.target.value)}
+								/>
+							</div>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setDialogOpen(false)}>
+							Cancel
+						</Button>
+						<Button onClick={handleAddHolding} disabled={createHolding.isPending}>
+							{createHolding.isPending ? "Adding..." : "Add to Ledger"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

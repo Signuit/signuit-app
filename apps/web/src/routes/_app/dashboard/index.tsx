@@ -29,15 +29,15 @@ export const Route = createFileRoute("/_app/dashboard/")({
 });
 
 const chartConfig = {
-	desktop: {
-		label: "Desktop",
+	routed: {
+		label: "Routed ($M)",
 		theme: {
 			light: "hsl(var(--chart-1))",
 			dark: "hsl(var(--chart-1))",
 		},
 	},
-	mobile: {
-		label: "Mobile",
+	saved: {
+		label: "Cost Saved (bps)",
 		theme: {
 			light: "hsl(var(--chart-2))",
 			dark: "hsl(var(--chart-2))",
@@ -45,13 +45,15 @@ const chartConfig = {
 	},
 };
 
+// Static reference data — represents the expected efficiency curve for the demo.
+// Will be replaced with live aggregation in Phase 2 when PQS is enabled.
 const chartData = [
-	{ month: "January", desktop: 186, mobile: 80 },
-	{ month: "February", desktop: 305, mobile: 200 },
-	{ month: "March", desktop: 237, mobile: 120 },
-	{ month: "April", desktop: 73, mobile: 190 },
-	{ month: "May", desktop: 209, mobile: 130 },
-	{ month: "June", desktop: 214, mobile: 140 },
+	{ month: "Nov", routed: 0, saved: 0 },
+	{ month: "Dec", routed: 0, saved: 0 },
+	{ month: "Jan", routed: 8.5, saved: 3.2 },
+	{ month: "Feb", routed: 12.0, saved: 4.8 },
+	{ month: "Mar", routed: 9.5, saved: 3.9 },
+	{ month: "Apr", routed: 15.0, saved: 6.1 },
 ];
 
 function WelcomeCard({ userRole }: { userRole: string }) {
@@ -368,34 +370,34 @@ function TransactionChart() {
 							tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
 							tickMargin={8}
 						/>
-						<RechartsPrimitive.YAxis
-							tickLine={false}
-							axisLine={false}
-							tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-							tickFormatter={(value) => `${value}M`}
-						/>
+					<RechartsPrimitive.YAxis
+						tickLine={false}
+						axisLine={false}
+						tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+						tickFormatter={(value) => `${value}`}
+					/>
 						<RechartsPrimitive.Tooltip content={<ChartTooltipContent indicator="line" />} />
 						<RechartsPrimitive.CartesianGrid
 							vertical={false}
 							strokeDasharray="3 3"
 							className="stroke-muted"
 						/>
-						<RechartsPrimitive.Area
-							type="monotone"
-							dataKey="desktop"
-							stroke="hsl(var(--chart-1))"
-							strokeWidth={2}
-							fillOpacity={1}
-							fill="url(#colorDesktop)"
-						/>
-						<RechartsPrimitive.Area
-							type="monotone"
-							dataKey="mobile"
-							stroke="hsl(var(--chart-2))"
-							strokeWidth={2}
-							fillOpacity={1}
-							fill="url(#colorMobile)"
-						/>
+					<RechartsPrimitive.Area
+						type="monotone"
+						dataKey="routed"
+						stroke="hsl(var(--chart-1))"
+						strokeWidth={2}
+						fillOpacity={1}
+						fill="url(#colorDesktop)"
+					/>
+					<RechartsPrimitive.Area
+						type="monotone"
+						dataKey="saved"
+						stroke="hsl(var(--chart-2))"
+						strokeWidth={2}
+						fillOpacity={1}
+						fill="url(#colorMobile)"
+					/>
 						<ChartLegendContent />
 					</RechartsPrimitive.AreaChart>
 				</ChartContainer>

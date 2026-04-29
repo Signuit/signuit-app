@@ -18,6 +18,31 @@ export const Route = createFileRoute("/_app/dashboard/audit")({
 	component: RouteComponent,
 });
 
+function exportAuditCsv(audit: NonNullable<ReturnType<typeof useAuditTrail>["data"]>) {
+	const headers = ["Route ID", "Timestamp", "Assets", "Amounts", "Net Amount ($)", "Cost (bps)", "Approved By", "Contract ID"];
+	const rows = audit.map((a) => {
+		const netAmount = a.payload.amountsSent.reduce((sum: number, amt: string) => sum + parseFloat(amt), 0);
+		return [
+			a.payload.routeId,
+			a.payload.executedAt,
+			a.payload.assetsSent.join(" + "),
+			a.payload.amountsSent.join(" + "),
+			netAmount.toFixed(2),
+			parseFloat(a.payload.opportunityCostBps).toFixed(2),
+			a.payload.approvedBy,
+			a.contractId,
+		];
+	});
+	const csv = [headers, ...rows].map((r) => r.map((v) => `"${v}"`).join(",")).join("\n");
+	const blob = new Blob([csv], { type: "text/csv" });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = `signuit-audit-${new Date().toISOString().slice(0, 10)}.csv`;
+	a.click();
+	URL.revokeObjectURL(url);
+}
+
 function RouteComponent() {
 	const { role } = useAuthRole();
 	const { data: audit, isLoading, error } = useAuditTrail();
@@ -40,7 +65,13 @@ function RouteComponent() {
 						<p className="text-muted-foreground text-sm">{description}</p>
 					</div>
 				</div>
-				<Button variant="outline" size="sm" className="gap-2">
+			<Button
+					variant="outline"
+					size="sm"
+					className="gap-2"
+					disabled={!audit || audit.length === 0}
+					onClick={() => audit && exportAuditCsv(audit)}
+				>
 					<DownloadIcon className="size-4" />
 					Export Ledger
 				</Button>

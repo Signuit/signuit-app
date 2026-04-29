@@ -65,7 +65,7 @@ export const collateralRouter = {
 
 	createHolding: ledgerProcedure.input(CreateHoldingSchema).handler(({ input, context }) => {
 		return context.ledger.CollateralHolding.create({
-			operator: context.partyId, // SignUIT operator from session
+			operator: context.operatorPartyId,
 			holdingId: input.holdingId,
 			institution: context.partyId,
 			asset: input.asset,
@@ -151,7 +151,7 @@ export const collateralRouter = {
 			return context.ledger.RoutingSuggestion.create({
 				routeId: `ROUTE-${Date.now()}`,
 				institution: context.partyId,
-				operator: context.partyId, // TODO: Get actual operator from session
+				operator: context.operatorPartyId,
 				marginCallId: input.marginCallId,
 				amountRequired: input.amountRequired.toString(),
 				suggestedAssets: ctdResult.selectedAssets.map((a) => a.symbol),
