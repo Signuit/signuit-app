@@ -11,8 +11,16 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PresentationsRouteRouteImport } from './routes/presentations/route'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PresentationsIndexRouteImport } from './routes/presentations/index'
+import { Route as PresentationsValuePropRouteImport } from './routes/presentations/value-prop'
+import { Route as PresentationsPitchRouteImport } from './routes/presentations/pitch'
+import { Route as PresentationsMvpRouteImport } from './routes/presentations/mvp'
+import { Route as PresentationsMetricsRouteImport } from './routes/presentations/metrics'
+import { Route as PresentationsIcpRouteImport } from './routes/presentations/icp'
+import { Route as PresentationsGtmRouteImport } from './routes/presentations/gtm'
 import { Route as AppDashboardIndexRouteImport } from './routes/_app/dashboard/index'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiNexusAuthSplatRouteImport } from './routes/api/nexus-auth/$'
@@ -37,6 +45,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PresentationsRouteRoute = PresentationsRouteRouteImport.update({
+  id: '/presentations',
+  path: '/presentations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -45,6 +58,41 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PresentationsIndexRoute = PresentationsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PresentationsRouteRoute,
+} as any)
+const PresentationsValuePropRoute = PresentationsValuePropRouteImport.update({
+  id: '/value-prop',
+  path: '/value-prop',
+  getParentRoute: () => PresentationsRouteRoute,
+} as any)
+const PresentationsPitchRoute = PresentationsPitchRouteImport.update({
+  id: '/pitch',
+  path: '/pitch',
+  getParentRoute: () => PresentationsRouteRoute,
+} as any)
+const PresentationsMvpRoute = PresentationsMvpRouteImport.update({
+  id: '/mvp',
+  path: '/mvp',
+  getParentRoute: () => PresentationsRouteRoute,
+} as any)
+const PresentationsMetricsRoute = PresentationsMetricsRouteImport.update({
+  id: '/metrics',
+  path: '/metrics',
+  getParentRoute: () => PresentationsRouteRoute,
+} as any)
+const PresentationsIcpRoute = PresentationsIcpRouteImport.update({
+  id: '/icp',
+  path: '/icp',
+  getParentRoute: () => PresentationsRouteRoute,
+} as any)
+const PresentationsGtmRoute = PresentationsGtmRouteImport.update({
+  id: '/gtm',
+  path: '/gtm',
+  getParentRoute: () => PresentationsRouteRoute,
 } as any)
 const AppDashboardIndexRoute = AppDashboardIndexRouteImport.update({
   id: '/dashboard/',
@@ -117,8 +165,16 @@ const AppDashboardUsersSettingsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/presentations': typeof PresentationsRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/presentations/gtm': typeof PresentationsGtmRoute
+  '/presentations/icp': typeof PresentationsIcpRoute
+  '/presentations/metrics': typeof PresentationsMetricsRoute
+  '/presentations/mvp': typeof PresentationsMvpRoute
+  '/presentations/pitch': typeof PresentationsPitchRoute
+  '/presentations/value-prop': typeof PresentationsValuePropRoute
+  '/presentations/': typeof PresentationsIndexRoute
   '/dashboard/audit': typeof AppDashboardAuditRoute
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/dashboard/generate': typeof AppDashboardGenerateRoute
@@ -137,6 +193,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/presentations/gtm': typeof PresentationsGtmRoute
+  '/presentations/icp': typeof PresentationsIcpRoute
+  '/presentations/metrics': typeof PresentationsMetricsRoute
+  '/presentations/mvp': typeof PresentationsMvpRoute
+  '/presentations/pitch': typeof PresentationsPitchRoute
+  '/presentations/value-prop': typeof PresentationsValuePropRoute
+  '/presentations': typeof PresentationsIndexRoute
   '/dashboard/audit': typeof AppDashboardAuditRoute
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/dashboard/generate': typeof AppDashboardGenerateRoute
@@ -155,8 +218,16 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteRouteWithChildren
+  '/presentations': typeof PresentationsRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/presentations/gtm': typeof PresentationsGtmRoute
+  '/presentations/icp': typeof PresentationsIcpRoute
+  '/presentations/metrics': typeof PresentationsMetricsRoute
+  '/presentations/mvp': typeof PresentationsMvpRoute
+  '/presentations/pitch': typeof PresentationsPitchRoute
+  '/presentations/value-prop': typeof PresentationsValuePropRoute
+  '/presentations/': typeof PresentationsIndexRoute
   '/_app/dashboard/audit': typeof AppDashboardAuditRoute
   '/_app/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/_app/dashboard/generate': typeof AppDashboardGenerateRoute
@@ -175,8 +246,16 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/presentations'
     | '/login'
     | '/signup'
+    | '/presentations/gtm'
+    | '/presentations/icp'
+    | '/presentations/metrics'
+    | '/presentations/mvp'
+    | '/presentations/pitch'
+    | '/presentations/value-prop'
+    | '/presentations/'
     | '/dashboard/audit'
     | '/dashboard/components_lib'
     | '/dashboard/generate'
@@ -195,6 +274,13 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/presentations/gtm'
+    | '/presentations/icp'
+    | '/presentations/metrics'
+    | '/presentations/mvp'
+    | '/presentations/pitch'
+    | '/presentations/value-prop'
+    | '/presentations'
     | '/dashboard/audit'
     | '/dashboard/components_lib'
     | '/dashboard/generate'
@@ -212,8 +298,16 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_app'
+    | '/presentations'
     | '/login'
     | '/signup'
+    | '/presentations/gtm'
+    | '/presentations/icp'
+    | '/presentations/metrics'
+    | '/presentations/mvp'
+    | '/presentations/pitch'
+    | '/presentations/value-prop'
+    | '/presentations/'
     | '/_app/dashboard/audit'
     | '/_app/dashboard/components_lib'
     | '/_app/dashboard/generate'
@@ -232,6 +326,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRouteRoute: typeof AppRouteRouteWithChildren
+  PresentationsRouteRoute: typeof PresentationsRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -255,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/presentations': {
+      id: '/presentations'
+      path: '/presentations'
+      fullPath: '/presentations'
+      preLoaderRoute: typeof PresentationsRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -268,6 +370,55 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/presentations/': {
+      id: '/presentations/'
+      path: '/'
+      fullPath: '/presentations/'
+      preLoaderRoute: typeof PresentationsIndexRouteImport
+      parentRoute: typeof PresentationsRouteRoute
+    }
+    '/presentations/value-prop': {
+      id: '/presentations/value-prop'
+      path: '/value-prop'
+      fullPath: '/presentations/value-prop'
+      preLoaderRoute: typeof PresentationsValuePropRouteImport
+      parentRoute: typeof PresentationsRouteRoute
+    }
+    '/presentations/pitch': {
+      id: '/presentations/pitch'
+      path: '/pitch'
+      fullPath: '/presentations/pitch'
+      preLoaderRoute: typeof PresentationsPitchRouteImport
+      parentRoute: typeof PresentationsRouteRoute
+    }
+    '/presentations/mvp': {
+      id: '/presentations/mvp'
+      path: '/mvp'
+      fullPath: '/presentations/mvp'
+      preLoaderRoute: typeof PresentationsMvpRouteImport
+      parentRoute: typeof PresentationsRouteRoute
+    }
+    '/presentations/metrics': {
+      id: '/presentations/metrics'
+      path: '/metrics'
+      fullPath: '/presentations/metrics'
+      preLoaderRoute: typeof PresentationsMetricsRouteImport
+      parentRoute: typeof PresentationsRouteRoute
+    }
+    '/presentations/icp': {
+      id: '/presentations/icp'
+      path: '/icp'
+      fullPath: '/presentations/icp'
+      preLoaderRoute: typeof PresentationsIcpRouteImport
+      parentRoute: typeof PresentationsRouteRoute
+    }
+    '/presentations/gtm': {
+      id: '/presentations/gtm'
+      path: '/gtm'
+      fullPath: '/presentations/gtm'
+      preLoaderRoute: typeof PresentationsGtmRouteImport
+      parentRoute: typeof PresentationsRouteRoute
     }
     '/_app/dashboard/': {
       id: '/_app/dashboard/'
@@ -393,9 +544,33 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
   AppRouteRouteChildren,
 )
 
+interface PresentationsRouteRouteChildren {
+  PresentationsGtmRoute: typeof PresentationsGtmRoute
+  PresentationsIcpRoute: typeof PresentationsIcpRoute
+  PresentationsMetricsRoute: typeof PresentationsMetricsRoute
+  PresentationsMvpRoute: typeof PresentationsMvpRoute
+  PresentationsPitchRoute: typeof PresentationsPitchRoute
+  PresentationsValuePropRoute: typeof PresentationsValuePropRoute
+  PresentationsIndexRoute: typeof PresentationsIndexRoute
+}
+
+const PresentationsRouteRouteChildren: PresentationsRouteRouteChildren = {
+  PresentationsGtmRoute: PresentationsGtmRoute,
+  PresentationsIcpRoute: PresentationsIcpRoute,
+  PresentationsMetricsRoute: PresentationsMetricsRoute,
+  PresentationsMvpRoute: PresentationsMvpRoute,
+  PresentationsPitchRoute: PresentationsPitchRoute,
+  PresentationsValuePropRoute: PresentationsValuePropRoute,
+  PresentationsIndexRoute: PresentationsIndexRoute,
+}
+
+const PresentationsRouteRouteWithChildren =
+  PresentationsRouteRoute._addFileChildren(PresentationsRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRouteRoute: AppRouteRouteWithChildren,
+  PresentationsRouteRoute: PresentationsRouteRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

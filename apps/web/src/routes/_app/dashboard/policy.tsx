@@ -43,7 +43,7 @@ function RouteComponent() {
 						</p>
 					</div>
 				</div>
-			{!isReadOnly && (
+				{!isReadOnly && (
 					<Button size="sm" className="gap-2" disabled title="Policy creation coming in Phase 2">
 						<PlusIcon className="size-4" />
 						Create Policy
@@ -199,21 +199,26 @@ function RouteComponent() {
 								</div>
 							</div>
 
-						{!isReadOnly && (
-							<div className="flex gap-3 pt-2">
-								<Button variant="outline" className="flex-1 font-semibold" disabled title="Policy editing coming in Phase 2">
-									Edit Settings
-								</Button>
-								<Button
-									variant="ghost"
-									className="flex-1 font-semibold text-destructive hover:text-destructive hover:bg-destructive/10"
-									disabled
-									title="Policy deactivation coming in Phase 2"
-								>
-									Deactivate
-								</Button>
-							</div>
-						)}
+							{!isReadOnly && (
+								<div className="flex gap-3 pt-2">
+									<Button
+										variant="outline"
+										className="flex-1 font-semibold"
+										disabled
+										title="Policy editing coming in Phase 2"
+									>
+										Edit Settings
+									</Button>
+									<Button
+										variant="ghost"
+										className="flex-1 font-semibold text-destructive hover:text-destructive hover:bg-destructive/10"
+										disabled
+										title="Policy deactivation coming in Phase 2"
+									>
+										Deactivate
+									</Button>
+								</div>
+							)}
 						</CardContent>
 					</Card>
 
@@ -280,11 +285,16 @@ function RouteComponent() {
 								Required for CTD routing engine recommendations.
 							</p>
 						</div>
-					{!isReadOnly && (
-						<Button size="sm" className="mt-2 font-semibold" disabled title="Create a policy to initialize the engine">
-							Initialize Engine
-						</Button>
-					)}
+						{!isReadOnly && (
+							<Button
+								size="sm"
+								className="mt-2 font-semibold"
+								disabled
+								title="Create a policy to initialize the engine"
+							>
+								Initialize Engine
+							</Button>
+						)}
 					</div>
 				</Card>
 			)}

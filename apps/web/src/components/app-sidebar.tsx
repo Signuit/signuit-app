@@ -17,6 +17,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
 	FileTextIcon,
 	LayoutDashboardIcon,
+	PresentationIcon,
 	SettingsIcon,
 	ShieldCheckIcon,
 	WalletIcon,
@@ -37,6 +38,12 @@ function getNavItemsForRole(role: string) {
 			label: "Dashboard",
 			icon: <LayoutDashboardIcon />,
 			activeOptions: { exact: true },
+		},
+		{
+			to: "/presentations" as const,
+			label: "Presentations",
+			icon: <PresentationIcon />,
+			activeOptions: { exact: false },
 		},
 	];
 

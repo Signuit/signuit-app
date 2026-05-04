@@ -18,12 +18,24 @@ import {
 	TableRow,
 } from "@nexus/ui/components/table";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRightIcon, DatabaseIcon, FileTextIcon, TrendingUpIcon, WalletIcon } from "lucide-react";
+import {
+	ArrowRightIcon,
+	DatabaseIcon,
+	FileTextIcon,
+	TrendingUpIcon,
+	WalletIcon,
+} from "lucide-react";
 import * as RechartsPrimitive from "recharts";
 import { toast } from "sonner";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { useAuthRole } from "@/hooks/use-auth";
-import { useAuditTrail, useHoldings, useSeedDemoData, useStats, useSuggestions } from "@/hooks/use-collateral-api";
+import {
+	useAuditTrail,
+	useHoldings,
+	useSeedDemoData,
+	useStats,
+	useSuggestions,
+} from "@/hooks/use-collateral-api";
 
 export const Route = createFileRoute("/_app/dashboard/")({
 	component: RouteComponent,
@@ -337,30 +349,30 @@ function RecentAllocationsCard() {
 							const totalAmount =
 								amountsSent.reduce((sum, amt) => sum + parseFloat(amt || "0"), 0) / 1_000_000;
 							return (
-							<TableRow key={a.contractId} className="group border-muted/30">
-								<TableCell className="font-mono text-[10px] font-medium text-muted-foreground">
-									#{displayId}
-								</TableCell>
-								<TableCell className="text-[11px] font-medium">
-									{assetsSent.length > 0 ? assetsSent.join(", ") : "—"}
-								</TableCell>
-								<TableCell className="text-[11px] font-semibold text-right">
-									${totalAmount.toFixed(1)}M
-								</TableCell>
-								<TableCell className="text-[11px] font-medium text-muted-foreground text-right">
-									{parseFloat(opportunityCostBps || "0").toFixed(1)}bps
-								</TableCell>
-								<TableCell className="text-right">
-									<div className="flex justify-end">
-										<Badge
-											variant="secondary"
-											className="text-[10px] font-medium px-1.5 py-0 border-transparent bg-green-500/10 text-green-700 dark:text-green-400"
-										>
-											{status ?? "—"}
-										</Badge>
-									</div>
-								</TableCell>
-							</TableRow>
+								<TableRow key={a.contractId} className="group border-muted/30">
+									<TableCell className="font-mono text-[10px] font-medium text-muted-foreground">
+										#{displayId}
+									</TableCell>
+									<TableCell className="text-[11px] font-medium">
+										{assetsSent.length > 0 ? assetsSent.join(", ") : "—"}
+									</TableCell>
+									<TableCell className="text-[11px] font-semibold text-right">
+										${totalAmount.toFixed(1)}M
+									</TableCell>
+									<TableCell className="text-[11px] font-medium text-muted-foreground text-right">
+										{parseFloat(opportunityCostBps || "0").toFixed(1)}bps
+									</TableCell>
+									<TableCell className="text-right">
+										<div className="flex justify-end">
+											<Badge
+												variant="secondary"
+												className="text-[10px] font-medium px-1.5 py-0 border-transparent bg-green-500/10 text-green-700 dark:text-green-400"
+											>
+												{status ?? "—"}
+											</Badge>
+										</div>
+									</TableCell>
+								</TableRow>
 							);
 						})}
 						{(!recent || recent.length === 0) && (
@@ -408,34 +420,34 @@ function TransactionChart() {
 							tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
 							tickMargin={8}
 						/>
-					<RechartsPrimitive.YAxis
-						tickLine={false}
-						axisLine={false}
-						tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-						tickFormatter={(value) => `${value}`}
-					/>
+						<RechartsPrimitive.YAxis
+							tickLine={false}
+							axisLine={false}
+							tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+							tickFormatter={(value) => `${value}`}
+						/>
 						<RechartsPrimitive.Tooltip content={<ChartTooltipContent indicator="line" />} />
 						<RechartsPrimitive.CartesianGrid
 							vertical={false}
 							strokeDasharray="3 3"
 							className="stroke-muted"
 						/>
-					<RechartsPrimitive.Area
-						type="monotone"
-						dataKey="routed"
-						stroke="hsl(var(--chart-1))"
-						strokeWidth={2}
-						fillOpacity={1}
-						fill="url(#colorDesktop)"
-					/>
-					<RechartsPrimitive.Area
-						type="monotone"
-						dataKey="saved"
-						stroke="hsl(var(--chart-2))"
-						strokeWidth={2}
-						fillOpacity={1}
-						fill="url(#colorMobile)"
-					/>
+						<RechartsPrimitive.Area
+							type="monotone"
+							dataKey="routed"
+							stroke="hsl(var(--chart-1))"
+							strokeWidth={2}
+							fillOpacity={1}
+							fill="url(#colorDesktop)"
+						/>
+						<RechartsPrimitive.Area
+							type="monotone"
+							dataKey="saved"
+							stroke="hsl(var(--chart-2))"
+							strokeWidth={2}
+							fillOpacity={1}
+							fill="url(#colorMobile)"
+						/>
 						<ChartLegendContent />
 					</RechartsPrimitive.AreaChart>
 				</ChartContainer>
@@ -466,14 +478,14 @@ function CounterpartyView() {
 					trendValue={pendingSuggestions > 0 ? "Pending action" : "Fulfilled"}
 					loading={isLoading}
 				/>
-			<StatCard
-				title="Cumulative Fulfillments"
-				value={totalAllocations}
-				icon={WalletIcon}
-				trend={totalAllocations > 0 ? "up" : null}
-				trendValue={`${totalAllocations} on-ledger`}
-				loading={isLoading}
-			/>
+				<StatCard
+					title="Cumulative Fulfillments"
+					value={totalAllocations}
+					icon={WalletIcon}
+					trend={totalAllocations > 0 ? "up" : null}
+					trendValue={`${totalAllocations} on-ledger`}
+					loading={isLoading}
+				/>
 			</div>
 
 			<div className="grid gap-6 lg:grid-cols-2">
@@ -490,14 +502,14 @@ function OperatorView() {
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="grid gap-4 md:grid-cols-3">
-			<StatCard
-				title="Network Assets"
-				value={`$${(totalHoldingsValue / 1_000_000).toFixed(1)}M`}
-				icon={WalletIcon}
-				trend={totalHoldingsValue > 0 ? "up" : null}
-				trendValue="Live from Canton"
-				loading={isLoading}
-			/>
+				<StatCard
+					title="Network Assets"
+					value={`$${(totalHoldingsValue / 1_000_000).toFixed(1)}M`}
+					icon={WalletIcon}
+					trend={totalHoldingsValue > 0 ? "up" : null}
+					trendValue="Live from Canton"
+					loading={isLoading}
+				/>
 				<StatCard
 					title="Global Suggestion Queue"
 					value={pendingSuggestions}
@@ -506,14 +518,14 @@ function OperatorView() {
 					trendValue={pendingSuggestions > 0 ? "Observer active" : "Silent"}
 					loading={isLoading}
 				/>
-			<StatCard
-				title="Executed Routes"
-				value={totalAllocations}
-				icon={TrendingUpIcon}
-				trend={totalAllocations > 0 ? "up" : null}
-				trendValue={`${totalAllocations} allocations`}
-				loading={isLoading}
-			/>
+				<StatCard
+					title="Executed Routes"
+					value={totalAllocations}
+					icon={TrendingUpIcon}
+					trend={totalAllocations > 0 ? "up" : null}
+					trendValue={`${totalAllocations} allocations`}
+					loading={isLoading}
+				/>
 			</div>
 
 			<div className="grid gap-6 lg:grid-cols-3">
@@ -540,14 +552,14 @@ function RouteComponent() {
 				return (
 					<>
 						<div className="grid gap-4 md:grid-cols-3">
-						<StatCard
-							title="Available Collateral"
-							value={`$${(totalHoldingsValue / 1_000_000).toFixed(1)}M`}
-							icon={WalletIcon}
-							trend={totalHoldingsValue > 0 ? "up" : null}
-							trendValue="Live from Canton"
-							loading={isLoading}
-						/>
+							<StatCard
+								title="Available Collateral"
+								value={`$${(totalHoldingsValue / 1_000_000).toFixed(1)}M`}
+								icon={WalletIcon}
+								trend={totalHoldingsValue > 0 ? "up" : null}
+								trendValue="Live from Canton"
+								loading={isLoading}
+							/>
 							<StatCard
 								title="Actionable Routes"
 								value={pendingSuggestions}
@@ -556,14 +568,14 @@ function RouteComponent() {
 								trendValue={pendingSuggestions > 0 ? "Approval Required" : "All Clear"}
 								loading={isLoading}
 							/>
-						<StatCard
-							title="Deployed Value"
-							value={totalAllocations}
-							icon={TrendingUpIcon}
-							trend={totalAllocations > 0 ? "up" : null}
-							trendValue={`${totalAllocations} allocations`}
-							loading={isLoading}
-						/>
+							<StatCard
+								title="Deployed Value"
+								value={totalAllocations}
+								icon={TrendingUpIcon}
+								trend={totalAllocations > 0 ? "up" : null}
+								trendValue={`${totalAllocations} allocations`}
+								loading={isLoading}
+							/>
 						</div>
 
 						<div className="grid gap-6 lg:grid-cols-[1fr_2fr]">

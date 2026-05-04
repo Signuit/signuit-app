@@ -4,7 +4,6 @@
 import type { SessionManager } from "./auth/session-manager";
 import { CantonClient } from "./client/canton-client";
 import { ContractQuery } from "./ledger/contract-query";
-import { toStableTemplateId } from "./utils/template";
 import { KyselyPqsEngine } from "./query/pqs-engine";
 import type {
 	CommandQueryOperations,
@@ -16,6 +15,7 @@ import type {
 } from "./types/client";
 import type { NexusClient } from "./types/index";
 import type { InferNexusClientPlugins, NexusPlugin } from "./types/plugin";
+import { toStableTemplateId } from "./utils/template";
 
 export * from "./command/ledger-fetch";
 export * from "./plugins/canton-ledger";

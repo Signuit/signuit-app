@@ -123,29 +123,30 @@ function RouteComponent() {
 									const marginCallId = s.payload.marginCallId as string | undefined;
 									const amountRequired = s.payload.amountRequired as string | undefined;
 									const suggestedAssets = (s.payload.suggestedAssets as string[] | undefined) ?? [];
-									const suggestedAmounts = (s.payload.suggestedAmounts as string[] | undefined) ?? [];
+									const suggestedAmounts =
+										(s.payload.suggestedAmounts as string[] | undefined) ?? [];
 									const opportunityCostBps = s.payload.opportunityCostBps as string | undefined;
 									const status = s.payload.status as string | undefined;
 									return (
-									<TableRow
-										key={s.contractId}
-										className="group border-muted/30 hover:bg-muted/10 transition-colors"
-									>
-										<TableCell className="font-mono text-[10px] text-muted-foreground">
-											{routeId ?? s.contractId.slice(0, 8)}
-										</TableCell>
-										<TableCell>
-											<div className="flex flex-col">
-												<span className="font-semibold text-sm">{marginCallId ?? "—"}</span>
-												<span className="text-[11px] font-medium text-primary">
-													${(parseFloat(amountRequired || "0") / 1_000_000).toFixed(1)}M
-												</span>
-											</div>
-										</TableCell>
-										<TableCell>
-											<div className="flex flex-wrap gap-1.5">
-												{suggestedAssets.length > 0
-													? suggestedAssets.map((asset: string, i: number) => (
+										<TableRow
+											key={s.contractId}
+											className="group border-muted/30 hover:bg-muted/10 transition-colors"
+										>
+											<TableCell className="font-mono text-[10px] text-muted-foreground">
+												{routeId ?? s.contractId.slice(0, 8)}
+											</TableCell>
+											<TableCell>
+												<div className="flex flex-col">
+													<span className="font-semibold text-sm">{marginCallId ?? "—"}</span>
+													<span className="text-[11px] font-medium text-primary">
+														${(parseFloat(amountRequired || "0") / 1_000_000).toFixed(1)}M
+													</span>
+												</div>
+											</TableCell>
+											<TableCell>
+												<div className="flex flex-wrap gap-1.5">
+													{suggestedAssets.length > 0 ? (
+														suggestedAssets.map((asset: string, i: number) => (
 															<Badge
 																key={i}
 																variant="outline"
@@ -153,71 +154,74 @@ function RouteComponent() {
 															>
 																{asset}{" "}
 																<span className="ml-1 opacity-60">
-																	(${(parseFloat(suggestedAmounts[i] || "0") / 1_000_000).toFixed(1)}
+																	($
+																	{(parseFloat(suggestedAmounts[i] || "0") / 1_000_000).toFixed(1)}
 																	M)
 																</span>
 															</Badge>
 														))
-													: <span className="text-muted-foreground">—</span>}
-											</div>
-										</TableCell>
-										<TableCell className="text-right">
-											<div className="flex flex-col items-end">
-												<span className="font-semibold text-sm">
-													{parseFloat(opportunityCostBps || "0").toFixed(1)}
-												</span>
-												<span className="text-[9px] font-medium text-muted-foreground uppercase">
-													Bps
-												</span>
-											</div>
-										</TableCell>
-										<TableCell className="text-right">
-											<Badge
-												variant="secondary"
-												className={cn(
-													"border-transparent font-semibold text-[10px] px-2 py-0",
-													status === "RoutePending"
-														? "bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400"
-														: status === "RouteApproved"
-															? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
-															: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400",
-												)}
-											>
-												{status ?? "—"}
-											</Badge>
-										</TableCell>
-										{role === "institution" && (
-											<TableCell className="text-right">
-												{status === "RoutePending" && (
-													<div className="flex justify-end gap-2">
-														<Button
-															variant="ghost"
-															size="sm"
-															className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-															onClick={() => handleReject(s.contractId)}
-														>
-															<XIcon className="size-4 mr-1" />
-															Reject
-														</Button>
-														<Button
-															variant="default"
-															size="sm"
-															className="h-7 px-3 text-[11px] font-semibold"
-															onClick={() => handleApprove(s.contractId)}
-														>
-															<CheckIcon className="size-4 mr-1" />
-															Approve
-														</Button>
-													</div>
-												)}
-												{status !== "RoutePending" && (
-													<span className="text-[10px] font-medium text-muted-foreground italic uppercase">
-														Processed
-													</span>
-												)}
+													) : (
+														<span className="text-muted-foreground">—</span>
+													)}
+												</div>
 											</TableCell>
-										)}
-									</TableRow>
+											<TableCell className="text-right">
+												<div className="flex flex-col items-end">
+													<span className="font-semibold text-sm">
+														{parseFloat(opportunityCostBps || "0").toFixed(1)}
+													</span>
+													<span className="text-[9px] font-medium text-muted-foreground uppercase">
+														Bps
+													</span>
+												</div>
+											</TableCell>
+											<TableCell className="text-right">
+												<Badge
+													variant="secondary"
+													className={cn(
+														"border-transparent font-semibold text-[10px] px-2 py-0",
+														status === "RoutePending"
+															? "bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400"
+															: status === "RouteApproved"
+																? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
+																: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400",
+													)}
+												>
+													{status ?? "—"}
+												</Badge>
+											</TableCell>
+											{role === "institution" && (
+												<TableCell className="text-right">
+													{status === "RoutePending" && (
+														<div className="flex justify-end gap-2">
+															<Button
+																variant="ghost"
+																size="sm"
+																className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+																onClick={() => handleReject(s.contractId)}
+															>
+																<XIcon className="size-4 mr-1" />
+																Reject
+															</Button>
+															<Button
+																variant="default"
+																size="sm"
+																className="h-7 px-3 text-[11px] font-semibold"
+																onClick={() => handleApprove(s.contractId)}
+															>
+																<CheckIcon className="size-4 mr-1" />
+																Approve
+															</Button>
+														</div>
+													)}
+													{status !== "RoutePending" && (
+														<span className="text-[10px] font-medium text-muted-foreground italic uppercase">
+															Processed
+														</span>
+													)}
+												</TableCell>
+											)}
+										</TableRow>
 									);
 								})}
 								{suggestions?.length === 0 && (

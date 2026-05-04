@@ -25,7 +25,12 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useApproveSuggestion, useGenerateSuggestion, useHoldings, usePolicies } from "@/hooks/use-collateral-api";
+import {
+	useApproveSuggestion,
+	useGenerateSuggestion,
+	useHoldings,
+	usePolicies,
+} from "@/hooks/use-collateral-api";
 
 export const Route = createFileRoute("/_app/dashboard/generate")({
 	component: RouteComponent,
@@ -249,8 +254,8 @@ function RouteComponent() {
 									<div key={h.contractId} className="flex items-center gap-2 text-xs">
 										<div className="size-2 rounded-full bg-green-500" />
 										<span>
-											{h.payload.asset}: $
-											{(parseFloat(h.payload.amount) / 1_000_000).toFixed(1)}M (Available)
+											{h.payload.asset}: ${(parseFloat(h.payload.amount) / 1_000_000).toFixed(1)}M
+											(Available)
 										</span>
 									</div>
 								))
@@ -425,7 +430,9 @@ function RouteComponent() {
 										await approveMutation.mutateAsync({
 											suggestionCid: suggestionResult.contractId,
 										});
-										toast.success("Routing suggestion approved — allocation record created on Canton");
+										toast.success(
+											"Routing suggestion approved — allocation record created on Canton",
+										);
 										navigate({ to: "/dashboard/audit" });
 									} catch (err) {
 										toast.error(

@@ -62,11 +62,11 @@ export async function provisionSandboxUser(options: ProvisionSandboxUserOptions)
 				: [];
 			// Prefer exact match (VantageCapital::fingerprint), then prefix match (VantageCapital-XXXX::fingerprint)
 			const exact = allParties.find((p) => {
-				const name = (p.party ?? "").split("::")[0];
+				const name = (p.party ?? "").split("::")[0] ?? "";
 				return name.toLowerCase() === partyHint.toLowerCase();
 			});
 			const prefixMatch = allParties.find((p) => {
-				const name = (p.party ?? "").split("::")[0];
+				const name = (p.party ?? "").split("::")[0] ?? "";
 				// Match hint prefix followed by - (e.g. "VantageCapital-9b3970be")
 				return name.toLowerCase().startsWith(`${partyHint.toLowerCase()}-`);
 			});

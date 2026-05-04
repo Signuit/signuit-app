@@ -19,11 +19,23 @@ export const Route = createFileRoute("/_app/dashboard/audit")({
 });
 
 function exportAuditCsv(audit: NonNullable<ReturnType<typeof useAuditTrail>["data"]>) {
-	const headers = ["Route ID", "Timestamp", "Assets", "Amounts", "Net Amount ($)", "Cost (bps)", "Approved By", "Contract ID"];
+	const headers = [
+		"Route ID",
+		"Timestamp",
+		"Assets",
+		"Amounts",
+		"Net Amount ($)",
+		"Cost (bps)",
+		"Approved By",
+		"Contract ID",
+	];
 	const rows = audit.map((a) => {
 		const amountsSent = (a.payload.amountsSent as string[] | undefined) ?? [];
 		const assetsSent = (a.payload.assetsSent as string[] | undefined) ?? [];
-		const netAmount = amountsSent.reduce((sum: number, amt: string) => sum + parseFloat(amt || "0"), 0);
+		const netAmount = amountsSent.reduce(
+			(sum: number, amt: string) => sum + parseFloat(amt || "0"),
+			0,
+		);
 		return [
 			(a.payload.routeId as string | undefined) ?? a.contractId.slice(0, 8),
 			(a.payload.executedAt as string | undefined) ?? "",
@@ -67,7 +79,7 @@ function RouteComponent() {
 						<p className="text-muted-foreground text-sm">{description}</p>
 					</div>
 				</div>
-			<Button
+				<Button
 					variant="outline"
 					size="sm"
 					className="gap-2"
@@ -135,29 +147,29 @@ function RouteComponent() {
 											amountsSent.reduce((sum, amt) => sum + parseFloat(amt || "0"), 0) / 1_000_000;
 										const displayDate = executedAt ? new Date(executedAt) : null;
 										return (
-										<TableRow
-											key={a.contractId}
-											className="border-muted/30 hover:bg-muted/10 transition-colors"
-										>
-											<TableCell className="text-[11px] font-medium text-muted-foreground/80 pl-6">
-												{displayDate ? displayDate.toLocaleDateString() : "—"}
-												<br />
-												<span className="opacity-50 font-mono text-[9px]">
-													{displayDate
-														? displayDate.toLocaleTimeString([], {
-																hour: "2-digit",
-																minute: "2-digit",
-															})
-														: ""}
-												</span>
-											</TableCell>
-											<TableCell className="font-semibold text-xs text-muted-foreground">
-												{routeId ?? a.contractId.slice(0, 8)}
-											</TableCell>
-											<TableCell>
-												<div className="flex flex-wrap gap-1">
-													{assetsSent.length > 0
-														? assetsSent.map((asset: string, i: number) => (
+											<TableRow
+												key={a.contractId}
+												className="border-muted/30 hover:bg-muted/10 transition-colors"
+											>
+												<TableCell className="text-[11px] font-medium text-muted-foreground/80 pl-6">
+													{displayDate ? displayDate.toLocaleDateString() : "—"}
+													<br />
+													<span className="opacity-50 font-mono text-[9px]">
+														{displayDate
+															? displayDate.toLocaleTimeString([], {
+																	hour: "2-digit",
+																	minute: "2-digit",
+																})
+															: ""}
+													</span>
+												</TableCell>
+												<TableCell className="font-semibold text-xs text-muted-foreground">
+													{routeId ?? a.contractId.slice(0, 8)}
+												</TableCell>
+												<TableCell>
+													<div className="flex flex-wrap gap-1">
+														{assetsSent.length > 0 ? (
+															assetsSent.map((asset: string, i: number) => (
 																<Badge
 																	key={i}
 																	variant="outline"
@@ -166,32 +178,36 @@ function RouteComponent() {
 																	{asset}
 																</Badge>
 															))
-														: <span className="text-muted-foreground">—</span>}
-												</div>
-											</TableCell>
-											<TableCell className="font-semibold text-sm text-right">
-												${totalAmount.toFixed(1)}M
-											</TableCell>
-											<TableCell className="text-right">
-												<span className="font-semibold text-sm">
-													{parseFloat(opportunityCostBps || "0").toFixed(1)}
-												</span>
-												<span className="text-[9px] font-bold text-muted-foreground ml-1">Bps</span>
-											</TableCell>
-											<TableCell className="text-right">
-												<Badge
-													variant="secondary"
-													className="text-[10px] font-medium bg-green-500/5 text-green-700 dark:text-green-400 border-transparent"
-												>
-													{approvedBy?.split("::")[0] ?? "—"}
-												</Badge>
-											</TableCell>
-											<TableCell className="pr-6 text-right">
-												<span className="font-mono text-[9px] text-muted-foreground opacity-50">
-													{a.contractId.slice(-8)}
-												</span>
-											</TableCell>
-										</TableRow>
+														) : (
+															<span className="text-muted-foreground">—</span>
+														)}
+													</div>
+												</TableCell>
+												<TableCell className="font-semibold text-sm text-right">
+													${totalAmount.toFixed(1)}M
+												</TableCell>
+												<TableCell className="text-right">
+													<span className="font-semibold text-sm">
+														{parseFloat(opportunityCostBps || "0").toFixed(1)}
+													</span>
+													<span className="text-[9px] font-bold text-muted-foreground ml-1">
+														Bps
+													</span>
+												</TableCell>
+												<TableCell className="text-right">
+													<Badge
+														variant="secondary"
+														className="text-[10px] font-medium bg-green-500/5 text-green-700 dark:text-green-400 border-transparent"
+													>
+														{approvedBy?.split("::")[0] ?? "—"}
+													</Badge>
+												</TableCell>
+												<TableCell className="pr-6 text-right">
+													<span className="font-mono text-[9px] text-muted-foreground opacity-50">
+														{a.contractId.slice(-8)}
+													</span>
+												</TableCell>
+											</TableRow>
 										);
 									})}
 									{(!audit || audit.length === 0) && (

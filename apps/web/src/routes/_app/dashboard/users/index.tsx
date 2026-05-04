@@ -38,8 +38,7 @@ const NETWORK_PARTICIPANTS = [
 ];
 
 const roleBadgeClass: Record<string, string> = {
-	institution:
-		"bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border-transparent",
+	institution: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border-transparent",
 	counterparty:
 		"bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 border-transparent",
 	operator:

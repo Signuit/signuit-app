@@ -11,8 +11,7 @@ let _cacheTs = 0;
 
 /** Generate a simple HMAC-HS256 admin JWT for Canton sandbox party lookup */
 async function makeAdminToken(): Promise<string> {
-	const enc = (s: string) =>
-		btoa(s).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+	const enc = (s: string) => btoa(s).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 	const header = enc(JSON.stringify({ alg: "HS256", typ: "JWT" }));
 	const now = Math.floor(Date.now() / 1000);
 	const payload = enc(
@@ -76,6 +75,9 @@ export async function resolveOperatorPartyId(): Promise<string> {
 export const ledgerProcedure = o.use(async ({ context, next }) => {
 	const ledger = await nexus.forRequest(context.req);
 	const session = await sessionManager.requireSession(context.req);
-	const operatorPartyId = await resolveOperatorPartyId();
+	const resolvedOperator = await resolveOperatorPartyId();
+	// If the operator party doesn't exist on the sandbox yet (no "::" fingerprint),
+	// fall back to the institution's own party so no bare hint strings reach Canton.
+	const operatorPartyId = resolvedOperator.includes("::") ? resolvedOperator : session.partyId;
 	return next({ context: { ledger, partyId: session.partyId, operatorPartyId } });
 });

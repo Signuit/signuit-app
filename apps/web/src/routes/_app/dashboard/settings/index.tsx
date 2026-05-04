@@ -7,7 +7,15 @@ import { Label } from "@nexus/ui/components/label";
 import { Separator } from "@nexus/ui/components/separator";
 import { Switch } from "@nexus/ui/components/switch";
 import { createFileRoute } from "@tanstack/react-router";
-import { BellIcon, InfoIcon, KeyRoundIcon, MonitorIcon, MoonIcon, PaletteIcon, UserIcon } from "lucide-react";
+import {
+	BellIcon,
+	InfoIcon,
+	KeyRoundIcon,
+	MonitorIcon,
+	MoonIcon,
+	PaletteIcon,
+	UserIcon,
+} from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/_app/dashboard/settings/")({

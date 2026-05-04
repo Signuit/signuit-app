@@ -76,8 +76,8 @@ function RouteComponent() {
 
 	const avgLtv =
 		holdings && holdings.length > 0
-			? holdings.reduce((sum, h) => sum + (1 - parseFloat(h.payload.haircut)), 0) /
-				holdings.length *
+			? (holdings.reduce((sum, h) => sum + (1 - parseFloat(h.payload.haircut)), 0) /
+					holdings.length) *
 				100
 			: null;
 
@@ -99,69 +99,69 @@ function RouteComponent() {
 						<p className="text-muted-foreground text-sm">{description}</p>
 					</div>
 				</div>
-			{role !== "operator" && (
-				<Button size="sm" className="gap-2" onClick={() => setDialogOpen(true)}>
-					<PlusIcon className="size-4" />
-					Add Holding
-				</Button>
-			)}
+				{role !== "operator" && (
+					<Button size="sm" className="gap-2" onClick={() => setDialogOpen(true)}>
+						<PlusIcon className="size-4" />
+						Add Holding
+					</Button>
+				)}
 			</div>
 
-		<div className="grid gap-4 md:grid-cols-3">
-			<Card className="shadow-sm">
-				<CardHeader className="pb-3 text-sm">
-					<CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-						Total Assets
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="text-3xl font-bold tracking-tight">
-						${(totalValue / 1_000_000).toFixed(1)}M
-					</div>
-					<div className="flex items-center gap-1.5 mt-1">
-						<Badge
-							variant="secondary"
-							className="text-[9px] bg-primary/10 text-primary border-transparent font-medium py-0"
-						>
-							{holdings?.length ?? 0} positions
-						</Badge>
-						<p className="text-[10px] text-muted-foreground font-medium">on Canton ledger</p>
-					</div>
-				</CardContent>
-			</Card>
+			<div className="grid gap-4 md:grid-cols-3">
+				<Card className="shadow-sm">
+					<CardHeader className="pb-3 text-sm">
+						<CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+							Total Assets
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="text-3xl font-bold tracking-tight">
+							${(totalValue / 1_000_000).toFixed(1)}M
+						</div>
+						<div className="flex items-center gap-1.5 mt-1">
+							<Badge
+								variant="secondary"
+								className="text-[9px] bg-primary/10 text-primary border-transparent font-medium py-0"
+							>
+								{holdings?.length ?? 0} positions
+							</Badge>
+							<p className="text-[10px] text-muted-foreground font-medium">on Canton ledger</p>
+						</div>
+					</CardContent>
+				</Card>
 
-			<Card className="shadow-sm">
-				<CardHeader className="pb-3 text-sm">
-					<CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-						Yield Opportunities
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="text-3xl font-bold tracking-tight">
-						{maxYield !== null ? `${maxYield.toFixed(2)}%` : "—"}
-					</div>
-					<p className="text-[10px] text-muted-foreground font-medium mt-1">
-						Max APY across holdings
-					</p>
-				</CardContent>
-			</Card>
+				<Card className="shadow-sm">
+					<CardHeader className="pb-3 text-sm">
+						<CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+							Yield Opportunities
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="text-3xl font-bold tracking-tight">
+							{maxYield !== null ? `${maxYield.toFixed(2)}%` : "—"}
+						</div>
+						<p className="text-[10px] text-muted-foreground font-medium mt-1">
+							Max APY across holdings
+						</p>
+					</CardContent>
+				</Card>
 
-			<Card className="shadow-sm">
-				<CardHeader className="pb-3 text-sm">
-					<CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-						Avg Eligible LTV
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="text-3xl font-bold tracking-tight text-primary">
-						{avgLtv !== null ? `${avgLtv.toFixed(0)}%` : "—"}
-					</div>
-					<p className="text-[10px] text-muted-foreground font-medium mt-1">
-						Avg (1 − haircut) across positions
-					</p>
-				</CardContent>
-			</Card>
-		</div>
+				<Card className="shadow-sm">
+					<CardHeader className="pb-3 text-sm">
+						<CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+							Avg Eligible LTV
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="text-3xl font-bold tracking-tight text-primary">
+							{avgLtv !== null ? `${avgLtv.toFixed(0)}%` : "—"}
+						</div>
+						<p className="text-[10px] text-muted-foreground font-medium mt-1">
+							Avg (1 − haircut) across positions
+						</p>
+					</CardContent>
+				</Card>
+			</div>
 
 			<Card className="shadow-sm overflow-hidden">
 				<CardHeader className="pb-3 text-sm">
@@ -237,7 +237,13 @@ function RouteComponent() {
 										</TableCell>
 										{role !== "operator" && (
 											<TableCell className="pr-6 text-right">
-												<Button variant="ghost" size="sm" className="h-7 text-xs font-medium" disabled title="Individual position management coming in Phase 2">
+												<Button
+													variant="ghost"
+													size="sm"
+													className="h-7 text-xs font-medium"
+													disabled
+													title="Individual position management coming in Phase 2"
+												>
 													Manage
 												</Button>
 											</TableCell>

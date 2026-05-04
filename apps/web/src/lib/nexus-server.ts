@@ -49,10 +49,9 @@ async function ensureDarUploaded() {
 		}
 
 		// 3. Find daml binary
-		const damlBin =
-			(await Bun.file(`${process.env.HOME}/.daml/bin/daml`).exists())
-				? `${process.env.HOME}/.daml/bin/daml`
-				: "daml";
+		const damlBin = (await Bun.file(`${process.env.HOME}/.daml/bin/daml`).exists())
+			? `${process.env.HOME}/.daml/bin/daml`
+			: "daml";
 
 		// 4. Upload with up to 3 retries
 		console.log("[Nexus] Uploading nexus-example DAR to Canton sandbox...");
