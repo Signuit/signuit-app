@@ -4,6 +4,7 @@
 import type { SessionManager } from "./auth/session-manager";
 import { CantonClient } from "./client/canton-client";
 import { ContractQuery } from "./ledger/contract-query";
+import { toStableTemplateId } from "./utils/template";
 import { KyselyPqsEngine } from "./query/pqs-engine";
 import type {
 	CommandQueryOperations,
@@ -250,7 +251,7 @@ export async function createNexusServer<
 					);
 				}
 
-				const templateId = damlTemplate.templateId;
+				const templateId = toStableTemplateId(damlTemplate);
 				const actAs = [partyId];
 
 				const resolveToken = async (): Promise<string> => {

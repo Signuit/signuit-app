@@ -208,14 +208,11 @@ export const collateralRouter = {
 		const now = new Date().toISOString();
 		const { partyId, ledger } = context;
 
-		// Resolve operator party ID — use dynamic lookup, fall back to own party
-		// so self-signed contracts work even before SignUIT logs in.
-		const { resolveOperatorPartyId } = await import("./procedures");
-		const resolvedOperator = await resolveOperatorPartyId();
-		// If operator is still just the hint string (e.g. "SignUIT" without fingerprint),
-		// fall back to using the institution's own party as operator.
-		const operatorPartyId =
-			resolvedOperator.includes("::") ? resolvedOperator : partyId;
+		// For seeding, use institution as operator so the contract can be created
+		// with actAs = [institution] only. CollateralPolicy requires both operator
+		// and institution as signatories — using the same party for both satisfies
+		// this with a single actAs entry. This is safe for demo/dev mode.
+		const operatorPartyId = partyId;
 
 		// 1. Create CTD policy
 		await ledger.CollateralPolicy.create({
