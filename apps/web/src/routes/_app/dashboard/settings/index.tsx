@@ -7,7 +7,15 @@ import { Label } from "@nexus/ui/components/label";
 import { Separator } from "@nexus/ui/components/separator";
 import { Switch } from "@nexus/ui/components/switch";
 import { createFileRoute } from "@tanstack/react-router";
-import { BellIcon, KeyRoundIcon, MonitorIcon, MoonIcon, PaletteIcon, UserIcon } from "lucide-react";
+import {
+	BellIcon,
+	InfoIcon,
+	KeyRoundIcon,
+	MonitorIcon,
+	MoonIcon,
+	PaletteIcon,
+	UserIcon,
+} from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/_app/dashboard/settings/")({
@@ -23,18 +31,18 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-	{ id: "profile", label: "Profil", icon: UserIcon },
-	{ id: "notifications", label: "Bildirimler", icon: BellIcon },
-	{ id: "security", label: "Güvenlik", icon: KeyRoundIcon },
-	{ id: "appearance", label: "Görünüm", icon: PaletteIcon },
+	{ id: "profile", label: "Profile", icon: UserIcon },
+	{ id: "notifications", label: "Notifications", icon: BellIcon },
+	{ id: "security", label: "Security", icon: KeyRoundIcon },
+	{ id: "appearance", label: "Appearance", icon: PaletteIcon },
 ];
 
 function ProfileSettings() {
 	return (
 		<div className="space-y-6">
 			<div className="space-y-1">
-				<h3 className="text-lg font-medium">Profil</h3>
-				<p className="text-sm text-muted-foreground">Hesap bilgilerinizi güncelleyin.</p>
+				<h3 className="text-lg font-medium">Profile</h3>
+				<p className="text-sm text-muted-foreground">Update your account information.</p>
 			</div>
 			<div className="h-px bg-border" />
 			<div className="flex flex-col items-center gap-6 sm:flex-row">
@@ -54,7 +62,7 @@ function ProfileSettings() {
 							strokeLinecap="round"
 							strokeLinejoin="round"
 						>
-							<title>Fotoğraf yükle</title>
+							<title>Upload photo</title>
 							<path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7" />
 							<line x1="18" y1="2" x2="22" y2="6" />
 							<line x1="8" y1="14" x2="16" y2="14" />
@@ -62,23 +70,23 @@ function ProfileSettings() {
 					</div>
 				</div>
 				<div className="flex flex-col gap-2">
-					<p className="text-sm text-muted-foreground">JPG, GIF veya PNG. Maksimum 1MB.</p>
+					<p className="text-sm text-muted-foreground">JPG, GIF or PNG. Max 1MB.</p>
 					<Button variant="outline" size="sm">
-						Fotoğraf Yükle
+						Upload Photo
 					</Button>
 				</div>
 			</div>
 			<div className="grid gap-4">
 				<div className="grid gap-2">
-					<Label htmlFor="name">Ad Soyad</Label>
+					<Label htmlFor="name">Full Name</Label>
 					<Input id="name" defaultValue="User Name" />
 				</div>
 				<div className="grid gap-2">
-					<Label htmlFor="email">E-posta</Label>
+					<Label htmlFor="email">Email</Label>
 					<Input id="email" type="email" defaultValue="user@example.com" />
 				</div>
 			</div>
-			<Button>Değişiklikleri Kaydet</Button>
+			<Button>Save Changes</Button>
 		</div>
 	);
 }
@@ -87,16 +95,16 @@ function NotificationSettings() {
 	return (
 		<div className="space-y-6">
 			<div className="space-y-1">
-				<h3 className="text-lg font-medium">Bildirimler</h3>
-				<p className="text-sm text-muted-foreground">Bildirim tercihlerinizi yönetin.</p>
+				<h3 className="text-lg font-medium">Notifications</h3>
+				<p className="text-sm text-muted-foreground">Manage your notification preferences.</p>
 			</div>
 			<div className="h-px bg-border" />
 			<div className="space-y-4">
 				<div className="flex items-center justify-between">
 					<div className="space-y-1">
-						<p className="text-sm font-medium">E-posta Bildirimleri</p>
+						<p className="text-sm font-medium">Email Notifications</p>
 						<p className="text-xs text-muted-foreground">
-							Önemli güncellemeler hakkında e-posta alın.
+							Receive email alerts for important ledger events.
 						</p>
 					</div>
 					<Switch defaultChecked />
@@ -104,9 +112,9 @@ function NotificationSettings() {
 				<Separator />
 				<div className="flex items-center justify-between">
 					<div className="space-y-1">
-						<p className="text-sm font-medium">Döküman Bildirimleri</p>
+						<p className="text-sm font-medium">Routing Suggestion Alerts</p>
 						<p className="text-xs text-muted-foreground">
-							İmza bekleyen dökümanlar hakkında bildirim alın.
+							Get notified when a new routing suggestion requires approval.
 						</p>
 					</div>
 					<Switch defaultChecked />
@@ -114,9 +122,9 @@ function NotificationSettings() {
 				<Separator />
 				<div className="flex items-center justify-between">
 					<div className="space-y-1">
-						<p className="text-sm font-medium">Aktivite Bildirimleri</p>
+						<p className="text-sm font-medium">Activity Notifications</p>
 						<p className="text-xs text-muted-foreground">
-							Hesap aktiviteleri hakkında bildirim alın.
+							Receive alerts for account and ledger activity.
 						</p>
 					</div>
 					<Switch />
@@ -124,9 +132,9 @@ function NotificationSettings() {
 				<Separator />
 				<div className="flex items-center justify-between">
 					<div className="space-y-1">
-						<p className="text-sm font-medium">Pazarlama Bildirimleri</p>
+						<p className="text-sm font-medium">Marketing Notifications</p>
 						<p className="text-xs text-muted-foreground">
-							Kampanyalar ve güncellemeler hakkında bildirim alın.
+							Receive updates about SignUIT product announcements.
 						</p>
 					</div>
 					<Switch />
@@ -140,45 +148,45 @@ function SecuritySettings() {
 	return (
 		<div className="space-y-6">
 			<div className="space-y-1">
-				<h3 className="text-lg font-medium">Güvenlik</h3>
-				<p className="text-sm text-muted-foreground">Hesap güvenliğinizi yönetin.</p>
+				<h3 className="text-lg font-medium">Security</h3>
+				<p className="text-sm text-muted-foreground">Manage your account security.</p>
 			</div>
 			<div className="h-px bg-border" />
 			<div className="space-y-4">
 				<div className="flex items-center justify-between">
 					<div className="space-y-1">
-						<p className="text-sm font-medium">İki Faktörlü Kimlik Doğrulama</p>
-						<p className="text-xs text-muted-foreground">Hesabınızı 2FA ile koruyun.</p>
+						<p className="text-sm font-medium">Two-Factor Authentication</p>
+						<p className="text-xs text-muted-foreground">Protect your account with 2FA.</p>
 					</div>
 					<Switch />
 				</div>
 				<Separator />
 				<div className="flex items-center justify-between">
 					<div className="space-y-1">
-						<p className="text-sm font-medium">Oturumları Hatırla</p>
-						<p className="text-xs text-muted-foreground">Cihazlarda oturum açık kalsın.</p>
+						<p className="text-sm font-medium">Remember Sessions</p>
+						<p className="text-xs text-muted-foreground">Stay signed in across devices.</p>
 					</div>
 					<Switch defaultChecked />
 				</div>
 			</div>
 			<Separator />
 			<div>
-				<h4 className="text-sm font-medium mb-4">Şifre Değiştir</h4>
+				<h4 className="text-sm font-medium mb-4">Change Password</h4>
 				<div className="grid gap-4 max-w-sm">
 					<div className="grid gap-2">
-						<Label htmlFor="current-password">Mevcut Şifre</Label>
+						<Label htmlFor="current-password">Current Password</Label>
 						<Input id="current-password" type="password" />
 					</div>
 					<div className="grid gap-2">
-						<Label htmlFor="new-password">Yeni Şifre</Label>
+						<Label htmlFor="new-password">New Password</Label>
 						<Input id="new-password" type="password" />
 					</div>
 					<div className="grid gap-2">
-						<Label htmlFor="confirm-password">Şifre Tekrar</Label>
+						<Label htmlFor="confirm-password">Confirm Password</Label>
 						<Input id="confirm-password" type="password" />
 					</div>
 				</div>
-				<Button className="mt-4">Şifreyi Güncelle</Button>
+				<Button className="mt-4">Update Password</Button>
 			</div>
 		</div>
 	);
@@ -188,8 +196,8 @@ function AppearanceSettings() {
 	return (
 		<div className="space-y-6">
 			<div className="space-y-1">
-				<h3 className="text-lg font-medium">Görünüm</h3>
-				<p className="text-sm text-muted-foreground">Uygulamanın görünümünü özelleştirin.</p>
+				<h3 className="text-lg font-medium">Appearance</h3>
+				<p className="text-sm text-muted-foreground">Customize the look of the application.</p>
 			</div>
 			<div className="h-px bg-border" />
 			<div className="space-y-4">
@@ -199,8 +207,8 @@ function AppearanceSettings() {
 							<MoonIcon className="size-4" />
 						</div>
 						<div className="space-y-1">
-							<p className="text-sm font-medium">Karanlık Mod</p>
-							<p className="text-xs text-muted-foreground">Koyu tema kullanın.</p>
+							<p className="text-sm font-medium">Dark Mode</p>
+							<p className="text-xs text-muted-foreground">Use a dark color theme.</p>
 						</div>
 					</div>
 					<Switch />
@@ -212,8 +220,8 @@ function AppearanceSettings() {
 							<MonitorIcon className="size-4" />
 						</div>
 						<div className="space-y-1">
-							<p className="text-sm font-medium">Sistem Temasını Takip Et</p>
-							<p className="text-xs text-muted-foreground">Cihazınızın tema ayarını kullanın.</p>
+							<p className="text-sm font-medium">Follow System Theme</p>
+							<p className="text-xs text-muted-foreground">Use your device's theme setting.</p>
 						</div>
 					</div>
 					<Switch defaultChecked />
@@ -243,7 +251,16 @@ function RouteComponent() {
 		<div className="flex flex-col gap-6 h-full">
 			<div>
 				<h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-				<p className="text-muted-foreground">Hesap ayarlarınızı ve tercihlerinizi yönetin.</p>
+				<p className="text-muted-foreground">Manage your account settings and preferences.</p>
+			</div>
+
+			{/* Demo mode notice */}
+			<div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/5 px-4 py-3">
+				<InfoIcon className="size-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+				<p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+					Settings are in read-only mode for the Day 1 MVP demo. Profile updates and account
+					management will be available in Phase 2.
+				</p>
 			</div>
 			<div className="flex flex-1 flex-col gap-6 md:flex-row">
 				<aside className="w-full md:w-[220px] shrink-0">

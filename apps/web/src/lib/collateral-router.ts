@@ -21,7 +21,7 @@ export const collateralRouter = {
 
 	createPolicy: ledgerProcedure.input(CreatePolicySchema).handler(({ input, context }) => {
 		return context.ledger.CollateralPolicy.create({
-			operator: context.partyId,
+			operator: context.operatorPartyId,
 			institution: context.partyId,
 			policyId: input.policyId,
 			ruleType: input.ruleType,
@@ -65,7 +65,7 @@ export const collateralRouter = {
 
 	createHolding: ledgerProcedure.input(CreateHoldingSchema).handler(({ input, context }) => {
 		return context.ledger.CollateralHolding.create({
-			operator: context.partyId, // SignUIT operator from session
+			operator: context.operatorPartyId,
 			holdingId: input.holdingId,
 			institution: context.partyId,
 			asset: input.asset,
@@ -126,6 +126,8 @@ export const collateralRouter = {
 			}
 
 			// 4. Run CTD calculation (off-chain)
+			// NOTE: ExpiryFirst and YieldMax rule types are planned for Phase 2.
+			// All policy.ruleType values currently execute the CTD (cheapest-to-deliver) algorithm.
 			const ctdResult = calculateCTD(
 				holdings.map((h) => ({
 					symbol: h.payload.asset,
@@ -147,11 +149,30 @@ export const collateralRouter = {
 				throw new Error(ctdResult.explanation);
 			}
 
-			// 5. Create RoutingSuggestion contract on Canton
+			// 5. Resolve counterparty party ID for observer visibility
+			let counterpartyPartyId: string | null = null;
+			if (input.counterpartyName) {
+				try {
+					const cantonUrl = process.env.CANTON_API_URL ?? "http://127.0.0.1:7575";
+					const res = await fetch(`${cantonUrl}/v2/parties`);
+					if (res.ok) {
+						const data = (await res.json()) as { partyDetails?: { party: string }[] };
+						const match = (data.partyDetails ?? []).find(
+							(p) => p.party.split("::")[0] === input.counterpartyName,
+						);
+						if (match) counterpartyPartyId = match.party;
+					}
+				} catch {
+					// Non-fatal — counterparty won't be an observer if lookup fails
+				}
+			}
+
+			// 6. Create RoutingSuggestion contract on Canton
 			return context.ledger.RoutingSuggestion.create({
 				routeId: `ROUTE-${Date.now()}`,
 				institution: context.partyId,
-				operator: context.partyId, // TODO: Get actual operator from session
+				operator: context.operatorPartyId,
+				counterparty: counterpartyPartyId,
 				marginCallId: input.marginCallId,
 				amountRequired: input.amountRequired.toString(),
 				suggestedAssets: ctdResult.selectedAssets.map((a) => a.symbol),
@@ -193,5 +214,77 @@ export const collateralRouter = {
 		return context.ledger.AllocationRecord.findMany({
 			limit: input.limit,
 		});
+	}),
+
+	// ─── Demo Setup ────────────────────────────────────────────────────────
+
+	/**
+	 * One-click demo initialization.
+	 * Creates POLICY-001 (CTD) + 3 collateral holdings (USYC / UST / USDC).
+	 * Idempotent-ish: will fail gracefully if contracts already exist.
+	 */
+	seedDemoData: ledgerProcedure.handler(async ({ context }) => {
+		const now = new Date().toISOString();
+		const { partyId, ledger } = context;
+
+		// For seeding, use institution as operator so the contract can be created
+		// with actAs = [institution] only. CollateralPolicy requires both operator
+		// and institution as signatories — using the same party for both satisfies
+		// this with a single actAs entry. This is safe for demo/dev mode.
+		const operatorPartyId = partyId;
+
+		// 1. Create CTD policy
+		await ledger.CollateralPolicy.create({
+			operator: operatorPartyId,
+			institution: partyId,
+			policyId: "POLICY-001",
+			ruleType: "CTD",
+			priorityList: ["USYC", "UST", "USDC"],
+			minLtv: "0.95",
+			maxHaircut: "0.10",
+			counterpartyRules: [{ _1: "PrimeBank", _2: ["USYC", "UST", "USDC"] }],
+			autoApprove: false,
+			notificationEmail: null,
+			active: true,
+			createdAt: now,
+		});
+
+		// 2. Create USYC holding ($8.2M @ 4.5% APY, 2% haircut)
+		await ledger.CollateralHolding.create({
+			operator: operatorPartyId,
+			holdingId: "HOLD-USYC-001",
+			institution: partyId,
+			asset: "USYC",
+			amount: "8200000.0",
+			yield: "0.045",
+			haircut: "0.02",
+			expiry: null,
+		});
+
+		// 3. Create UST holding ($12M @ 4.2% APY, 5% haircut)
+		await ledger.CollateralHolding.create({
+			operator: operatorPartyId,
+			holdingId: "HOLD-UST-001",
+			institution: partyId,
+			asset: "UST",
+			amount: "12000000.0",
+			yield: "0.042",
+			haircut: "0.05",
+			expiry: null,
+		});
+
+		// 4. Create USDC holding ($25M @ 0% yield, 0% haircut)
+		await ledger.CollateralHolding.create({
+			operator: operatorPartyId,
+			holdingId: "HOLD-USDC-001",
+			institution: partyId,
+			asset: "USDC",
+			amount: "25000000.0",
+			yield: "0.0",
+			haircut: "0.0",
+			expiry: null,
+		});
+
+		return { success: true, policyId: "POLICY-001", holdingsCreated: 3, operatorPartyId };
 	}),
 };

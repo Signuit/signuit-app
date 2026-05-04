@@ -49,7 +49,8 @@ seed_demo_scenario = script do
         active = True
         createdAt = now
 
-  agreementCid <- submit operator do
+  -- operator acts-as, institution read-as (contract visible from institution's perspective)
+  agreementCid <- submitMulti [operator] [institution] do
     exerciseCmd joinRequestCid AcceptRequest with
       agreementId = "SVC-001"
       approvedPolicy = initialPolicy
@@ -143,6 +144,7 @@ seed_demo_scenario = script do
       routeId = "ROUTE-001"
       institution = institution
       operator = operator
+      counterparty = Some counterparty
       marginCallId = "MC-4821"
       amountRequired = 15000000.0
       suggestedAssets = ["USYC", "UST"]

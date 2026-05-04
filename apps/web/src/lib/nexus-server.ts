@@ -7,6 +7,9 @@ const SESSION_SECRET = process.env.SESSION_SECRET;
 const SANDBOX_USER_ID = process.env.SANDBOX_USER_ID ?? "alice";
 const SANDBOX_SECRET = process.env.SANDBOX_SECRET ?? "secret";
 
+// The compiled nexus-example package ID — must match daml.js/nexus-example-0.0.1
+const NEXUS_PACKAGE_ID = "da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758";
+
 // Session TTL: configurable via NEXUS_SESSION_TTL_HOURS
 // Default: 24h in development, 2h in production
 const SESSION_TTL_HOURS = process.env.NEXUS_SESSION_TTL_HOURS
@@ -20,6 +23,58 @@ const isValidHex = (s?: string) => s && /^[0-9a-fA-F]+$/.test(s) && s.length % 2
 const isPlaceholder = SESSION_SECRET === "generate_a_32_byte_hex_key_here";
 const encryptionKey =
 	SESSION_SECRET && !isPlaceholder && isValidHex(SESSION_SECRET) ? SESSION_SECRET : undefined;
+
+/**
+ * Automatically upload the nexus-example DAR to the Canton sandbox if it is
+ * missing. Called once at server startup so every `pnpm dev` restart works
+ * without manual intervention.
+ */
+async function ensureDarUploaded() {
+	try {
+		// 1. Check if package is already present
+		const res = await fetch(`${CANTON_API_URL}/v2/packages`);
+		if (!res.ok) return; // Sandbox not reachable yet
+		const { packageIds = [] } = (await res.json()) as { packageIds?: string[] };
+		if (packageIds.includes(NEXUS_PACKAGE_ID)) return; // Already uploaded
+
+		// 2. Locate DAR file relative to this source file
+		const darPath = new URL(
+			"../../../../sandbox/.daml/dist/nexus-example-0.0.1.dar",
+			import.meta.url,
+		).pathname;
+
+		if (!(await Bun.file(darPath).exists())) {
+			console.warn("[Nexus] DAR not found at", darPath, "— run `daml build` in sandbox/");
+			return;
+		}
+
+		// 3. Find daml binary
+		const damlBin = (await Bun.file(`${process.env.HOME}/.daml/bin/daml`).exists())
+			? `${process.env.HOME}/.daml/bin/daml`
+			: "daml";
+
+		// 4. Upload with up to 3 retries
+		console.log("[Nexus] Uploading nexus-example DAR to Canton sandbox...");
+		for (let attempt = 1; attempt <= 3; attempt++) {
+			try {
+				await Bun.$`${damlBin} ledger upload-dar --host localhost --port 6865 ${darPath}`.quiet();
+				console.log(`[Nexus] DAR uploaded successfully (attempt ${attempt})`);
+				return;
+			} catch {
+				if (attempt < 3) {
+					console.warn(`[Nexus] DAR upload attempt ${attempt} failed, retrying in 3s...`);
+					await Bun.sleep(3000);
+				}
+			}
+		}
+		console.warn("[Nexus] DAR upload failed after 3 attempts — seed button will show an error");
+	} catch {
+		// Non-fatal: sandbox might not be running yet
+	}
+}
+
+// Auto-upload DAR before creating the Nexus server instance
+await ensureDarUploaded();
 
 export const sandboxAuthOptions: SandboxAuthOptions = {
 	userId: SANDBOX_USER_ID,

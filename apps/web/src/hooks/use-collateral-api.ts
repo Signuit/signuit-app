@@ -121,6 +121,21 @@ export function useAuditTrail() {
 	);
 }
 
+// ─── Demo Setup ─────────────────────────────────────────────────
+
+export function useSeedDemoData() {
+	const queryClient = useQueryClient();
+
+	return useMutation(
+		orpc.collateral.seedDemoData.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({ queryKey: orpc.collateral.listHoldings.key() });
+				queryClient.invalidateQueries({ queryKey: orpc.collateral.listPolicies.key() });
+			},
+		}),
+	);
+}
+
 // ─── Utility Hooks ──────────────────────────────────────────────
 
 export function useStats() {

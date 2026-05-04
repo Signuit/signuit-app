@@ -1,5 +1,6 @@
 module CollateralRouter where
 
+
 -- SignUIT CollateralRouter - Core smart contracts for collateral routing
 -- Corrected multi-party architecture: "Operator as infrastructure, not gatekeeper"
 
@@ -275,6 +276,7 @@ template RoutingSuggestion
     routeId                : Text            -- Unique route identifier
     institution           : Party           -- Institution (decision owner)
     operator              : Party           -- SignUIT operator (observer/orchestrator)
+    counterparty          : Optional Party  -- Counterparty that issued the margin call
     marginCallId          : Text            -- Associated margin call
     amountRequired        : Decimal         -- Amount needed
     suggestedAssets      : [Text]          -- Asset symbols in priority order
@@ -288,7 +290,7 @@ template RoutingSuggestion
     createdAt            : Time
   where
     signatory institution
-    observer operator  -- Operator orchestrates but does NOT gate
+    observer operator, optional [] (\x -> [x]) counterparty  -- Operator + counterparty observe
 
     ensure not (null suggestedAssets)
       && length suggestedAssets == length suggestedAmounts
@@ -304,6 +306,7 @@ template RoutingSuggestion
           operator             = operator
           routeId             = routeId
           institution         = institution
+          counterparty        = counterparty
           marginCallId        = marginCallId
           assetsSent         = suggestedAssets
           amountsSent        = suggestedAmounts
@@ -327,6 +330,7 @@ template AllocationRecord
     operator           : Party        -- SignUIT operator
     routeId            : Text        -- Reference to original suggestion
     institution       : Party       -- Institution that authorized
+    counterparty      : Optional Party  -- Counterparty that issued the margin call
     marginCallId      : Text        -- Associated margin call
     assetsSent        : [Text]       -- Assets delivered
     amountsSent      : [Decimal]    -- Amounts of each asset
@@ -337,7 +341,7 @@ template AllocationRecord
     status           : RouteStatus  -- Executed or Failed
   where
     signatory institution
-    observer operator  -- Operator records but does NOT gate
+    observer operator, optional [] (\x -> [x]) counterparty  -- Counterparty can view the record
 
     -- Record failure
     choice MarkFailed : ContractId AllocationRecord

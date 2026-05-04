@@ -1,0 +1,18 @@
+
+> @nexus/web@ typecheck /Users/alikar/dev/signuit-app/apps/web
+> tsc --noEmit
+
+src/components/app-sidebar.tsx(18,2): error TS6133: 'BarChart3Icon' is declared but its value is never read.
+src/components/presentation/AnimeWrapper.tsx(4,8): error TS1192: Module '"/Users/alikar/dev/signuit-app/node_modules/.pnpm/animejs@4.4.1/node_modules/animejs/dist/modules/index"' has no default export.
+src/components/presentation/PresentationStage.tsx(34,12): error TS2820: Type '"/dashboard/presentations"' is not assignable to type '"/" | "." | "/login" | "/dashboard" | ".." | "/signup" | "/dashboard/audit" | "/dashboard/components_lib" | "/dashboard/generate" | "/dashboard/holdings" | "/dashboard/policy" | ... 13 more ... | "/dashboard/users"'. Did you mean '"/dashboard/settings"'?
+src/routes/_app/presentations/gtm.tsx(6,8): error TS1192: Module '"/Users/alikar/dev/signuit-app/node_modules/.pnpm/animejs@4.4.1/node_modules/animejs/dist/modules/index"' has no default export.
+src/routes/_app/presentations/gtm.tsx(81,7): error TS2741: Property 'children' is missing in type '{ animationConfig: { scale: number[]; opacity: number[]; duration: number; direction: string; loop: boolean; easing: string; }; className: string; }' but required in type 'AnimeWrapperProps'.
+src/routes/_app/presentations/icp.tsx(6,8): error TS1192: Module '"/Users/alikar/dev/signuit-app/node_modules/.pnpm/animejs@4.4.1/node_modules/animejs/dist/modules/index"' has no default export.
+src/routes/_app/presentations/metrics.tsx(6,8): error TS1192: Module '"/Users/alikar/dev/signuit-app/node_modules/.pnpm/animejs@4.4.1/node_modules/animejs/dist/modules/index"' has no default export.
+src/routes/_app/presentations/metrics.tsx(98,7): error TS2741: Property 'children' is missing in type '{ animationConfig: { width: string[]; duration: number; easing: string; }; className: string; }' but required in type 'AnimeWrapperProps'.
+src/routes/_app/presentations/mvp.tsx(6,8): error TS1192: Module '"/Users/alikar/dev/signuit-app/node_modules/.pnpm/animejs@4.4.1/node_modules/animejs/dist/modules/index"' has no default export.
+src/routes/_app/presentations/pitch.tsx(6,8): error TS1192: Module '"/Users/alikar/dev/signuit-app/node_modules/.pnpm/animejs@4.4.1/node_modules/animejs/dist/modules/index"' has no default export.
+src/routes/_app/presentations/pitch.tsx(91,10): error TS2552: Cannot find name 'motion'. Did you mean 'Option'?
+src/routes/_app/presentations/value-prop.tsx(2,8): error TS1192: Module '"/Users/alikar/dev/signuit-app/node_modules/.pnpm/animejs@4.4.1/node_modules/animejs/dist/modules/index"' has no default export.
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @nexus/web@ typecheck: `tsc --noEmit`
+Exit status 2

@@ -21,6 +21,7 @@ export declare type AllocationRecord = {
   operator: damlTypes.Party;
   routeId: string;
   institution: damlTypes.Party;
+  counterparty: damlTypes.Optional<damlTypes.Party>;
   marginCallId: string;
   assetsSent: string[];
   amountsSent: damlTypes.Numeric[];
@@ -68,6 +69,7 @@ export declare type RoutingSuggestion = {
   routeId: string;
   institution: damlTypes.Party;
   operator: damlTypes.Party;
+  counterparty: damlTypes.Optional<damlTypes.Party>;
   marginCallId: string;
   amountRequired: damlTypes.Numeric;
   suggestedAssets: string[];

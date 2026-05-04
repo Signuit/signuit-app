@@ -12,6 +12,7 @@ import {
 	SelectValue,
 } from "@nexus/ui/components/select";
 import { Separator } from "@nexus/ui/components/separator";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	CheckCircleIcon,
@@ -25,7 +26,13 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useGenerateSuggestion, usePolicies } from "@/hooks/use-collateral-api";
+import {
+	useApproveSuggestion,
+	useGenerateSuggestion,
+	useHoldings,
+	usePolicies,
+} from "@/hooks/use-collateral-api";
+import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/_app/dashboard/generate")({
 	component: RouteComponent,
@@ -33,6 +40,7 @@ export const Route = createFileRoute("/_app/dashboard/generate")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const [step, setStep] = useState(1);
 
 	// Form State
@@ -47,7 +55,9 @@ function RouteComponent() {
 	const [loadingProgress, setLoadingProgress] = useState(0);
 
 	const { data: policies } = usePolicies();
+	const { data: holdings } = useHoldings();
 	const generateMutation = useGenerateSuggestion();
+	const approveMutation = useApproveSuggestion();
 
 	const handleGenerate = async () => {
 		if (!policyId) {
@@ -70,7 +80,7 @@ function RouteComponent() {
 		}, 150);
 
 		try {
-			// Real API call
+			// Real API call — creates RoutingSuggestion on Canton
 			const result = await generateMutation.mutateAsync({
 				marginCallId,
 				amountRequired,
@@ -82,9 +92,26 @@ function RouteComponent() {
 			clearInterval(interval);
 			setLoadingProgress(100);
 
+			// Re-fetch suggestions from ACS to get the real contractId.
+			// The create() response only contains the transaction ID (updateId),
+			// not the actual contract ID needed for ApproveSuggestion exercise.
+			const routeId = result.payload?.routeId as string | undefined;
+			let resolvedResult = result;
+			if (routeId) {
+				try {
+					const fresh = await queryClient.fetchQuery(
+						orpc.collateral.listSuggestions.queryOptions({ input: { limit: 100 } }),
+					);
+					const match = fresh?.find((s) => (s.payload?.routeId as string | undefined) === routeId);
+					if (match) resolvedResult = match;
+				} catch {
+					// Fallback to original result if re-fetch fails
+				}
+			}
+
 			// Small delay for effect
 			setTimeout(() => {
-				setSuggestionResult(result);
+				setSuggestionResult(resolvedResult);
 				setStep(3);
 			}, 500);
 		} catch (error) {
@@ -242,18 +269,22 @@ function RouteComponent() {
 						</div>
 
 						<div className="grid grid-cols-1 gap-2 text-left bg-muted/50 p-4 rounded-lg">
-							<div className="flex items-center gap-2 text-xs">
-								<div className="size-2 rounded-full bg-green-500" />
-								<span>USDC Holdings: $25.0M (Available)</span>
-							</div>
-							<div className="flex items-center gap-2 text-xs">
-								<div className="size-2 rounded-full bg-green-500" />
-								<span>UST Holdings: $12.0M (Available)</span>
-							</div>
-							<div className="flex items-center gap-2 text-xs">
-								<div className="size-2 rounded-full bg-green-500" />
-								<span>USYC Holdings: $8.2M (Available)</span>
-							</div>
+							{holdings && holdings.length > 0 ? (
+								holdings.map((h) => (
+									<div key={h.contractId} className="flex items-center gap-2 text-xs">
+										<div className="size-2 rounded-full bg-green-500" />
+										<span>
+											{h.payload.asset}: ${(parseFloat(h.payload.amount) / 1_000_000).toFixed(1)}M
+											(Available)
+										</span>
+									</div>
+								))
+							) : (
+								<div className="flex items-center gap-2 text-xs text-muted-foreground">
+									<div className="size-2 rounded-full bg-primary animate-pulse" />
+									<span>Loading holdings from Canton...</span>
+								</div>
+							)}
 						</div>
 					</div>
 				</Card>
@@ -413,13 +444,34 @@ function RouteComponent() {
 							</Button>
 							<Button
 								className="flex-1 h-14 text-lg bg-green-600 hover:bg-green-700 shadow-xl"
-								onClick={() => {
-									toast.success("Routing suggestion approved and sent to audit trail");
-									navigate({ to: "/dashboard/audit" });
+								disabled={approveMutation.isPending}
+								onClick={async () => {
+									try {
+										await approveMutation.mutateAsync({
+											suggestionCid: suggestionResult.contractId,
+										});
+										toast.success(
+											"Routing suggestion approved — allocation record created on Canton",
+										);
+										navigate({ to: "/dashboard/audit" });
+									} catch (err) {
+										toast.error(
+											`Approval failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+										);
+									}
 								}}
 							>
-								<CheckCircleIcon className="mr-2 size-5" />
-								Approve & Execute
+								{approveMutation.isPending ? (
+									<>
+										<div className="mr-2 size-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+										Approving on Canton...
+									</>
+								) : (
+									<>
+										<CheckCircleIcon className="mr-2 size-5" />
+										Approve & Execute
+									</>
+								)}
 							</Button>
 						</div>
 					</CardContent>

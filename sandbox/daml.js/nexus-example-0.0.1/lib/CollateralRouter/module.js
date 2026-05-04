@@ -28,15 +28,16 @@ exports.MarkFailed = {
 exports.AllocationRecord = damlTypes.assembleTemplate(
 {
   templateId: '#nexus-example:CollateralRouter:AllocationRecord',
-  templateIdWithPackageId: 'b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c:CollateralRouter:AllocationRecord',
+  templateIdWithPackageId: 'da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758:CollateralRouter:AllocationRecord',
   keyDecoder: damlTypes.lazyMemo(function () { return jtv.constant(undefined); }),
   keyEncode: function () { throw 'EncodeError'; },
-  decoder: damlTypes.lazyMemo(function () { return jtv.object({operator: damlTypes.Party.decoder, routeId: damlTypes.Text.decoder, institution: damlTypes.Party.decoder, marginCallId: damlTypes.Text.decoder, assetsSent: damlTypes.List(damlTypes.Text).decoder, amountsSent: damlTypes.List(damlTypes.Numeric(10)).decoder, ruleApplied: damlTypes.Text.decoder, opportunityCostBps: damlTypes.Numeric(10).decoder, approvedBy: damlTypes.Party.decoder, executedAt: damlTypes.Time.decoder, status: exports.RouteStatus.decoder, }); }),
+  decoder: damlTypes.lazyMemo(function () { return jtv.object({operator: damlTypes.Party.decoder, routeId: damlTypes.Text.decoder, institution: damlTypes.Party.decoder, counterparty: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Party).decoder), marginCallId: damlTypes.Text.decoder, assetsSent: damlTypes.List(damlTypes.Text).decoder, amountsSent: damlTypes.List(damlTypes.Numeric(10)).decoder, ruleApplied: damlTypes.Text.decoder, opportunityCostBps: damlTypes.Numeric(10).decoder, approvedBy: damlTypes.Party.decoder, executedAt: damlTypes.Time.decoder, status: exports.RouteStatus.decoder, }); }),
   encode: function (__typed__) {
   return {
     operator: damlTypes.Party.encode(__typed__.operator),
     routeId: damlTypes.Text.encode(__typed__.routeId),
     institution: damlTypes.Party.encode(__typed__.institution),
+    counterparty: damlTypes.Optional(damlTypes.Party).encode(__typed__.counterparty),
     marginCallId: damlTypes.Text.encode(__typed__.marginCallId),
     assetsSent: damlTypes.List(damlTypes.Text).encode(__typed__.assetsSent),
     amountsSent: damlTypes.List(damlTypes.Numeric(10)).encode(__typed__.amountsSent),
@@ -69,7 +70,7 @@ exports.AllocationRecord = damlTypes.assembleTemplate(
 );
 
 
-damlTypes.registerTemplate(exports.AllocationRecord, ['b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c', '#nexus-example']);
+damlTypes.registerTemplate(exports.AllocationRecord, ['da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758', '#nexus-example']);
 
 
 
@@ -99,15 +100,16 @@ exports.ApproveSuggestion = {
 exports.RoutingSuggestion = damlTypes.assembleTemplate(
 {
   templateId: '#nexus-example:CollateralRouter:RoutingSuggestion',
-  templateIdWithPackageId: 'b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c:CollateralRouter:RoutingSuggestion',
+  templateIdWithPackageId: 'da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758:CollateralRouter:RoutingSuggestion',
   keyDecoder: damlTypes.lazyMemo(function () { return jtv.constant(undefined); }),
   keyEncode: function () { throw 'EncodeError'; },
-  decoder: damlTypes.lazyMemo(function () { return jtv.object({routeId: damlTypes.Text.decoder, institution: damlTypes.Party.decoder, operator: damlTypes.Party.decoder, marginCallId: damlTypes.Text.decoder, amountRequired: damlTypes.Numeric(10).decoder, suggestedAssets: damlTypes.List(damlTypes.Text).decoder, suggestedAmounts: damlTypes.List(damlTypes.Numeric(10)).decoder, estimatedOpportunityCost: damlTypes.Numeric(10).decoder, opportunityCostBps: damlTypes.Numeric(10).decoder, alternativeOptions: damlTypes.List(exports.RoutingOption).decoder, expiryWarnings: damlTypes.List(damlTypes.Text).decoder, explanation: damlTypes.Text.decoder, status: exports.RouteStatus.decoder, createdAt: damlTypes.Time.decoder, }); }),
+  decoder: damlTypes.lazyMemo(function () { return jtv.object({routeId: damlTypes.Text.decoder, institution: damlTypes.Party.decoder, operator: damlTypes.Party.decoder, counterparty: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Party).decoder), marginCallId: damlTypes.Text.decoder, amountRequired: damlTypes.Numeric(10).decoder, suggestedAssets: damlTypes.List(damlTypes.Text).decoder, suggestedAmounts: damlTypes.List(damlTypes.Numeric(10)).decoder, estimatedOpportunityCost: damlTypes.Numeric(10).decoder, opportunityCostBps: damlTypes.Numeric(10).decoder, alternativeOptions: damlTypes.List(exports.RoutingOption).decoder, expiryWarnings: damlTypes.List(damlTypes.Text).decoder, explanation: damlTypes.Text.decoder, status: exports.RouteStatus.decoder, createdAt: damlTypes.Time.decoder, }); }),
   encode: function (__typed__) {
   return {
     routeId: damlTypes.Text.encode(__typed__.routeId),
     institution: damlTypes.Party.encode(__typed__.institution),
     operator: damlTypes.Party.encode(__typed__.operator),
+    counterparty: damlTypes.Optional(damlTypes.Party).encode(__typed__.counterparty),
     marginCallId: damlTypes.Text.encode(__typed__.marginCallId),
     amountRequired: damlTypes.Numeric(10).encode(__typed__.amountRequired),
     suggestedAssets: damlTypes.List(damlTypes.Text).encode(__typed__.suggestedAssets),
@@ -151,7 +153,7 @@ exports.RoutingSuggestion = damlTypes.assembleTemplate(
 );
 
 
-damlTypes.registerTemplate(exports.RoutingSuggestion, ['b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c', '#nexus-example']);
+damlTypes.registerTemplate(exports.RoutingSuggestion, ['da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758', '#nexus-example']);
 
 
 
@@ -169,7 +171,7 @@ exports.SatisfyMarginCall = {
 exports.MarginCall = damlTypes.assembleTemplate(
 {
   templateId: '#nexus-example:CollateralRouter:MarginCall',
-  templateIdWithPackageId: 'b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c:CollateralRouter:MarginCall',
+  templateIdWithPackageId: 'da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758:CollateralRouter:MarginCall',
   keyDecoder: damlTypes.lazyMemo(function () { return jtv.constant(undefined); }),
   keyEncode: function () { throw 'EncodeError'; },
   decoder: damlTypes.lazyMemo(function () { return jtv.object({callId: damlTypes.Text.decoder, operator: damlTypes.Party.decoder, institution: damlTypes.Party.decoder, counterparty: damlTypes.Party.decoder, amountRequired: damlTypes.Numeric(10).decoder, currency: damlTypes.Text.decoder, dueBy: damlTypes.Time.decoder, status: exports.RouteStatus.decoder, createdAt: damlTypes.Time.decoder, }); }),
@@ -208,7 +210,7 @@ exports.MarginCall = damlTypes.assembleTemplate(
 );
 
 
-damlTypes.registerTemplate(exports.MarginCall, ['b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c', '#nexus-example']);
+damlTypes.registerTemplate(exports.MarginCall, ['da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758', '#nexus-example']);
 
 
 
@@ -227,7 +229,7 @@ exports.UpdateHolding = {
 exports.CollateralHolding = damlTypes.assembleTemplate(
 {
   templateId: '#nexus-example:CollateralRouter:CollateralHolding',
-  templateIdWithPackageId: 'b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c:CollateralRouter:CollateralHolding',
+  templateIdWithPackageId: 'da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758:CollateralRouter:CollateralHolding',
   keyDecoder: damlTypes.lazyMemo(function () { return jtv.constant(undefined); }),
   keyEncode: function () { throw 'EncodeError'; },
   decoder: damlTypes.lazyMemo(function () { return jtv.object({operator: damlTypes.Party.decoder, holdingId: damlTypes.Text.decoder, institution: damlTypes.Party.decoder, asset: damlTypes.Text.decoder, amount: damlTypes.Numeric(10).decoder, yield: damlTypes.Numeric(10).decoder, haircut: damlTypes.Numeric(10).decoder, expiry: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Time).decoder), }); }),
@@ -265,7 +267,7 @@ exports.CollateralHolding = damlTypes.assembleTemplate(
 );
 
 
-damlTypes.registerTemplate(exports.CollateralHolding, ['b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c', '#nexus-example']);
+damlTypes.registerTemplate(exports.CollateralHolding, ['da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758', '#nexus-example']);
 
 
 
@@ -302,7 +304,7 @@ exports.UpdateCollateralPolicy = {
 exports.CollateralPolicy = damlTypes.assembleTemplate(
 {
   templateId: '#nexus-example:CollateralRouter:CollateralPolicy',
-  templateIdWithPackageId: 'b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c:CollateralRouter:CollateralPolicy',
+  templateIdWithPackageId: 'da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758:CollateralRouter:CollateralPolicy',
   keyDecoder: damlTypes.lazyMemo(function () { return jtv.constant(undefined); }),
   keyEncode: function () { throw 'EncodeError'; },
   decoder: damlTypes.lazyMemo(function () { return jtv.object({operator: damlTypes.Party.decoder, institution: damlTypes.Party.decoder, policyId: damlTypes.Text.decoder, ruleType: exports.RuleType.decoder, priorityList: damlTypes.List(damlTypes.Text).decoder, minLtv: damlTypes.Numeric(10).decoder, maxHaircut: damlTypes.Numeric(10).decoder, counterpartyRules: damlTypes.List(pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.Text, damlTypes.List(damlTypes.Text))).decoder, autoApprove: damlTypes.Bool.decoder, notificationEmail: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Text).decoder), active: damlTypes.Bool.decoder, createdAt: damlTypes.Time.decoder, }); }),
@@ -352,7 +354,7 @@ exports.CollateralPolicy = damlTypes.assembleTemplate(
 );
 
 
-damlTypes.registerTemplate(exports.CollateralPolicy, ['b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c', '#nexus-example']);
+damlTypes.registerTemplate(exports.CollateralPolicy, ['da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758', '#nexus-example']);
 
 
 
@@ -382,7 +384,7 @@ exports.TerminateAgreement = {
 exports.ServiceAgreement = damlTypes.assembleTemplate(
 {
   templateId: '#nexus-example:CollateralRouter:ServiceAgreement',
-  templateIdWithPackageId: 'b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c:CollateralRouter:ServiceAgreement',
+  templateIdWithPackageId: 'da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758:CollateralRouter:ServiceAgreement',
   keyDecoder: damlTypes.lazyMemo(function () { return jtv.constant(undefined); }),
   keyEncode: function () { throw 'EncodeError'; },
   decoder: damlTypes.lazyMemo(function () { return jtv.object({operator: damlTypes.Party.decoder, institution: damlTypes.Party.decoder, agreementId: damlTypes.Text.decoder, policy: exports.CollateralPolicy.decoder, tier: damlTypes.Text.decoder, status: exports.AgreementStatus.decoder, createdAt: damlTypes.Time.decoder, acceptedAt: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Time).decoder), }); }),
@@ -428,7 +430,7 @@ exports.ServiceAgreement = damlTypes.assembleTemplate(
 );
 
 
-damlTypes.registerTemplate(exports.ServiceAgreement, ['b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c', '#nexus-example']);
+damlTypes.registerTemplate(exports.ServiceAgreement, ['da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758', '#nexus-example']);
 
 
 
@@ -471,7 +473,7 @@ exports.AcceptRequest = {
 exports.JoinRequest = damlTypes.assembleTemplate(
 {
   templateId: '#nexus-example:CollateralRouter:JoinRequest',
-  templateIdWithPackageId: 'b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c:CollateralRouter:JoinRequest',
+  templateIdWithPackageId: 'da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758:CollateralRouter:JoinRequest',
   keyDecoder: damlTypes.lazyMemo(function () { return jtv.constant(undefined); }),
   keyEncode: function () { throw 'EncodeError'; },
   decoder: damlTypes.lazyMemo(function () { return jtv.object({applicant: damlTypes.Party.decoder, operator: damlTypes.Party.decoder, companyName: damlTypes.Text.decoder, companyId: damlTypes.Text.decoder, requestedTier: damlTypes.Text.decoder, contactEmail: damlTypes.Text.decoder, submittedAt: damlTypes.Time.decoder, status: exports.OnboardingStatus.decoder, }); }),
@@ -525,7 +527,7 @@ exports.JoinRequest = damlTypes.assembleTemplate(
 );
 
 
-damlTypes.registerTemplate(exports.JoinRequest, ['b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c', '#nexus-example']);
+damlTypes.registerTemplate(exports.JoinRequest, ['da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758', '#nexus-example']);
 
 
 
@@ -546,7 +548,7 @@ exports.UpdateMetadata = {
 exports.CollateralAssetMetadata = damlTypes.assembleTemplate(
 {
   templateId: '#nexus-example:CollateralRouter:CollateralAssetMetadata',
-  templateIdWithPackageId: 'b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c:CollateralRouter:CollateralAssetMetadata',
+  templateIdWithPackageId: 'da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758:CollateralRouter:CollateralAssetMetadata',
   keyDecoder: damlTypes.lazyMemo(function () { return jtv.constant(undefined); }),
   keyEncode: function () { throw 'EncodeError'; },
   decoder: damlTypes.lazyMemo(function () { return jtv.object({operator: damlTypes.Party.decoder, assetSymbol: damlTypes.Text.decoder, currentYield: damlTypes.Numeric(10).decoder, haircut: damlTypes.Numeric(10).decoder, eligible: damlTypes.Bool.decoder, updatedAt: damlTypes.Time.decoder, }); }),
@@ -582,7 +584,7 @@ exports.CollateralAssetMetadata = damlTypes.assembleTemplate(
 );
 
 
-damlTypes.registerTemplate(exports.CollateralAssetMetadata, ['b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c', '#nexus-example']);
+damlTypes.registerTemplate(exports.CollateralAssetMetadata, ['da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758', '#nexus-example']);
 
 
 

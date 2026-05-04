@@ -1,6 +1,6 @@
 <div align="center">
   <br>
-  <img src="assets/logo_black.png" alt="SignUIT" width="320">
+  <img src="assets/logo_white.png" alt="SignUIT" width="320">
   <br><br>
   <strong>Policy-Based Collateral Routing Engine on Canton Network</strong>
   <br>
@@ -303,7 +303,7 @@ Three pre-configured accounts are available for testing the multi-party workflow
 | Counterparty | `demo-primebank@signuit.app` | PrimeBank |
 | Operator | `demo-operator@signuit.app` | SignUIT |
 
-> Password for all demo accounts: `password`
+> Password for all demo accounts: `demo-password-123`
 
 ---
 
@@ -590,7 +590,7 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 <div align="center">
   <br>
-  <img src="assets/logo_black.png" alt="SignUIT" width="120">
+  <img src="assets/logo_white.png" alt="SignUIT" width="120">
   <br><br>
   <strong>SignUIT</strong>
   <br>

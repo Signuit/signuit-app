@@ -1,17 +1,13 @@
 import "dotenv/config";
 import { db } from "@nexus/db";
 import { user } from "@nexus/db/schema/auth";
+import { DEMO_USERS } from "@nexus/db/seed/demo-users";
 import { eq } from "drizzle-orm";
-import "../../apps/web/.env";
 
-const DEMO_USERS = [
-	{ email: "demo-vantage@signuit.app", name: "Vantage Capital" },
-	{ email: "demo-primebank@signuit.app", name: "Prime Bank" },
-	{ email: "demo-operator@signuit.app", name: "SignUIT Operator" },
-];
+type UserInsert = typeof user.$inferInsert;
 
 async function seedDemoUsers() {
-	console.log("Seeding demo users...");
+	console.log("Seeding demo users with correct roles...");
 
 	for (const u of DEMO_USERS) {
 		const existing = await db.query.user.findFirst({
@@ -19,19 +15,26 @@ async function seedDemoUsers() {
 		});
 
 		if (!existing) {
-			await db.insert(user).values({
+			const insert: UserInsert = {
 				id: crypto.randomUUID(),
 				name: u.name,
 				email: u.email,
 				emailVerified: true,
-			});
-			console.log(`✓ Created: ${u.email}`);
+				role: u.role,
+				cantonPartyId: u.partyId,
+			};
+			await db.insert(user).values(insert);
+			console.log(`✓ Created: ${u.email} [role: ${u.role}]`);
 		} else {
-			console.log(`✓ Already exists: ${u.email}`);
+			await db
+				.update(user)
+				.set({ role: u.role, cantonPartyId: u.partyId })
+				.where(eq(user.email, u.email));
+			console.log(`✓ Updated role: ${u.email} → ${u.role}`);
 		}
 	}
 
-	console.log("✓ Demo users seeded!");
+	console.log("✓ Done!");
 }
 
 seedDemoUsers().catch(console.error);

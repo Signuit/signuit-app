@@ -18,26 +18,39 @@ import {
 	TableRow,
 } from "@nexus/ui/components/table";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRightIcon, FileTextIcon, TrendingUpIcon, WalletIcon } from "lucide-react";
+import {
+	ArrowRightIcon,
+	DatabaseIcon,
+	FileTextIcon,
+	TrendingUpIcon,
+	WalletIcon,
+} from "lucide-react";
 import * as RechartsPrimitive from "recharts";
+import { toast } from "sonner";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { useAuthRole } from "@/hooks/use-auth";
-import { useAuditTrail, useHoldings, useStats, useSuggestions } from "@/hooks/use-collateral-api";
+import {
+	useAuditTrail,
+	useHoldings,
+	useSeedDemoData,
+	useStats,
+	useSuggestions,
+} from "@/hooks/use-collateral-api";
 
 export const Route = createFileRoute("/_app/dashboard/")({
 	component: RouteComponent,
 });
 
 const chartConfig = {
-	desktop: {
-		label: "Desktop",
+	routed: {
+		label: "Routed ($M)",
 		theme: {
 			light: "hsl(var(--chart-1))",
 			dark: "hsl(var(--chart-1))",
 		},
 	},
-	mobile: {
-		label: "Mobile",
+	saved: {
+		label: "Cost Saved (bps)",
 		theme: {
 			light: "hsl(var(--chart-2))",
 			dark: "hsl(var(--chart-2))",
@@ -45,16 +58,22 @@ const chartConfig = {
 	},
 };
 
+// Static reference data — represents the expected efficiency curve for the demo.
+// Will be replaced with live aggregation in Phase 2 when PQS is enabled.
 const chartData = [
-	{ month: "January", desktop: 186, mobile: 80 },
-	{ month: "February", desktop: 305, mobile: 200 },
-	{ month: "March", desktop: 237, mobile: 120 },
-	{ month: "April", desktop: 73, mobile: 190 },
-	{ month: "May", desktop: 209, mobile: 130 },
-	{ month: "June", desktop: 214, mobile: 140 },
+	{ month: "Nov", routed: 0, saved: 0 },
+	{ month: "Dec", routed: 0, saved: 0 },
+	{ month: "Jan", routed: 8.5, saved: 3.2 },
+	{ month: "Feb", routed: 12.0, saved: 4.8 },
+	{ month: "Mar", routed: 9.5, saved: 3.9 },
+	{ month: "Apr", routed: 15.0, saved: 6.1 },
 ];
 
 function WelcomeCard({ userRole }: { userRole: string }) {
+	const { data: holdings, isLoading: holdingsLoading } = useHoldings();
+	const seedMutation = useSeedDemoData();
+	const isEmpty = !holdingsLoading && holdings?.length === 0;
+
 	const content: Record<
 		string,
 		{ title: string; description: string; actions: { label: string; to: any }[] }
@@ -87,6 +106,15 @@ function WelcomeCard({ userRole }: { userRole: string }) {
 
 	const config = content[userRole] || content.institution;
 
+	const handleSeed = async () => {
+		try {
+			await seedMutation.mutateAsync(undefined);
+			toast.success("Demo data initialized — POLICY-001 + 3 holdings created on Canton");
+		} catch (err) {
+			toast.error(`Setup failed: ${err instanceof Error ? err.message : "Unknown error"}`);
+		}
+	};
+
 	return (
 		<Card className="relative overflow-hidden border bg-accent/5 shadow-sm">
 			<div className="absolute top-0 right-0 p-8 opacity-5">
@@ -97,7 +125,7 @@ function WelcomeCard({ userRole }: { userRole: string }) {
 				<p className="text-muted-foreground text-base max-w-2xl">{config.description}</p>
 			</CardHeader>
 			<CardContent className="relative z-10">
-				<div className="flex gap-2">
+				<div className="flex flex-wrap gap-2">
 					{config.actions.map((action) => (
 						<Link key={action.to} to={action.to}>
 							<Button variant="default" size="sm" className="rounded-md">
@@ -106,6 +134,27 @@ function WelcomeCard({ userRole }: { userRole: string }) {
 							</Button>
 						</Link>
 					))}
+					{userRole === "institution" && isEmpty && (
+						<Button
+							variant="outline"
+							size="sm"
+							className="rounded-md border-primary/30 text-primary hover:bg-primary/5"
+							onClick={handleSeed}
+							disabled={seedMutation.isPending}
+						>
+							{seedMutation.isPending ? (
+								<>
+									<div className="mr-2 size-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+									Initializing...
+								</>
+							) : (
+								<>
+									<DatabaseIcon className="mr-2 size-4" />
+									Initialize Demo Data
+								</>
+							)}
+						</Button>
+					)}
 				</div>
 			</CardContent>
 		</Card>
@@ -290,39 +339,42 @@ function RecentAllocationsCard() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{recent?.map((a) => (
-							<TableRow key={a.contractId} className="group border-muted/30">
-								<TableCell className="font-mono text-[10px] font-medium text-muted-foreground">
-									#{a.payload.routeId.replace("ROUTE-", "")}
-								</TableCell>
-								<TableCell className="text-[11px] font-medium">
-									{a.payload.assetsSent.join(", ")}
-								</TableCell>
-								<TableCell className="text-[11px] font-semibold text-right">
-									$
-									{(
-										a.payload.amountsSent.reduce(
-											(sum: number, amt: string) => sum + parseFloat(amt),
-											0,
-										) / 1_000_000
-									).toFixed(1)}
-									M
-								</TableCell>
-								<TableCell className="text-[11px] font-medium text-muted-foreground text-right">
-									{parseFloat(a.payload.opportunityCostBps).toFixed(1)}bps
-								</TableCell>
-								<TableCell className="text-right">
-									<div className="flex justify-end">
-										<Badge
-											variant="secondary"
-											className="text-[10px] font-medium px-1.5 py-0 border-transparent bg-green-500/10 text-green-700 dark:text-green-400"
-										>
-											{a.payload.status}
-										</Badge>
-									</div>
-								</TableCell>
-							</TableRow>
-						))}
+						{recent?.map((a) => {
+							const routeId = a.payload.routeId as string | undefined;
+							const assetsSent = (a.payload.assetsSent as string[] | undefined) ?? [];
+							const amountsSent = (a.payload.amountsSent as string[] | undefined) ?? [];
+							const opportunityCostBps = a.payload.opportunityCostBps as string | undefined;
+							const status = a.payload.status as string | undefined;
+							const displayId = routeId?.replace("ROUTE-", "") ?? a.contractId.slice(0, 8);
+							const totalAmount =
+								amountsSent.reduce((sum, amt) => sum + parseFloat(amt || "0"), 0) / 1_000_000;
+							return (
+								<TableRow key={a.contractId} className="group border-muted/30">
+									<TableCell className="font-mono text-[10px] font-medium text-muted-foreground">
+										#{displayId}
+									</TableCell>
+									<TableCell className="text-[11px] font-medium">
+										{assetsSent.length > 0 ? assetsSent.join(", ") : "—"}
+									</TableCell>
+									<TableCell className="text-[11px] font-semibold text-right">
+										${totalAmount.toFixed(1)}M
+									</TableCell>
+									<TableCell className="text-[11px] font-medium text-muted-foreground text-right">
+										{parseFloat(opportunityCostBps || "0").toFixed(1)}bps
+									</TableCell>
+									<TableCell className="text-right">
+										<div className="flex justify-end">
+											<Badge
+												variant="secondary"
+												className="text-[10px] font-medium px-1.5 py-0 border-transparent bg-green-500/10 text-green-700 dark:text-green-400"
+											>
+												{status ?? "—"}
+											</Badge>
+										</div>
+									</TableCell>
+								</TableRow>
+							);
+						})}
 						{(!recent || recent.length === 0) && (
 							<TableRow>
 								<TableCell
@@ -372,7 +424,7 @@ function TransactionChart() {
 							tickLine={false}
 							axisLine={false}
 							tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-							tickFormatter={(value) => `${value}M`}
+							tickFormatter={(value) => `${value}`}
 						/>
 						<RechartsPrimitive.Tooltip content={<ChartTooltipContent indicator="line" />} />
 						<RechartsPrimitive.CartesianGrid
@@ -382,7 +434,7 @@ function TransactionChart() {
 						/>
 						<RechartsPrimitive.Area
 							type="monotone"
-							dataKey="desktop"
+							dataKey="routed"
 							stroke="hsl(var(--chart-1))"
 							strokeWidth={2}
 							fillOpacity={1}
@@ -390,7 +442,7 @@ function TransactionChart() {
 						/>
 						<RechartsPrimitive.Area
 							type="monotone"
-							dataKey="mobile"
+							dataKey="saved"
 							stroke="hsl(var(--chart-2))"
 							strokeWidth={2}
 							fillOpacity={1}
@@ -430,8 +482,8 @@ function CounterpartyView() {
 					title="Cumulative Fulfillments"
 					value={totalAllocations}
 					icon={WalletIcon}
-					trend="up"
-					trendValue="+4 this week"
+					trend={totalAllocations > 0 ? "up" : null}
+					trendValue={`${totalAllocations} on-ledger`}
 					loading={isLoading}
 				/>
 			</div>
@@ -454,8 +506,8 @@ function OperatorView() {
 					title="Network Assets"
 					value={`$${(totalHoldingsValue / 1_000_000).toFixed(1)}M`}
 					icon={WalletIcon}
-					trend="up"
-					trendValue="+2.5%"
+					trend={totalHoldingsValue > 0 ? "up" : null}
+					trendValue="Live from Canton"
 					loading={isLoading}
 				/>
 				<StatCard
@@ -470,8 +522,8 @@ function OperatorView() {
 					title="Executed Routes"
 					value={totalAllocations}
 					icon={TrendingUpIcon}
-					trend="up"
-					trendValue="+12 overall"
+					trend={totalAllocations > 0 ? "up" : null}
+					trendValue={`${totalAllocations} allocations`}
 					loading={isLoading}
 				/>
 			</div>
@@ -504,8 +556,8 @@ function RouteComponent() {
 								title="Available Collateral"
 								value={`$${(totalHoldingsValue / 1_000_000).toFixed(1)}M`}
 								icon={WalletIcon}
-								trend="up"
-								trendValue="+2.5%"
+								trend={totalHoldingsValue > 0 ? "up" : null}
+								trendValue="Live from Canton"
 								loading={isLoading}
 							/>
 							<StatCard
@@ -520,8 +572,8 @@ function RouteComponent() {
 								title="Deployed Value"
 								value={totalAllocations}
 								icon={TrendingUpIcon}
-								trend="up"
-								trendValue="+12 recently"
+								trend={totalAllocations > 0 ? "up" : null}
+								trendValue={`${totalAllocations} allocations`}
 								loading={isLoading}
 							/>
 						</div>

@@ -1,5 +1,6 @@
 "use client";
 
+import type { SessionUser } from "@nexus/auth";
 import { NavUser } from "@nexus/ui/components/nav-user";
 import {
 	Sidebar,
@@ -13,6 +14,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@nexus/ui/components/sidebar";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
 	FileTextIcon,
@@ -20,6 +22,7 @@ import {
 	SettingsIcon,
 	ShieldCheckIcon,
 	WalletIcon,
+	ZapIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import type * as React from "react";
@@ -27,6 +30,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuthRole } from "@/hooks/use-auth";
 import { authClient } from "@/lib/auth-client";
 import { nexus } from "@/lib/nexus-client";
+import { orpc } from "@/utils/orpc";
 
 // Navigation Items Mapping
 function getNavItemsForRole(role: string) {
@@ -52,6 +56,12 @@ function getNavItemsForRole(role: string) {
 				to: "/dashboard/suggestions" as const,
 				label: "Suggestions",
 				icon: <FileTextIcon />,
+				activeOptions: { exact: true },
+			},
+			{
+				to: "/dashboard/generate" as const,
+				label: "Generate Route",
+				icon: <ZapIcon />,
 				activeOptions: { exact: true },
 			},
 			{
@@ -147,16 +157,20 @@ function NavMainItems({ role }: { role: string }) {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-	const { data: sessionData } = nexus.auth.useSession() as any;
+	// nexus.auth.useSession() returns the Canton session (token/partyId only).
+	// For display name, email and role we use the Better Auth session via orpc.
+	const { data: authSession } = useQuery(orpc.auth.getSession.queryOptions());
 	const { role } = useAuthRole();
 	const logout = nexus.auth.useLogout();
 	const navigate = useNavigate();
 
+	const authUser = authSession?.user as SessionUser | undefined;
+
 	const user = {
-		name: sessionData?.user?.name || "Guest",
-		email: sessionData?.user?.email || "",
-		avatar: sessionData?.user?.image || "/avatars/user.jpg",
-		role: (sessionData?.user?.role as string) || role || "institution",
+		name: authUser?.name || "Guest",
+		email: authUser?.email || "",
+		avatar: "/avatars/user.jpg",
+		role: (authUser?.role as string | undefined) ?? role,
 	};
 
 	const handleLogout = async () => {

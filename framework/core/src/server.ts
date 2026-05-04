@@ -15,6 +15,7 @@ import type {
 } from "./types/client";
 import type { NexusClient } from "./types/index";
 import type { InferNexusClientPlugins, NexusPlugin } from "./types/plugin";
+import { toStableTemplateId } from "./utils/template";
 
 export * from "./command/ledger-fetch";
 export * from "./plugins/canton-ledger";
@@ -250,7 +251,7 @@ export async function createNexusServer<
 					);
 				}
 
-				const templateId = damlTemplate.templateId;
+				const templateId = toStableTemplateId(damlTemplate);
 				const actAs = [partyId];
 
 				const resolveToken = async (): Promise<string> => {
@@ -315,6 +316,9 @@ export async function createNexusServer<
 							commands: [{ type: "create", templateId, createArguments: encoded }],
 							actAs,
 						});
+						// NOTE: res.updateId is the transaction ID, not the contract ID.
+						// Callers that need the real contractId should re-query the ACS
+						// after creation (e.g. generateSuggestion in collateral-router.ts).
 						return { contractId: res.updateId, payload: encoded as Record<string, unknown> };
 					},
 

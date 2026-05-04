@@ -1,10 +1,17 @@
 import { expo } from "@better-auth/expo";
 import { db } from "@nexus/db";
+import type { user as userTable } from "@nexus/db/schema/auth";
 import { DEMO_USERS } from "@nexus/db/seed/demo-users";
 import { env } from "@nexus/env/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
+
+/**
+ * Fully-typed session user derived from the Drizzle schema.
+ * Includes all DB columns: id, name, email, role, cantonPartyId, etc.
+ */
+export type SessionUser = typeof userTable.$inferSelect;
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
@@ -28,12 +35,12 @@ export const auth = betterAuth({
 				type: "string",
 				required: false,
 				defaultValue: "institution",
-				input: false,
+				// Note: input:false can interfere with databaseHooks in some BA versions.
+				// We rely on databaseHooks.user.create.before for role assignment.
 			},
 			cantonPartyId: {
 				type: "string",
 				required: false,
-				input: false,
 			},
 		},
 	},
