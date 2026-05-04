@@ -23,7 +23,7 @@ import {
 	ShieldAlertIcon,
 	ZapIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -68,6 +68,24 @@ function RouteComponent() {
 	const { data: holdings } = useHoldings();
 	const generateMutation = useGenerateSuggestion();
 	const approveMutation = useApproveSuggestion();
+
+	// Load counterparty parties from Canton — only those with "counterparty" hinted names
+	const [cantonParties, setCantonParties] = useState<string[]>([]);
+	useEffect(() => {
+		const cantonUrl = import.meta.env.VITE_CANTON_API_URL ?? "http://127.0.0.1:7575";
+		fetch(`${cantonUrl}/v2/parties`)
+			.then((r) => r.ok ? r.json() : null)
+			.then((data: { partyDetails?: { party: string }[] } | null) => {
+				if (!data) return;
+				const names = (data.partyDetails ?? [])
+					.map((p) => p.party.split("::")[0])
+					.filter((n) => n !== "sandbox" && n !== "SignUIT");
+				// Only show parties that are not the current institution — use unique names
+				const unique = [...new Set(names)];
+				if (unique.length > 0) setCantonParties(unique);
+			})
+			.catch(() => {}); // Non-fatal
+	}, []);
 
 	const handleGenerate = async () => {
 		if (!policyId) {
@@ -209,19 +227,23 @@ function RouteComponent() {
 									placeholder="MC-4821"
 								/>
 							</div>
-							<div className="space-y-2">
-								<Label htmlFor="counterparty">Counterparty</Label>
-								<Select value={counterpartyName} onValueChange={setCounterpartyName}>
-									<SelectTrigger id="counterparty">
-										<SelectValue placeholder="Select counterparty" />
-									</SelectTrigger>
-									<SelectContent>
+						<div className="space-y-2">
+							<Label htmlFor="counterparty">Counterparty</Label>
+							<Select value={counterpartyName} onValueChange={setCounterpartyName}>
+								<SelectTrigger id="counterparty">
+									<SelectValue placeholder="Select counterparty" />
+								</SelectTrigger>
+								<SelectContent>
+									{cantonParties.length > 0 ? (
+										cantonParties.map((name) => (
+											<SelectItem key={name} value={name}>{name}</SelectItem>
+										))
+									) : (
 										<SelectItem value="PrimeBank">PrimeBank</SelectItem>
-										<SelectItem value="GlobalInvest">GlobalInvest</SelectItem>
-										<SelectItem value="DexCapital">DexCapital</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
+									)}
+								</SelectContent>
+							</Select>
+						</div>
 						</div>
 
 						<div className="space-y-2">

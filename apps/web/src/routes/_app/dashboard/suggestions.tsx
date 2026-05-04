@@ -10,7 +10,7 @@ import {
 	TableRow,
 } from "@nexus/ui/components/table";
 import { cn } from "@nexus/ui/lib/utils";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { CheckIcon, FileTextIcon, HistoryIcon, InfoIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthRole } from "@/hooks/use-auth";
@@ -29,6 +29,26 @@ function RouteComponent() {
 	const { data: suggestions, isLoading, error } = useSuggestions();
 	const approveMutation = useApproveSuggestion();
 	const rejectMutation = useRejectSuggestion();
+	const navigate = useNavigate();
+
+	const title =
+		role === "institution"
+			? "Routing Suggestions"
+			: role === "counterparty"
+				? "Margin Calls"
+				: "Network Suggestions";
+	const description =
+		role === "institution"
+			? "Manage pending collateral routing recommendations"
+			: role === "counterparty"
+				? "Monitor status of issued margin calls"
+				: "Observe system-wide collateral routing activity";
+
+	// Counterparty role belongs on the dedicated Margin Calls page
+	if (role === "counterparty") {
+		navigate({ to: "/dashboard/margin-calls", replace: true });
+		return null;
+	}
 
 	const handleApprove = async (cid: string) => {
 		try {
@@ -48,19 +68,6 @@ function RouteComponent() {
 		}
 	};
 
-	const title =
-		role === "institution"
-			? "Routing Suggestions"
-			: role === "counterparty"
-				? "Margin Calls"
-				: "Network Suggestions";
-	const description =
-		role === "institution"
-			? "Manage pending collateral routing recommendations"
-			: role === "counterparty"
-				? "Monitor status of issued margin calls"
-				: "Observe system-wide collateral routing activity";
-
 	return (
 		<div className="flex flex-col gap-6 pb-12">
 			<div className="flex items-center justify-between">
@@ -75,12 +82,12 @@ function RouteComponent() {
 				</div>
 			</div>
 
-			{role === "operator" && (
-				<div className="flex items-center gap-3 rounded-lg border border-violet-500/20 bg-violet-500/5 px-4 py-3">
-					<div className="size-2 rounded-full bg-violet-500 animate-pulse" />
-					<p className="text-sm font-medium text-violet-600 dark:text-violet-400">
-						Observer Mode — SignUIT monitors all network routing activity. Approval authority
-						belongs solely to the institution.
+		{role === "operator" && (
+			<div className="flex items-center gap-3 rounded-lg border border-muted bg-muted/30 px-4 py-3">
+				<div className="size-2 rounded-full bg-muted-foreground/50 animate-pulse" />
+				<p className="text-sm font-medium text-muted-foreground">
+					Observer Mode — SignUIT monitors all network routing activity. Approval authority
+					belongs solely to the institution.
 					</p>
 				</div>
 			)}
@@ -188,14 +195,14 @@ function RouteComponent() {
 											<TableCell className="text-right">
 												<Badge
 													variant="secondary"
-													className={cn(
-														"border-transparent font-semibold text-[10px] px-2 py-0",
-														status === "RoutePending"
-															? "bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400"
-															: status === "RouteApproved"
-																? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
-																: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400",
-													)}
+											className={cn(
+													"border-transparent font-semibold text-[10px] px-2 py-0",
+													status === "RoutePending"
+														? "bg-muted text-muted-foreground"
+														: status === "RouteApproved" || status === "RouteExecuted"
+															? "bg-primary/10 text-primary"
+															: "bg-destructive/10 text-destructive",
+												)}
 												>
 													{status ?? "—"}
 												</Badge>

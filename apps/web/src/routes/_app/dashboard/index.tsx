@@ -81,7 +81,7 @@ function WelcomeCard({ userRole }: { userRole: string }) {
 			title: "Counterparty Terminal",
 			description: "Issue margin calls and monitor allocation responses from institutions.",
 			actions: [
-				{ label: "View Margin Calls", to: "/dashboard/suggestions" },
+				{ label: "Issue Margin Call", to: "/dashboard/margin-calls" },
 				{ label: "Check Audit Trail", to: "/dashboard/audit" },
 			],
 		},

@@ -10,10 +10,21 @@ import {
 import { Separator } from "@nexus/ui/components/separator";
 import { SidebarTrigger } from "@nexus/ui/components/sidebar";
 import { ThemeToggle } from "@nexus/ui/components/theme-toggle";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { BellIcon } from "lucide-react";
 import { useAuthRole } from "@/hooks/use-auth";
 import { useAuditTrail, useMarginCalls } from "@/hooks/use-collateral-api";
+
+const ROUTE_TITLES: Record<string, string> = {
+	"/dashboard": "Dashboard",
+	"/dashboard/holdings": "Holdings",
+	"/dashboard/suggestions": "Routing Suggestions",
+	"/dashboard/generate": "Generate Route",
+	"/dashboard/policy": "Policy",
+	"/dashboard/audit": "Audit Trail",
+	"/dashboard/margin-calls": "Margin Calls",
+	"/dashboard/settings": "Settings",
+};
 
 function MarginCallNotifications() {
 	const { role } = useAuthRole();
@@ -126,6 +137,9 @@ function MarginCallNotifications() {
 }
 
 export function AppHeader() {
+	const location = useRouterState({ select: (s) => s.location });
+	const pageTitle = ROUTE_TITLES[location.pathname] ?? "SignUIT";
+
 	return (
 		<header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
 			<div className="flex w-full items-center justify-between px-4 lg:gap-2 lg:px-6">
@@ -135,6 +149,7 @@ export function AppHeader() {
 						orientation="vertical"
 						className="mx-2 data-[orientation=vertical]:h-4"
 					/>
+					<span className="text-sm font-medium text-foreground/80">{pageTitle}</span>
 				</div>
 				<div className="flex items-center gap-1">
 					<MarginCallNotifications />
