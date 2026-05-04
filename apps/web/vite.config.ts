@@ -31,7 +31,14 @@ export default defineConfig({
 		},
 	},
 	ssr: {
-		external: damlPackages,
+		// Externalize daml packages + React family to avoid duplicate/bundled instances
+		external: [
+			...damlPackages,
+			"react",
+			"react-dom",
+			"react/jsx-runtime",
+			"react/jsx-dev-runtime",
+		],
 		noExternal: [],
 	},
 });
