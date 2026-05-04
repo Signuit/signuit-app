@@ -42,3 +42,10 @@ export const RejectSuggestionSchema = ApproveSuggestionSchema;
 export const CollateralQuerySchema = z.object({
 	limit: z.number().int().positive().optional().default(100),
 });
+
+export const CreateMarginCallSchema = z.object({
+	amountRequired: z.number().positive(),
+	currency: z.string().min(1).default("USD"),
+	institutionName: z.string().min(1), // hint to look up institution party
+	dueInHours: z.number().int().positive().optional().default(2),
+});

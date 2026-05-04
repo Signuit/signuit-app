@@ -35,19 +35,29 @@ import {
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/_app/dashboard/generate")({
+	validateSearch: (search: Record<string, unknown>) => ({
+		marginCallId: typeof search.marginCallId === "string" ? search.marginCallId : undefined,
+		amount: typeof search.amount === "string" ? search.amount : undefined,
+		counterparty: typeof search.counterparty === "string" ? search.counterparty : undefined,
+	}),
 	component: RouteComponent,
 });
 
 function RouteComponent() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+	const { marginCallId: prefilledMcId, amount: prefilledAmount, counterparty: prefilledCounterparty } = Route.useSearch();
 	const [step, setStep] = useState(1);
 
-	// Form State
-	const [marginCallId, setMarginCallId] = useState(`MC-${Math.floor(Math.random() * 9000) + 1000}`);
-	const [amountRequired, setAmountRequired] = useState(15000000);
+	// Form State — pre-filled from URL params when coming from "Respond" button
+	const [marginCallId, setMarginCallId] = useState(
+		prefilledMcId ?? `MC-${Math.floor(Math.random() * 9000) + 1000}`,
+	);
+	const [amountRequired, setAmountRequired] = useState(
+		prefilledAmount ? parseFloat(prefilledAmount) : 15000000,
+	);
 	const [durationDays, setDurationDays] = useState(30);
-	const [counterpartyName, setCounterpartyName] = useState("PrimeBank");
+	const [counterpartyName, setCounterpartyName] = useState(prefilledCounterparty ?? "PrimeBank");
 	const [policyId, setPolicyId] = useState("");
 
 	// Result State
@@ -100,10 +110,17 @@ function RouteComponent() {
 			if (routeId) {
 				try {
 					const fresh = await queryClient.fetchQuery(
-						orpc.collateral.listSuggestions.queryOptions({ input: { limit: 100 } }),
-					);
-					const match = fresh?.find((s) => (s.payload?.routeId as string | undefined) === routeId);
-					if (match) resolvedResult = match;
+					orpc.collateral.listSuggestions.queryOptions({ input: { limit: 100 } }),
+				);
+				// Only match contracts that have a routeId string — this guards against
+				// MarginCall or other non-RoutingSuggestion contracts that may appear
+				// in the ACS if the template filter is not strictly enforced.
+				const match = fresh?.find(
+					(s) =>
+						typeof (s.payload?.routeId as unknown) === "string" &&
+						(s.payload?.routeId as string) === routeId,
+				);
+				if (match) resolvedResult = match;
 				} catch {
 					// Fallback to original result if re-fetch fails
 				}
@@ -131,9 +148,23 @@ function RouteComponent() {
 					Generate Routing Suggestion
 				</h1>
 				<p className="text-muted-foreground">
-					Simulate a margin call and let the SignUIT engine compute the optimal collateral route.
+					{prefilledMcId
+						? "Responding to an incoming margin call — fields pre-filled from the ledger."
+						: "Simulate a margin call and let the SignUIT engine compute the optimal collateral route."}
 				</p>
 			</div>
+
+			{/* Pre-fill banner */}
+			{prefilledMcId && step === 1 && (
+				<div className="flex items-center gap-3 rounded-lg border border-orange-500/20 bg-orange-500/5 px-4 py-3">
+					<div className="size-2 rounded-full bg-orange-500 shrink-0" />
+					<p className="text-sm text-orange-600 dark:text-orange-400 font-medium">
+						Responding to margin call{" "}
+						<span className="font-mono">{prefilledMcId}</span>
+						{prefilledAmount && ` · $${(parseFloat(prefilledAmount) / 1_000_000).toFixed(1)}M from ${prefilledCounterparty ?? "counterparty"}`}
+					</p>
+				</div>
+			)}
 
 			{/* Step Indicator */}
 			<div className="flex items-center justify-between px-4">
@@ -291,97 +322,125 @@ function RouteComponent() {
 			)}
 
 			{/* Step 3: Recommendation Result */}
-			{step === 3 && suggestionResult && (
-				<Card className="border-2 border-green-500 shadow-2xl overflow-hidden">
-					<div className="bg-green-500 px-6 py-4 flex items-center justify-between text-white">
-						<div className="flex items-center gap-2">
-							<LightbulbIcon className="size-6" />
-							<h3 className="text-xl font-bold">Cheapest-to-Deliver Found</h3>
-						</div>
-						<Badge variant="secondary" className="bg-white/20 text-white border-none">
-							Success
-						</Badge>
-					</div>
+			{step === 3 &&
+				suggestionResult &&
+				(() => {
+					const assets: string[] =
+						(suggestionResult.payload?.suggestedAssets as string[] | undefined) ?? [];
+					const amounts: string[] =
+						(suggestionResult.payload?.suggestedAmounts as string[] | undefined) ?? [];
+					const oppCost = parseFloat(
+						(suggestionResult.payload?.estimatedOpportunityCost as string | undefined) ?? "0",
+					);
+					const oppBps = parseFloat(
+						(suggestionResult.payload?.opportunityCostBps as string | undefined) ?? "0",
+					);
+					const hasStablecoin = assets.some((a) => ["USDC", "USDT"].includes(a));
+					const isMultiAsset = assets.length > 1;
 
-					<CardContent className="p-8 space-y-8">
-						<div className="flex flex-col items-center gap-4 py-4">
-							<span className="text-sm uppercase tracking-widest text-muted-foreground font-bold">
-								Recommended Assets
-							</span>
-							<div className="flex flex-wrap justify-center gap-4">
-								{suggestionResult.payload.suggestedAssets.map((asset: string, i: number) => (
-									<div
-										key={asset}
-										className="flex flex-col items-center p-6 bg-primary/5 rounded-2xl border border-primary/10 shadow-sm"
-									>
-										<span className="text-4xl font-black text-primary">{asset}</span>
-										<span className="text-sm text-muted-foreground">
-											${parseFloat(suggestionResult.payload.suggestedAmounts[i]).toLocaleString()}
-										</span>
+					const reasons = [
+						{
+							title: isMultiAsset ? "Multi-Asset Optimisation" : "Optimal Single-Asset Selection",
+							body: isMultiAsset
+								? `The engine combined ${assets.join(" + ")} to cover the full margin call while minimising yield sacrifice across your portfolio.`
+								: `${assets[0]} alone satisfies the full requirement — no unnecessary fragmentation of positions.`,
+						},
+						{
+							title: hasStablecoin ? "Stablecoin-First Strategy" : "Yield-Ranked Selection",
+							body: hasStablecoin
+								? `${assets.filter((a) => ["USDC", "USDT"].includes(a)).join(", ")} has 0% APY — sending it costs nothing in yield. Your high-yield positions remain untouched.`
+								: `Assets are ranked by opportunity cost. Lower-yield holdings are consumed first, preserving high-yield positions as long as possible.`,
+						},
+						{
+							title:
+								oppCost < 1
+									? "Near-Zero Opportunity Cost"
+									: `${oppBps.toFixed(1)} bps Saved vs Baseline`,
+							body:
+								oppCost < 1
+									? "The selected route has essentially zero yield sacrifice — this is the theoretical optimum for this portfolio."
+									: `Compared to sending your highest-yield asset (USYC) in full, this route saves $${(oppCost > 0 ? oppCost : 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} in annual yield opportunity cost.`,
+						},
+					];
+
+					return (
+						<Card className="border-2 border-green-500 shadow-2xl overflow-hidden">
+							<div className="bg-green-500 px-6 py-4 flex items-center justify-between text-white">
+								<div className="flex items-center gap-2">
+									<LightbulbIcon className="size-6" />
+									<h3 className="text-xl font-bold">Cheapest-to-Deliver Found</h3>
+								</div>
+								<Badge variant="secondary" className="bg-white/20 text-white border-none">
+									Success
+								</Badge>
+							</div>
+
+							<CardContent className="p-8 space-y-8">
+								<div className="flex flex-col items-center gap-4 py-4">
+									<span className="text-sm uppercase tracking-widest text-muted-foreground font-bold">
+										Recommended Assets
+									</span>
+									<div className="flex flex-wrap justify-center gap-4">
+										{assets.map((asset, i) => (
+											<div
+												key={asset}
+												className="flex flex-col items-center p-6 bg-primary/5 rounded-2xl border border-primary/10 shadow-sm"
+											>
+												<span className="text-4xl font-black text-primary">{asset}</span>
+												<span className="text-sm text-muted-foreground">
+													${parseFloat(amounts[i] ?? "0").toLocaleString()}
+												</span>
+											</div>
+										))}
 									</div>
-								))}
-							</div>
-						</div>
-
-						<Separator />
-
-						<div className="space-y-4">
-							<h4 className="font-bold text-lg flex items-center gap-2">
-								<ShieldAlertIcon className="text-yellow-500 size-5" />
-								Why this route?
-							</h4>
-							<div className="grid gap-3">
-								<div className="flex items-start gap-3 bg-muted/30 p-3 rounded-lg">
-									<CheckCircleIcon className="text-green-500 size-5 mt-0.5 shrink-0" />
-									<p className="text-sm">
-										<span className="font-bold">Zero Opportunity Cost:</span> Selection prioritizes
-										assets with the lowest yield to maximize your returns.
-									</p>
 								</div>
-								<div className="flex items-start gap-3 bg-muted/30 p-3 rounded-lg">
-									<CheckCircleIcon className="text-green-500 size-5 mt-0.5 shrink-0" />
-									<p className="text-sm">
-										<span className="font-bold">Haircut Optimization:</span> Uses assets with lower
-										haircuts to prevent over-collateralization.
-									</p>
-								</div>
-								<div className="flex items-start gap-3 bg-muted/30 p-3 rounded-lg">
-									<CheckCircleIcon className="text-green-500 size-5 mt-0.5 shrink-0" />
-									<p className="text-sm">
-										<span className="font-bold">Yield Preservation:</span> Kept USYC and UST earning
-										interest, saving you approximately $2,300 in opportunity cost.
-									</p>
-								</div>
-							</div>
-						</div>
 
-						<div className="bg-primary/10 rounded-xl p-6 flex items-center justify-between">
-							<div>
-								<p className="text-sm text-muted-foreground">Total Opportunity Cost</p>
-								<p className="text-3xl font-black text-primary">
-									${parseFloat(suggestionResult.payload.estimatedOpportunityCost).toFixed(2)}
-								</p>
-							</div>
-							<div className="text-right">
-								<p className="text-sm text-muted-foreground">Cost in Basis Points</p>
-								<p className="text-xl font-bold">
-									{parseFloat(suggestionResult.payload.opportunityCostBps).toFixed(2)} bps
-								</p>
-							</div>
-						</div>
+								<Separator />
 
-						<div className="flex gap-4">
-							<Button variant="outline" className="flex-1 h-12" onClick={() => setStep(1)}>
-								Back
-							</Button>
-							<Button className="flex-1 h-12" onClick={() => setStep(4)}>
-								Continue to Review
-								<ChevronRightIcon className="ml-2" />
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
-			)}
+								<div className="space-y-4">
+									<h4 className="font-bold text-lg flex items-center gap-2">
+										<ShieldAlertIcon className="text-yellow-500 size-5" />
+										Why this route?
+									</h4>
+									<div className="grid gap-3">
+										{reasons.map((r) => (
+											<div
+												key={r.title}
+												className="flex items-start gap-3 bg-muted/30 p-3 rounded-lg"
+											>
+												<CheckCircleIcon className="text-green-500 size-5 mt-0.5 shrink-0" />
+												<p className="text-sm">
+													<span className="font-bold">{r.title}:</span> {r.body}
+												</p>
+											</div>
+										))}
+									</div>
+								</div>
+
+								<div className="bg-primary/10 rounded-xl p-6 flex items-center justify-between">
+									<div>
+										<p className="text-sm text-muted-foreground">Total Opportunity Cost</p>
+										<p className="text-3xl font-black text-primary">${oppCost.toFixed(2)}</p>
+									</div>
+									<div className="text-right">
+										<p className="text-sm text-muted-foreground">Cost in Basis Points</p>
+										<p className="text-xl font-bold">{oppBps.toFixed(2)} bps</p>
+									</div>
+								</div>
+
+								<div className="flex gap-4">
+									<Button variant="outline" className="flex-1 h-12" onClick={() => setStep(1)}>
+										Back
+									</Button>
+									<Button className="flex-1 h-12" onClick={() => setStep(4)}>
+										Continue to Review
+										<ChevronRightIcon className="ml-2" />
+									</Button>
+								</div>
+							</CardContent>
+						</Card>
+					);
+				})()}
 
 			{/* Step 4: Final Review & Approval */}
 			{step === 4 && (

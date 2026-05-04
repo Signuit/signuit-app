@@ -283,8 +283,20 @@ export async function createNexusServer<
 							pageSize: findOptions?.limit,
 						});
 
-						// Return raw contracted payloads to match PQS format
-						return response.map((c: any) => ({ contractId: c.contractId, payload: c.payload }));
+						// Parse expected module/entity from the stable template ID so we can
+						// filter client-side. Canton's `alsoFilterByTemplateId` is additive in
+						// some versions and may include contracts of other templates that are
+						// visible to the querying party (e.g. MarginCall when querying RoutingSuggestion).
+						const [, expectedModule, expectedEntity] = templateId.split(":");
+						const filtered = expectedModule && expectedEntity
+							? response.filter((c: any) =>
+									c.templateId?.moduleName === expectedModule &&
+									c.templateId?.entityName === expectedEntity,
+								)
+							: response;
+
+						// biome-ignore lint/suspicious/noExplicitAny: payload is opaque at this level
+						return filtered.map((c: any) => ({ contractId: c.contractId, payload: c.payload }));
 					},
 
 					findById: async (contractId: string) => {

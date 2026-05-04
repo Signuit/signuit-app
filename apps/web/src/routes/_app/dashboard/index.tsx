@@ -5,7 +5,6 @@ import { Button } from "@nexus/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@nexus/ui/components/card";
 import {
 	ChartContainer,
-	ChartLegendContent,
 	ChartTooltipContent,
 } from "@nexus/ui/components/chart";
 import { Separator } from "@nexus/ui/components/separator";
@@ -17,7 +16,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@nexus/ui/components/table";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
 	ArrowRightIcon,
 	DatabaseIcon,
@@ -32,6 +31,7 @@ import { useAuthRole } from "@/hooks/use-auth";
 import {
 	useAuditTrail,
 	useHoldings,
+	useMarginCalls,
 	useSeedDemoData,
 	useStats,
 	useSuggestions,
@@ -58,16 +58,7 @@ const chartConfig = {
 	},
 };
 
-// Static reference data — represents the expected efficiency curve for the demo.
-// Will be replaced with live aggregation in Phase 2 when PQS is enabled.
-const chartData = [
-	{ month: "Nov", routed: 0, saved: 0 },
-	{ month: "Dec", routed: 0, saved: 0 },
-	{ month: "Jan", routed: 8.5, saved: 3.2 },
-	{ month: "Feb", routed: 12.0, saved: 4.8 },
-	{ month: "Mar", routed: 9.5, saved: 3.9 },
-	{ month: "Apr", routed: 15.0, saved: 6.1 },
-];
+// chartData is now computed live inside TransactionChart from Canton allocations.
 
 function WelcomeCard({ userRole }: { userRole: string }) {
 	const { data: holdings, isLoading: holdingsLoading } = useHoldings();
@@ -257,41 +248,47 @@ function PendingSuggestionsCard({ userRole }: { userRole: string }) {
 						<p>No pending {userRole === "counterparty" ? "calls" : "routes"}</p>
 					</div>
 				) : (
-					pending?.slice(0, 3).map((s, index: number) => (
-						<div key={s.contractId} className="group">
-							<div className="flex justify-between items-start">
-								<div className="flex flex-col gap-1">
-									<div className="flex items-center gap-2">
-										<div className="size-1.5 rounded-full bg-yellow-500" />
-										<p className="font-semibold text-sm tracking-tight text-foreground">
-											{s.payload.marginCallId}
-										</p>
-									</div>
-									<p className="text-[10px] text-muted-foreground uppercase truncate max-w-[150px]">
-										{s.payload.suggestedAssets.join(" + ")}
-									</p>
-									<p className="text-[11px] font-semibold text-primary">
-										${(parseFloat(s.payload.amountRequired) / 1_000_000).toFixed(1)}M
+				pending?.slice(0, 3).map((s, index: number) => {
+					const marginCallId = s.payload.marginCallId as string | undefined;
+					const suggestedAssets = (s.payload.suggestedAssets as string[] | undefined) ?? [];
+					const amountRequired = s.payload.amountRequired as string | undefined;
+					const status = s.payload.status as string | undefined;
+					return (
+					<div key={s.contractId} className="group">
+						<div className="flex justify-between items-start">
+							<div className="flex flex-col gap-1">
+								<div className="flex items-center gap-2">
+									<div className="size-1.5 rounded-full bg-primary/70" />
+									<p className="font-semibold text-sm tracking-tight text-foreground">
+										{marginCallId ?? "—"}
 									</p>
 								</div>
-								{userRole === "institution" ? (
-									<Link to="/dashboard/suggestions">
-										<Button size="sm" variant="outline" className="h-7 text-[10px] font-medium">
-											Review
-										</Button>
-									</Link>
-								) : (
-									<Badge
-										variant="outline"
-										className="text-[10px] font-medium border-muted-foreground/20"
-									>
-										{s.payload.status}
-									</Badge>
-								)}
+								<p className="text-[10px] text-muted-foreground uppercase truncate max-w-[150px]">
+									{suggestedAssets.length > 0 ? suggestedAssets.join(" + ") : "—"}
+								</p>
+								<p className="text-[11px] font-semibold text-primary">
+									${(parseFloat(amountRequired || "0") / 1_000_000).toFixed(1)}M
+								</p>
 							</div>
-							{index < Math.min(pending.length, 3) - 1 && <Separator className="mt-4 opacity-50" />}
+							{userRole === "institution" ? (
+								<Link to="/dashboard/suggestions">
+									<Button size="sm" variant="outline" className="h-7 text-[10px] font-medium">
+										Review
+									</Button>
+								</Link>
+							) : (
+								<Badge
+									variant="outline"
+									className="text-[10px] font-medium border-muted-foreground/20"
+								>
+									{status ?? "—"}
+								</Badge>
+							)}
 						</div>
-					))
+						{index < Math.min(pending.length, 3) - 1 && <Separator className="mt-4 opacity-50" />}
+					</div>
+					);
+				})
 				)}
 			</CardContent>
 		</Card>
@@ -366,7 +363,7 @@ function RecentAllocationsCard() {
 										<div className="flex justify-end">
 											<Badge
 												variant="secondary"
-												className="text-[10px] font-medium px-1.5 py-0 border-transparent bg-green-500/10 text-green-700 dark:text-green-400"
+												className="text-[10px] font-medium px-1.5 py-0 border-transparent bg-primary/10 text-primary"
 											>
 												{status ?? "—"}
 											</Badge>
@@ -392,69 +389,227 @@ function RecentAllocationsCard() {
 	);
 }
 
+// chartData is now computed live inside TransactionChart from Canton allocations.
+
 function TransactionChart() {
+	const { data: audit } = useAuditTrail();
+
+	// Build per-month aggregation from real Canton AllocationRecords
+	const chartData = (() => {
+		const months = [
+			"Jan",
+			"Feb",
+			"Mar",
+			"Apr",
+			"May",
+			"Jun",
+			"Jul",
+			"Aug",
+			"Sep",
+			"Oct",
+			"Nov",
+			"Dec",
+		];
+		const now = new Date();
+		// Show last 6 months
+		const buckets: Record<string, { routed: number; saved: number }> = {};
+		for (let i = 5; i >= 0; i--) {
+			const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+			buckets[months[d.getMonth()]] = { routed: 0, saved: 0 };
+		}
+
+		if (audit) {
+			for (const a of audit) {
+				const executedAt = a.payload?.executedAt as string | undefined;
+				if (!executedAt) continue;
+				const d = new Date(executedAt);
+				const key = months[d.getMonth()];
+				if (!(key in buckets)) continue;
+				const amounts = (a.payload?.amountsSent as string[] | undefined) ?? [];
+				const total = amounts.reduce((s, v) => s + parseFloat(v || "0"), 0) / 1_000_000;
+				const bps = parseFloat((a.payload?.opportunityCostBps as string | undefined) ?? "0");
+				buckets[key].routed += total;
+				buckets[key].saved += bps;
+			}
+		}
+
+		return Object.entries(buckets).map(([month, v]) => ({
+			month,
+			routed: Math.round(v.routed * 10) / 10,
+			saved: Math.round(v.saved * 10) / 10,
+		}));
+	})();
+
+	const hasData = chartData.some((d) => d.routed > 0);
+
 	return (
 		<Card className="shadow-sm">
-			<CardHeader className="pb-3 text-sm">
-				<CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-					Efficiency Metrics
-				</CardTitle>
+			<CardHeader className="pb-2 text-sm">
+				<div className="flex items-center justify-between">
+					<CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+						Routing Activity
+					</CardTitle>
+					<div className="flex items-center gap-3">
+						<div className="flex items-center gap-1.5">
+							<div className="size-2.5 rounded-full bg-[var(--color-routed)]" />
+							<span className="text-[10px] text-muted-foreground font-medium">Routed ($M)</span>
+						</div>
+						<div className="flex items-center gap-1.5">
+							<div className="size-2.5 rounded-full bg-[var(--color-saved)]" />
+							<span className="text-[10px] text-muted-foreground font-medium">Cost (bps)</span>
+						</div>
+						{!hasData && (
+							<span className="text-[10px] text-muted-foreground/50 italic">Awaiting data</span>
+						)}
+					</div>
+				</div>
 			</CardHeader>
-			<CardContent>
-				<ChartContainer config={chartConfig} className="h-[240px] w-full">
-					<RechartsPrimitive.AreaChart data={chartData}>
+			<CardContent className="pt-0 pb-4">
+				<ChartContainer config={chartConfig} className="h-[220px] w-full">
+					<RechartsPrimitive.AreaChart
+						data={chartData}
+						margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+					>
 						<defs>
-							<linearGradient id="colorDesktop" x1="0" y1="0" x2="0" y2="1">
-								<stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
-								<stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+							<linearGradient id="gradRoutedM" x1="0" y1="0" x2="0" y2="1">
+								<stop offset="0%" stopColor="var(--color-routed)" stopOpacity={0.5} />
+								<stop offset="100%" stopColor="var(--color-routed)" stopOpacity={0.03} />
 							</linearGradient>
-							<linearGradient id="colorMobile" x1="0" y1="0" x2="0" y2="1">
-								<stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
-								<stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+							<linearGradient id="gradSavedM" x1="0" y1="0" x2="0" y2="1">
+								<stop offset="0%" stopColor="var(--color-saved)" stopOpacity={0.5} />
+								<stop offset="100%" stopColor="var(--color-saved)" stopOpacity={0.03} />
 							</linearGradient>
 						</defs>
+						<RechartsPrimitive.CartesianGrid
+							vertical={false}
+							strokeDasharray="4 4"
+							stroke="var(--border)"
+							strokeOpacity={0.5}
+						/>
 						<RechartsPrimitive.XAxis
 							dataKey="month"
 							tickLine={false}
 							axisLine={false}
-							tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-							tickMargin={8}
+							tick={{ fontSize: 11, fill: "var(--muted-foreground)", opacity: 0.8 }}
+							tickMargin={10}
 						/>
 						<RechartsPrimitive.YAxis
 							tickLine={false}
 							axisLine={false}
-							tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-							tickFormatter={(value) => `${value}`}
+							tick={{ fontSize: 11, fill: "var(--muted-foreground)", opacity: 0.8 }}
+							tickFormatter={(v: number) => v === 0 ? "0" : v >= 1 ? `${v}` : v.toFixed(1)}
+							width={32}
 						/>
-						<RechartsPrimitive.Tooltip content={<ChartTooltipContent indicator="line" />} />
-						<RechartsPrimitive.CartesianGrid
-							vertical={false}
-							strokeDasharray="3 3"
-							className="stroke-muted"
+						<RechartsPrimitive.Tooltip
+							content={<ChartTooltipContent indicator="dot" />}
+							cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 4" }}
 						/>
 						<RechartsPrimitive.Area
 							type="monotone"
 							dataKey="routed"
-							stroke="hsl(var(--chart-1))"
-							strokeWidth={2}
+							stroke="var(--color-routed)"
+							strokeWidth={2.5}
 							fillOpacity={1}
-							fill="url(#colorDesktop)"
+							fill="url(#gradRoutedM)"
+							dot={false}
+							activeDot={{ r: 4, strokeWidth: 0 }}
 						/>
 						<RechartsPrimitive.Area
 							type="monotone"
 							dataKey="saved"
-							stroke="hsl(var(--chart-2))"
-							strokeWidth={2}
+							stroke="var(--color-saved)"
+							strokeWidth={2.5}
 							fillOpacity={1}
-							fill="url(#colorMobile)"
+							fill="url(#gradSavedM)"
+							dot={false}
+							activeDot={{ r: 4, strokeWidth: 0 }}
 						/>
-						<ChartLegendContent />
 					</RechartsPrimitive.AreaChart>
 				</ChartContainer>
 			</CardContent>
 		</Card>
 	);
 }
+
+function IncomingMarginCallsCard() {
+	const { data: marginCalls } = useMarginCalls();
+	const { data: allocations } = useAuditTrail();
+	const navigate = useNavigate();
+
+	// Exclude calls that already have a matching AllocationRecord
+	const respondedIds = new Set(
+		(allocations ?? [])
+			.map((a) => a.payload?.marginCallId as string | undefined)
+			.filter(Boolean),
+	);
+
+	const pending = (marginCalls ?? []).filter((m) => {
+		const callId = m.payload?.callId as string | undefined;
+		const status = m.payload?.status as string | undefined;
+		return status === "RoutePending" && !respondedIds.has(callId ?? "");
+	});
+
+	if (pending.length === 0) return null;
+
+	return (
+		<Card className="shadow-sm border-primary/20 bg-primary/5">
+			<CardHeader className="pb-3">
+				<div className="flex items-center gap-2">
+					<div className="size-2 rounded-full bg-primary animate-pulse" />
+					<CardTitle className="text-sm font-semibold text-primary">
+						{pending.length} Incoming Margin Call{pending.length > 1 ? "s" : ""}
+					</CardTitle>
+				</div>
+			</CardHeader>
+			<CardContent className="flex flex-col gap-2">
+				{pending.map((m) => {
+					const callId = m.payload?.callId as string | undefined;
+					const amountRequired = m.payload?.amountRequired as string | undefined;
+					const counterparty = m.payload?.counterparty as string | undefined;
+					const currency = m.payload?.currency as string | undefined;
+					const dueBy = m.payload?.dueBy as string | undefined;
+					return (
+						<div
+							key={m.contractId}
+							className="flex items-center justify-between rounded-lg border border-border bg-background/50 px-3 py-2.5"
+						>
+							<div className="flex flex-col gap-0.5">
+								<span className="font-mono text-[11px] text-muted-foreground">
+									{callId ?? m.contractId.slice(0, 10)}
+								</span>
+								<span className="text-sm font-bold">
+									${(parseFloat(amountRequired || "0") / 1_000_000).toFixed(1)}M{" "}
+									<span className="text-xs font-normal text-muted-foreground">{currency}</span>
+								</span>
+								<span className="text-[10px] text-muted-foreground">
+									From: {counterparty?.split("::")[0] ?? "—"}
+									{dueBy ? ` · Due ${new Date(dueBy).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}
+								</span>
+							</div>
+							<Button
+								size="sm"
+								className="h-8 px-3 text-xs font-semibold shrink-0"
+								onClick={() =>
+									navigate({
+										to: "/dashboard/generate",
+										search: {
+											marginCallId: callId ?? "",
+											amount: amountRequired ?? "0",
+											counterparty: counterparty?.split("::")[0] ?? "",
+										},
+									})
+								}
+							>
+								Respond
+							</Button>
+						</div>
+					);
+				})}
+			</CardContent>
+		</Card>
+	);
+}
+
 
 function CounterpartyView() {
 	const { totalHoldingsValue, pendingSuggestions, totalAllocations, isLoading } = useStats();
@@ -578,16 +733,17 @@ function RouteComponent() {
 							/>
 						</div>
 
-						<div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-							<div className="flex flex-col gap-6">
-								<HoldingsSummaryCard userRole={role} />
-								<PendingSuggestionsCard userRole={role} />
-							</div>
-							<div className="flex flex-col gap-6">
-								<TransactionChart />
-								<RecentAllocationsCard />
-							</div>
+					<div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
+						<div className="flex flex-col gap-6">
+							<IncomingMarginCallsCard />
+							<HoldingsSummaryCard userRole={role} />
+							<PendingSuggestionsCard userRole={role} />
 						</div>
+						<div className="flex flex-col gap-6">
+							<TransactionChart />
+							<RecentAllocationsCard />
+						</div>
+					</div>
 					</>
 				);
 		}
