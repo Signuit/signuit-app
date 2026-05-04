@@ -1,3 +1,4 @@
+import type { SessionUser } from "@nexus/auth";
 import type { RouterClient } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure, publicProcedure } from "../procedures";
@@ -25,7 +26,10 @@ export const baseAppRouter = {
 	healthCheck: publicProcedure.input(z.void()).handler(() => "OK" as const),
 
 	getSession: protectedProcedure.input(z.void()).handler(({ context }) => ({
-		user: context.session?.user,
+		// Cast to SessionUser which includes additionalFields (role, cantonPartyId).
+		// Better Auth stores these in the DB and returns them at runtime; the base
+		// User type just doesn't reflect them without the $Infer cast.
+		user: context.session?.user as SessionUser | undefined,
 	})),
 
 	me: protectedProcedure.input(z.void()).handler(({ context }) => ({

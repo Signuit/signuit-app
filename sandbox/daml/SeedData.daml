@@ -144,6 +144,7 @@ seed_demo_scenario = script do
       routeId = "ROUTE-001"
       institution = institution
       operator = operator
+      counterparty = Some counterparty
       marginCallId = "MC-4821"
       amountRequired = 15000000.0
       suggestedAssets = ["USYC", "UST"]

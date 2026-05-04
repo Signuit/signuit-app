@@ -108,7 +108,7 @@ function WelcomeCard({ userRole }: { userRole: string }) {
 
 	const handleSeed = async () => {
 		try {
-			await seedMutation.mutateAsync(undefined as any);
+			await seedMutation.mutateAsync(undefined);
 			toast.success("Demo data initialized — POLICY-001 + 3 holdings created on Canton");
 		} catch (err) {
 			toast.error(`Setup failed: ${err instanceof Error ? err.message : "Unknown error"}`);

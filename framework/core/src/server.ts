@@ -316,6 +316,9 @@ export async function createNexusServer<
 							commands: [{ type: "create", templateId, createArguments: encoded }],
 							actAs,
 						});
+						// NOTE: res.updateId is the transaction ID, not the contract ID.
+						// Callers that need the real contractId should re-query the ACS
+						// after creation (e.g. generateSuggestion in collateral-router.ts).
 						return { contractId: res.updateId, payload: encoded as Record<string, unknown> };
 					},
 

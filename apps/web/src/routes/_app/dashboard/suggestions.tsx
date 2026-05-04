@@ -75,6 +75,16 @@ function RouteComponent() {
 				</div>
 			</div>
 
+			{role === "operator" && (
+				<div className="flex items-center gap-3 rounded-lg border border-violet-500/20 bg-violet-500/5 px-4 py-3">
+					<div className="size-2 rounded-full bg-violet-500 animate-pulse" />
+					<p className="text-sm font-medium text-violet-600 dark:text-violet-400">
+						Observer Mode — SignUIT monitors all network routing activity. Approval authority
+						belongs solely to the institution.
+					</p>
+				</div>
+			)}
+
 			<Card className="shadow-sm">
 				<CardHeader className="pb-3 text-sm">
 					<CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

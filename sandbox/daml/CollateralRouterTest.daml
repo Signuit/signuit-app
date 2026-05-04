@@ -70,6 +70,7 @@ test_collateral_routing = script do
       routeId = "ROUTE-001"
       institution = institution
       operator = operator
+      counterparty = None
       marginCallId = "MC-001"
       amountRequired = 500000.0
       suggestedAssets = ["USYC"]

@@ -8,7 +8,7 @@ const SANDBOX_USER_ID = process.env.SANDBOX_USER_ID ?? "alice";
 const SANDBOX_SECRET = process.env.SANDBOX_SECRET ?? "secret";
 
 // The compiled nexus-example package ID — must match daml.js/nexus-example-0.0.1
-const NEXUS_PACKAGE_ID = "e216534d47383af7bde77fa62bf3376654f24226bca8fb82a6a5fa6532e54a2d";
+const NEXUS_PACKAGE_ID = "da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758";
 
 // Session TTL: configurable via NEXUS_SESSION_TTL_HOURS
 // Default: 24h in development, 2h in production

@@ -12,6 +12,7 @@ import {
 	SelectValue,
 } from "@nexus/ui/components/select";
 import { Separator } from "@nexus/ui/components/separator";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	CheckCircleIcon,
@@ -31,6 +32,7 @@ import {
 	useHoldings,
 	usePolicies,
 } from "@/hooks/use-collateral-api";
+import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/_app/dashboard/generate")({
 	component: RouteComponent,
@@ -38,6 +40,7 @@ export const Route = createFileRoute("/_app/dashboard/generate")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const [step, setStep] = useState(1);
 
 	// Form State
@@ -77,7 +80,7 @@ function RouteComponent() {
 		}, 150);
 
 		try {
-			// Real API call
+			// Real API call — creates RoutingSuggestion on Canton
 			const result = await generateMutation.mutateAsync({
 				marginCallId,
 				amountRequired,
@@ -89,9 +92,26 @@ function RouteComponent() {
 			clearInterval(interval);
 			setLoadingProgress(100);
 
+			// Re-fetch suggestions from ACS to get the real contractId.
+			// The create() response only contains the transaction ID (updateId),
+			// not the actual contract ID needed for ApproveSuggestion exercise.
+			const routeId = result.payload?.routeId as string | undefined;
+			let resolvedResult = result;
+			if (routeId) {
+				try {
+					const fresh = await queryClient.fetchQuery(
+						orpc.collateral.listSuggestions.queryOptions({ input: { limit: 100 } }),
+					);
+					const match = fresh?.find((s) => (s.payload?.routeId as string | undefined) === routeId);
+					if (match) resolvedResult = match;
+				} catch {
+					// Fallback to original result if re-fetch fails
+				}
+			}
+
 			// Small delay for effect
 			setTimeout(() => {
-				setSuggestionResult(result);
+				setSuggestionResult(resolvedResult);
 				setStep(3);
 			}, 500);
 		} catch (error) {

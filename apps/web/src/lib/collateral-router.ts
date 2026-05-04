@@ -149,11 +149,30 @@ export const collateralRouter = {
 				throw new Error(ctdResult.explanation);
 			}
 
-			// 5. Create RoutingSuggestion contract on Canton
+			// 5. Resolve counterparty party ID for observer visibility
+			let counterpartyPartyId: string | null = null;
+			if (input.counterpartyName) {
+				try {
+					const cantonUrl = process.env.CANTON_API_URL ?? "http://127.0.0.1:7575";
+					const res = await fetch(`${cantonUrl}/v2/parties`);
+					if (res.ok) {
+						const data = (await res.json()) as { partyDetails?: { party: string }[] };
+						const match = (data.partyDetails ?? []).find(
+							(p) => p.party.split("::")[0] === input.counterpartyName,
+						);
+						if (match) counterpartyPartyId = match.party;
+					}
+				} catch {
+					// Non-fatal — counterparty won't be an observer if lookup fails
+				}
+			}
+
+			// 6. Create RoutingSuggestion contract on Canton
 			return context.ledger.RoutingSuggestion.create({
 				routeId: `ROUTE-${Date.now()}`,
 				institution: context.partyId,
 				operator: context.operatorPartyId,
+				counterparty: counterpartyPartyId,
 				marginCallId: input.marginCallId,
 				amountRequired: input.amountRequired.toString(),
 				suggestedAssets: ctdResult.selectedAssets.map((a) => a.symbol),
