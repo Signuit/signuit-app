@@ -13,6 +13,13 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PitchIndexRouteImport } from './routes/pitch/index'
+import { Route as JudgingIndexRouteImport } from './routes/judging/index'
+import { Route as JudgingValueRouteImport } from './routes/judging/value'
+import { Route as JudgingMvpRouteImport } from './routes/judging/mvp'
+import { Route as JudgingMetricsRouteImport } from './routes/judging/metrics'
+import { Route as JudgingIcpRouteImport } from './routes/judging/icp'
+import { Route as JudgingGtmRouteImport } from './routes/judging/gtm'
 import { Route as AppDashboardIndexRouteImport } from './routes/_app/dashboard/index'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiNexusAuthSplatRouteImport } from './routes/api/nexus-auth/$'
@@ -44,6 +51,41 @@ const AppRouteRoute = AppRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PitchIndexRoute = PitchIndexRouteImport.update({
+  id: '/pitch/',
+  path: '/pitch/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JudgingIndexRoute = JudgingIndexRouteImport.update({
+  id: '/judging/',
+  path: '/judging/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JudgingValueRoute = JudgingValueRouteImport.update({
+  id: '/judging/value',
+  path: '/judging/value',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JudgingMvpRoute = JudgingMvpRouteImport.update({
+  id: '/judging/mvp',
+  path: '/judging/mvp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JudgingMetricsRoute = JudgingMetricsRouteImport.update({
+  id: '/judging/metrics',
+  path: '/judging/metrics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JudgingIcpRoute = JudgingIcpRouteImport.update({
+  id: '/judging/icp',
+  path: '/judging/icp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JudgingGtmRoute = JudgingGtmRouteImport.update({
+  id: '/judging/gtm',
+  path: '/judging/gtm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppDashboardIndexRoute = AppDashboardIndexRouteImport.update({
@@ -119,6 +161,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/judging/gtm': typeof JudgingGtmRoute
+  '/judging/icp': typeof JudgingIcpRoute
+  '/judging/metrics': typeof JudgingMetricsRoute
+  '/judging/mvp': typeof JudgingMvpRoute
+  '/judging/value': typeof JudgingValueRoute
+  '/judging/': typeof JudgingIndexRoute
+  '/pitch/': typeof PitchIndexRoute
   '/dashboard/audit': typeof AppDashboardAuditRoute
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/dashboard/generate': typeof AppDashboardGenerateRoute
@@ -137,6 +186,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/judging/gtm': typeof JudgingGtmRoute
+  '/judging/icp': typeof JudgingIcpRoute
+  '/judging/metrics': typeof JudgingMetricsRoute
+  '/judging/mvp': typeof JudgingMvpRoute
+  '/judging/value': typeof JudgingValueRoute
+  '/judging': typeof JudgingIndexRoute
+  '/pitch': typeof PitchIndexRoute
   '/dashboard/audit': typeof AppDashboardAuditRoute
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/dashboard/generate': typeof AppDashboardGenerateRoute
@@ -157,6 +213,13 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/judging/gtm': typeof JudgingGtmRoute
+  '/judging/icp': typeof JudgingIcpRoute
+  '/judging/metrics': typeof JudgingMetricsRoute
+  '/judging/mvp': typeof JudgingMvpRoute
+  '/judging/value': typeof JudgingValueRoute
+  '/judging/': typeof JudgingIndexRoute
+  '/pitch/': typeof PitchIndexRoute
   '/_app/dashboard/audit': typeof AppDashboardAuditRoute
   '/_app/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/_app/dashboard/generate': typeof AppDashboardGenerateRoute
@@ -177,6 +240,13 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/judging/gtm'
+    | '/judging/icp'
+    | '/judging/metrics'
+    | '/judging/mvp'
+    | '/judging/value'
+    | '/judging/'
+    | '/pitch/'
     | '/dashboard/audit'
     | '/dashboard/components_lib'
     | '/dashboard/generate'
@@ -195,6 +265,13 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/judging/gtm'
+    | '/judging/icp'
+    | '/judging/metrics'
+    | '/judging/mvp'
+    | '/judging/value'
+    | '/judging'
+    | '/pitch'
     | '/dashboard/audit'
     | '/dashboard/components_lib'
     | '/dashboard/generate'
@@ -214,6 +291,13 @@ export interface FileRouteTypes {
     | '/_app'
     | '/login'
     | '/signup'
+    | '/judging/gtm'
+    | '/judging/icp'
+    | '/judging/metrics'
+    | '/judging/mvp'
+    | '/judging/value'
+    | '/judging/'
+    | '/pitch/'
     | '/_app/dashboard/audit'
     | '/_app/dashboard/components_lib'
     | '/_app/dashboard/generate'
@@ -234,6 +318,13 @@ export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  JudgingGtmRoute: typeof JudgingGtmRoute
+  JudgingIcpRoute: typeof JudgingIcpRoute
+  JudgingMetricsRoute: typeof JudgingMetricsRoute
+  JudgingMvpRoute: typeof JudgingMvpRoute
+  JudgingValueRoute: typeof JudgingValueRoute
+  JudgingIndexRoute: typeof JudgingIndexRoute
+  PitchIndexRoute: typeof PitchIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiNexusAuthSplatRoute: typeof ApiNexusAuthSplatRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
@@ -267,6 +358,55 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pitch/': {
+      id: '/pitch/'
+      path: '/pitch'
+      fullPath: '/pitch/'
+      preLoaderRoute: typeof PitchIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/judging/': {
+      id: '/judging/'
+      path: '/judging'
+      fullPath: '/judging/'
+      preLoaderRoute: typeof JudgingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/judging/value': {
+      id: '/judging/value'
+      path: '/judging/value'
+      fullPath: '/judging/value'
+      preLoaderRoute: typeof JudgingValueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/judging/mvp': {
+      id: '/judging/mvp'
+      path: '/judging/mvp'
+      fullPath: '/judging/mvp'
+      preLoaderRoute: typeof JudgingMvpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/judging/metrics': {
+      id: '/judging/metrics'
+      path: '/judging/metrics'
+      fullPath: '/judging/metrics'
+      preLoaderRoute: typeof JudgingMetricsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/judging/icp': {
+      id: '/judging/icp'
+      path: '/judging/icp'
+      fullPath: '/judging/icp'
+      preLoaderRoute: typeof JudgingIcpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/judging/gtm': {
+      id: '/judging/gtm'
+      path: '/judging/gtm'
+      fullPath: '/judging/gtm'
+      preLoaderRoute: typeof JudgingGtmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/dashboard/': {
@@ -398,6 +538,13 @@ const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  JudgingGtmRoute: JudgingGtmRoute,
+  JudgingIcpRoute: JudgingIcpRoute,
+  JudgingMetricsRoute: JudgingMetricsRoute,
+  JudgingMvpRoute: JudgingMvpRoute,
+  JudgingValueRoute: JudgingValueRoute,
+  JudgingIndexRoute: JudgingIndexRoute,
+  PitchIndexRoute: PitchIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiNexusAuthSplatRoute: ApiNexusAuthSplatRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
