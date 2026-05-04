@@ -45,12 +45,45 @@ export async function provisionSandboxUser(options: ProvisionSandboxUserOptions)
 	};
 	const partyHint = userId.charAt(0).toUpperCase() + userId.slice(1);
 
-	// ── Step 1: Allocate party (with retry for sandbox startup) ─────────────
+	// ── Step 0: Pre-check — find existing party with this hint prefix ────────
+	// Daml Script allocateParty always creates suffixed parties (e.g. "VantageCapital-9b3970be").
+	// The HTTP API creates exact-hint parties (e.g. "VantageCapital::fingerprint").
+	// We pre-check so that demo login can find parties created by the seed script.
 	let partyId: string | undefined;
+	try {
+		const preCheckRes = await fetch(`${ledgerApiUrl}/v2/parties`, {
+			headers: { Authorization: `Bearer ${adminToken}` },
+		});
+		if (preCheckRes.ok) {
+			const preCheckData = (await preCheckRes.json()) as Record<string, unknown>;
+			type PartyRecord = Record<string, string>;
+			const allParties: PartyRecord[] = Array.isArray(preCheckData.partyDetails)
+				? (preCheckData.partyDetails as PartyRecord[])
+				: [];
+			// Prefer exact match (VantageCapital::fingerprint), then prefix match (VantageCapital-XXXX::fingerprint)
+			const exact = allParties.find((p) => {
+				const name = (p.party ?? "").split("::")[0];
+				return name.toLowerCase() === partyHint.toLowerCase();
+			});
+			const prefixMatch = allParties.find((p) => {
+				const name = (p.party ?? "").split("::")[0];
+				// Match hint prefix followed by - (e.g. "VantageCapital-9b3970be")
+				return name.toLowerCase().startsWith(`${partyHint.toLowerCase()}-`);
+			});
+			const found = exact ?? prefixMatch;
+			if (found?.party) {
+				partyId = toDamlLFPartyId(found.party);
+			}
+		}
+	} catch {
+		// Pre-check failure is non-fatal — fall through to allocation
+	}
 
+	// ── Step 1: Allocate party (with retry for sandbox startup) ─────────────
 	const MAX_ALLOC_RETRIES = 10;
 	const ALLOC_RETRY_DELAY_MS = 3000;
 
+	if (!partyId) {
 	for (let attempt = 1; attempt <= MAX_ALLOC_RETRIES; attempt++) {
 		const res = await fetch(`${ledgerApiUrl}/v2/parties`, {
 			method: "POST",
@@ -119,7 +152,8 @@ export async function provisionSandboxUser(options: ProvisionSandboxUserOptions)
 		}
 
 		throw new NexusLedgerError(`Failed to allocate party: ${res.status} ${text}`);
-	}
+	} // end for loop
+	} // end if (!partyId) — skip allocation if pre-check found an existing party
 
 	// ── Step 2: Discover party by listing (fallback) ─────────────────────────
 	if (!partyId) {

@@ -196,4 +196,79 @@ export const collateralRouter = {
 			limit: input.limit,
 		});
 	}),
+
+	// ─── Demo Setup ────────────────────────────────────────────────────────
+
+	/**
+	 * One-click demo initialization.
+	 * Creates POLICY-001 (CTD) + 3 collateral holdings (USYC / UST / USDC).
+	 * Idempotent-ish: will fail gracefully if contracts already exist.
+	 */
+	seedDemoData: ledgerProcedure.handler(async ({ context }) => {
+		const now = new Date().toISOString();
+		const { partyId, ledger } = context;
+
+		// Resolve operator party ID — use dynamic lookup, fall back to own party
+		// so self-signed contracts work even before SignUIT logs in.
+		const { resolveOperatorPartyId } = await import("./procedures");
+		const resolvedOperator = await resolveOperatorPartyId();
+		// If operator is still just the hint string (e.g. "SignUIT" without fingerprint),
+		// fall back to using the institution's own party as operator.
+		const operatorPartyId =
+			resolvedOperator.includes("::") ? resolvedOperator : partyId;
+
+		// 1. Create CTD policy
+		await ledger.CollateralPolicy.create({
+			operator: operatorPartyId,
+			institution: partyId,
+			policyId: "POLICY-001",
+			ruleType: "CTD",
+			priorityList: ["USYC", "UST", "USDC"],
+			minLtv: "0.95",
+			maxHaircut: "0.10",
+			counterpartyRules: [{ _1: "PrimeBank", _2: ["USYC", "UST", "USDC"] }],
+			autoApprove: false,
+			notificationEmail: null,
+			active: true,
+			createdAt: now,
+		});
+
+		// 2. Create USYC holding ($8.2M @ 4.5% APY, 2% haircut)
+		await ledger.CollateralHolding.create({
+			operator: operatorPartyId,
+			holdingId: "HOLD-USYC-001",
+			institution: partyId,
+			asset: "USYC",
+			amount: "8200000.0",
+			yield: "0.045",
+			haircut: "0.02",
+			expiry: null,
+		});
+
+		// 3. Create UST holding ($12M @ 4.2% APY, 5% haircut)
+		await ledger.CollateralHolding.create({
+			operator: operatorPartyId,
+			holdingId: "HOLD-UST-001",
+			institution: partyId,
+			asset: "UST",
+			amount: "12000000.0",
+			yield: "0.042",
+			haircut: "0.05",
+			expiry: null,
+		});
+
+		// 4. Create USDC holding ($25M @ 0% yield, 0% haircut)
+		await ledger.CollateralHolding.create({
+			operator: operatorPartyId,
+			holdingId: "HOLD-USDC-001",
+			institution: partyId,
+			asset: "USDC",
+			amount: "25000000.0",
+			yield: "0.0",
+			haircut: "0.0",
+			expiry: null,
+		});
+
+		return { success: true, policyId: "POLICY-001", holdingsCreated: 3, operatorPartyId };
+	}),
 };

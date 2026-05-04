@@ -53,7 +53,7 @@ exports.Transfer = {
 exports.Iou = damlTypes.assembleTemplate(
 {
   templateId: '#nexus-example:Iou:Iou',
-  templateIdWithPackageId: 'b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c:Iou:Iou',
+  templateIdWithPackageId: 'e216534d47383af7bde77fa62bf3376654f24226bca8fb82a6a5fa6532e54a2d:Iou:Iou',
   keyDecoder: damlTypes.lazyMemo(function () { return jtv.constant(undefined); }),
   keyEncode: function () { throw 'EncodeError'; },
   decoder: damlTypes.lazyMemo(function () { return jtv.object({issuer: damlTypes.Party.decoder, owner: damlTypes.Party.decoder, amount: damlTypes.Numeric(10).decoder, currency: damlTypes.Text.decoder, observers: damlTypes.List(damlTypes.Party).decoder, }); }),
@@ -104,5 +104,5 @@ exports.Iou = damlTypes.assembleTemplate(
 );
 
 
-damlTypes.registerTemplate(exports.Iou, ['b6898640ebaf550c9e05b7bc29399aa077e719a3bb935c622100ce57fb58c26c', '#nexus-example']);
+damlTypes.registerTemplate(exports.Iou, ['e216534d47383af7bde77fa62bf3376654f24226bca8fb82a6a5fa6532e54a2d', '#nexus-example']);
 

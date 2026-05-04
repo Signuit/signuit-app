@@ -21,15 +21,17 @@ export const Route = createFileRoute("/_app/dashboard/audit")({
 function exportAuditCsv(audit: NonNullable<ReturnType<typeof useAuditTrail>["data"]>) {
 	const headers = ["Route ID", "Timestamp", "Assets", "Amounts", "Net Amount ($)", "Cost (bps)", "Approved By", "Contract ID"];
 	const rows = audit.map((a) => {
-		const netAmount = a.payload.amountsSent.reduce((sum: number, amt: string) => sum + parseFloat(amt), 0);
+		const amountsSent = (a.payload.amountsSent as string[] | undefined) ?? [];
+		const assetsSent = (a.payload.assetsSent as string[] | undefined) ?? [];
+		const netAmount = amountsSent.reduce((sum: number, amt: string) => sum + parseFloat(amt || "0"), 0);
 		return [
-			a.payload.routeId,
-			a.payload.executedAt,
-			a.payload.assetsSent.join(" + "),
-			a.payload.amountsSent.join(" + "),
+			(a.payload.routeId as string | undefined) ?? a.contractId.slice(0, 8),
+			(a.payload.executedAt as string | undefined) ?? "",
+			assetsSent.join(" + "),
+			amountsSent.join(" + "),
 			netAmount.toFixed(2),
-			parseFloat(a.payload.opportunityCostBps).toFixed(2),
-			a.payload.approvedBy,
+			parseFloat((a.payload.opportunityCostBps as string | undefined) || "0").toFixed(2),
+			(a.payload.approvedBy as string | undefined) ?? "",
 			a.contractId,
 		];
 	});
@@ -122,50 +124,57 @@ function RouteComponent() {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{audit?.map((a) => (
+									{audit?.map((a) => {
+										const routeId = a.payload.routeId as string | undefined;
+										const executedAt = a.payload.executedAt as string | undefined;
+										const assetsSent = (a.payload.assetsSent as string[] | undefined) ?? [];
+										const amountsSent = (a.payload.amountsSent as string[] | undefined) ?? [];
+										const opportunityCostBps = a.payload.opportunityCostBps as string | undefined;
+										const approvedBy = a.payload.approvedBy as string | undefined;
+										const totalAmount =
+											amountsSent.reduce((sum, amt) => sum + parseFloat(amt || "0"), 0) / 1_000_000;
+										const displayDate = executedAt ? new Date(executedAt) : null;
+										return (
 										<TableRow
 											key={a.contractId}
 											className="border-muted/30 hover:bg-muted/10 transition-colors"
 										>
 											<TableCell className="text-[11px] font-medium text-muted-foreground/80 pl-6">
-												{new Date(a.payload.executedAt).toLocaleDateString()}
+												{displayDate ? displayDate.toLocaleDateString() : "—"}
 												<br />
 												<span className="opacity-50 font-mono text-[9px]">
-													{new Date(a.payload.executedAt).toLocaleTimeString([], {
-														hour: "2-digit",
-														minute: "2-digit",
-													})}
+													{displayDate
+														? displayDate.toLocaleTimeString([], {
+																hour: "2-digit",
+																minute: "2-digit",
+															})
+														: ""}
 												</span>
 											</TableCell>
 											<TableCell className="font-semibold text-xs text-muted-foreground">
-												{a.payload.routeId}
+												{routeId ?? a.contractId.slice(0, 8)}
 											</TableCell>
 											<TableCell>
 												<div className="flex flex-wrap gap-1">
-													{a.payload.assetsSent.map((asset: string, i: number) => (
-														<Badge
-															key={i}
-															variant="outline"
-															className="text-[10px] font-medium py-0 px-1.5 border-muted-foreground/20"
-														>
-															{asset}
-														</Badge>
-													))}
+													{assetsSent.length > 0
+														? assetsSent.map((asset: string, i: number) => (
+																<Badge
+																	key={i}
+																	variant="outline"
+																	className="text-[10px] font-medium py-0 px-1.5 border-muted-foreground/20"
+																>
+																	{asset}
+																</Badge>
+															))
+														: <span className="text-muted-foreground">—</span>}
 												</div>
 											</TableCell>
 											<TableCell className="font-semibold text-sm text-right">
-												$
-												{(
-													a.payload.amountsSent.reduce(
-														(sum: number, amt: string) => sum + parseFloat(amt),
-														0,
-													) / 1_000_000
-												).toFixed(1)}
-												M
+												${totalAmount.toFixed(1)}M
 											</TableCell>
 											<TableCell className="text-right">
 												<span className="font-semibold text-sm">
-													{parseFloat(a.payload.opportunityCostBps).toFixed(1)}
+													{parseFloat(opportunityCostBps || "0").toFixed(1)}
 												</span>
 												<span className="text-[9px] font-bold text-muted-foreground ml-1">Bps</span>
 											</TableCell>
@@ -174,7 +183,7 @@ function RouteComponent() {
 													variant="secondary"
 													className="text-[10px] font-medium bg-green-500/5 text-green-700 dark:text-green-400 border-transparent"
 												>
-													{a.payload.approvedBy.split("::")[0]}
+													{approvedBy?.split("::")[0] ?? "—"}
 												</Badge>
 											</TableCell>
 											<TableCell className="pr-6 text-right">
@@ -183,7 +192,8 @@ function RouteComponent() {
 												</span>
 											</TableCell>
 										</TableRow>
-									))}
+										);
+									})}
 									{(!audit || audit.length === 0) && (
 										<TableRow>
 											<TableCell

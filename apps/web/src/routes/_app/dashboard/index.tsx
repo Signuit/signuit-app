@@ -18,11 +18,12 @@ import {
 	TableRow,
 } from "@nexus/ui/components/table";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRightIcon, FileTextIcon, TrendingUpIcon, WalletIcon } from "lucide-react";
+import { ArrowRightIcon, DatabaseIcon, FileTextIcon, TrendingUpIcon, WalletIcon } from "lucide-react";
 import * as RechartsPrimitive from "recharts";
+import { toast } from "sonner";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { useAuthRole } from "@/hooks/use-auth";
-import { useAuditTrail, useHoldings, useStats, useSuggestions } from "@/hooks/use-collateral-api";
+import { useAuditTrail, useHoldings, useSeedDemoData, useStats, useSuggestions } from "@/hooks/use-collateral-api";
 
 export const Route = createFileRoute("/_app/dashboard/")({
 	component: RouteComponent,
@@ -57,6 +58,10 @@ const chartData = [
 ];
 
 function WelcomeCard({ userRole }: { userRole: string }) {
+	const { data: holdings, isLoading: holdingsLoading } = useHoldings();
+	const seedMutation = useSeedDemoData();
+	const isEmpty = !holdingsLoading && holdings?.length === 0;
+
 	const content: Record<
 		string,
 		{ title: string; description: string; actions: { label: string; to: any }[] }
@@ -89,6 +94,15 @@ function WelcomeCard({ userRole }: { userRole: string }) {
 
 	const config = content[userRole] || content.institution;
 
+	const handleSeed = async () => {
+		try {
+			await seedMutation.mutateAsync(undefined as any);
+			toast.success("Demo data initialized — POLICY-001 + 3 holdings created on Canton");
+		} catch (err) {
+			toast.error(`Setup failed: ${err instanceof Error ? err.message : "Unknown error"}`);
+		}
+	};
+
 	return (
 		<Card className="relative overflow-hidden border bg-accent/5 shadow-sm">
 			<div className="absolute top-0 right-0 p-8 opacity-5">
@@ -99,7 +113,7 @@ function WelcomeCard({ userRole }: { userRole: string }) {
 				<p className="text-muted-foreground text-base max-w-2xl">{config.description}</p>
 			</CardHeader>
 			<CardContent className="relative z-10">
-				<div className="flex gap-2">
+				<div className="flex flex-wrap gap-2">
 					{config.actions.map((action) => (
 						<Link key={action.to} to={action.to}>
 							<Button variant="default" size="sm" className="rounded-md">
@@ -108,6 +122,27 @@ function WelcomeCard({ userRole }: { userRole: string }) {
 							</Button>
 						</Link>
 					))}
+					{userRole === "institution" && isEmpty && (
+						<Button
+							variant="outline"
+							size="sm"
+							className="rounded-md border-primary/30 text-primary hover:bg-primary/5"
+							onClick={handleSeed}
+							disabled={seedMutation.isPending}
+						>
+							{seedMutation.isPending ? (
+								<>
+									<div className="mr-2 size-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+									Initializing...
+								</>
+							) : (
+								<>
+									<DatabaseIcon className="mr-2 size-4" />
+									Initialize Demo Data
+								</>
+							)}
+						</Button>
+					)}
 				</div>
 			</CardContent>
 		</Card>
@@ -292,26 +327,28 @@ function RecentAllocationsCard() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{recent?.map((a) => (
+						{recent?.map((a) => {
+							const routeId = a.payload.routeId as string | undefined;
+							const assetsSent = (a.payload.assetsSent as string[] | undefined) ?? [];
+							const amountsSent = (a.payload.amountsSent as string[] | undefined) ?? [];
+							const opportunityCostBps = a.payload.opportunityCostBps as string | undefined;
+							const status = a.payload.status as string | undefined;
+							const displayId = routeId?.replace("ROUTE-", "") ?? a.contractId.slice(0, 8);
+							const totalAmount =
+								amountsSent.reduce((sum, amt) => sum + parseFloat(amt || "0"), 0) / 1_000_000;
+							return (
 							<TableRow key={a.contractId} className="group border-muted/30">
 								<TableCell className="font-mono text-[10px] font-medium text-muted-foreground">
-									#{a.payload.routeId.replace("ROUTE-", "")}
+									#{displayId}
 								</TableCell>
 								<TableCell className="text-[11px] font-medium">
-									{a.payload.assetsSent.join(", ")}
+									{assetsSent.length > 0 ? assetsSent.join(", ") : "—"}
 								</TableCell>
 								<TableCell className="text-[11px] font-semibold text-right">
-									$
-									{(
-										a.payload.amountsSent.reduce(
-											(sum: number, amt: string) => sum + parseFloat(amt),
-											0,
-										) / 1_000_000
-									).toFixed(1)}
-									M
+									${totalAmount.toFixed(1)}M
 								</TableCell>
 								<TableCell className="text-[11px] font-medium text-muted-foreground text-right">
-									{parseFloat(a.payload.opportunityCostBps).toFixed(1)}bps
+									{parseFloat(opportunityCostBps || "0").toFixed(1)}bps
 								</TableCell>
 								<TableCell className="text-right">
 									<div className="flex justify-end">
@@ -319,12 +356,13 @@ function RecentAllocationsCard() {
 											variant="secondary"
 											className="text-[10px] font-medium px-1.5 py-0 border-transparent bg-green-500/10 text-green-700 dark:text-green-400"
 										>
-											{a.payload.status}
+											{status ?? "—"}
 										</Badge>
 									</div>
 								</TableCell>
 							</TableRow>
-						))}
+							);
+						})}
 						{(!recent || recent.length === 0) && (
 							<TableRow>
 								<TableCell

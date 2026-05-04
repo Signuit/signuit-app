@@ -118,43 +118,53 @@ function RouteComponent() {
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{suggestions?.map((s) => (
+								{suggestions?.map((s) => {
+									const routeId = s.payload.routeId as string | undefined;
+									const marginCallId = s.payload.marginCallId as string | undefined;
+									const amountRequired = s.payload.amountRequired as string | undefined;
+									const suggestedAssets = (s.payload.suggestedAssets as string[] | undefined) ?? [];
+									const suggestedAmounts = (s.payload.suggestedAmounts as string[] | undefined) ?? [];
+									const opportunityCostBps = s.payload.opportunityCostBps as string | undefined;
+									const status = s.payload.status as string | undefined;
+									return (
 									<TableRow
 										key={s.contractId}
 										className="group border-muted/30 hover:bg-muted/10 transition-colors"
 									>
 										<TableCell className="font-mono text-[10px] text-muted-foreground">
-											{s.payload.routeId}
+											{routeId ?? s.contractId.slice(0, 8)}
 										</TableCell>
 										<TableCell>
 											<div className="flex flex-col">
-												<span className="font-semibold text-sm">{s.payload.marginCallId}</span>
+												<span className="font-semibold text-sm">{marginCallId ?? "—"}</span>
 												<span className="text-[11px] font-medium text-primary">
-													${(parseFloat(s.payload.amountRequired) / 1_000_000).toFixed(1)}M
+													${(parseFloat(amountRequired || "0") / 1_000_000).toFixed(1)}M
 												</span>
 											</div>
 										</TableCell>
 										<TableCell>
 											<div className="flex flex-wrap gap-1.5">
-												{s.payload.suggestedAssets.map((asset: string, i: number) => (
-													<Badge
-														key={i}
-														variant="outline"
-														className="text-[10px] h-5 font-medium border-muted-foreground/20"
-													>
-														{asset}{" "}
-														<span className="ml-1 opacity-60">
-															(${(parseFloat(s.payload.suggestedAmounts[i]) / 1_000_000).toFixed(1)}
-															M)
-														</span>
-													</Badge>
-												))}
+												{suggestedAssets.length > 0
+													? suggestedAssets.map((asset: string, i: number) => (
+															<Badge
+																key={i}
+																variant="outline"
+																className="text-[10px] h-5 font-medium border-muted-foreground/20"
+															>
+																{asset}{" "}
+																<span className="ml-1 opacity-60">
+																	(${(parseFloat(suggestedAmounts[i] || "0") / 1_000_000).toFixed(1)}
+																	M)
+																</span>
+															</Badge>
+														))
+													: <span className="text-muted-foreground">—</span>}
 											</div>
 										</TableCell>
 										<TableCell className="text-right">
 											<div className="flex flex-col items-end">
 												<span className="font-semibold text-sm">
-													{parseFloat(s.payload.opportunityCostBps).toFixed(1)}
+													{parseFloat(opportunityCostBps || "0").toFixed(1)}
 												</span>
 												<span className="text-[9px] font-medium text-muted-foreground uppercase">
 													Bps
@@ -166,19 +176,19 @@ function RouteComponent() {
 												variant="secondary"
 												className={cn(
 													"border-transparent font-semibold text-[10px] px-2 py-0",
-													s.payload.status === "RoutePending"
+													status === "RoutePending"
 														? "bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400"
-														: s.payload.status === "RouteApproved"
+														: status === "RouteApproved"
 															? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
 															: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400",
 												)}
 											>
-												{s.payload.status}
+												{status ?? "—"}
 											</Badge>
 										</TableCell>
 										{role === "institution" && (
 											<TableCell className="text-right">
-												{s.payload.status === "RoutePending" && (
+												{status === "RoutePending" && (
 													<div className="flex justify-end gap-2">
 														<Button
 															variant="ghost"
@@ -200,7 +210,7 @@ function RouteComponent() {
 														</Button>
 													</div>
 												)}
-												{s.payload.status !== "RoutePending" && (
+												{status !== "RoutePending" && (
 													<span className="text-[10px] font-medium text-muted-foreground italic uppercase">
 														Processed
 													</span>
@@ -208,7 +218,8 @@ function RouteComponent() {
 											</TableCell>
 										)}
 									</TableRow>
-								))}
+									);
+								})}
 								{suggestions?.length === 0 && (
 									<TableRow>
 										<TableCell

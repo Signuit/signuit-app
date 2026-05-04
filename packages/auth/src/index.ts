@@ -28,12 +28,12 @@ export const auth = betterAuth({
 				type: "string",
 				required: false,
 				defaultValue: "institution",
-				input: false,
+				// Note: input:false can interfere with databaseHooks in some BA versions.
+				// We rely on databaseHooks.user.create.before for role assignment.
 			},
 			cantonPartyId: {
 				type: "string",
 				required: false,
-				input: false,
 			},
 		},
 	},
