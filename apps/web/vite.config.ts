@@ -1,6 +1,7 @@
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
+import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
@@ -15,6 +16,7 @@ export default defineConfig({
 		tsconfigPaths({ ignoreConfigErrors: true }),
 		tailwindcss(),
 		tanstackStart(),
+		nitro(),
 		viteReact(),
 	],
 	server: {
@@ -24,21 +26,22 @@ export default defineConfig({
 	},
 	optimizeDeps: {
 		include: damlPackages,
+		exclude: [
+			"@tanstack/react-start",
+			"@tanstack/react-router",
+			"@tanstack/start-server-core",
+			"@tanstack/react-start-server",
+		],
 	},
 	build: {
 		commonjsOptions: {
-			include: [/@daml\.js\//],
+			include: [/node_modules/],
+			requireReturnsDefault: "auto",
+			transformMixedEsModules: true,
 		},
 	},
 	ssr: {
-		// Externalize daml packages + React family to avoid duplicate/bundled instances
-		external: [
-			...damlPackages,
-			"react",
-			"react-dom",
-			"react/jsx-runtime",
-			"react/jsx-dev-runtime",
-		],
-		noExternal: [],
+		external: damlPackages,
+		noExternal: true,
 	},
 });
