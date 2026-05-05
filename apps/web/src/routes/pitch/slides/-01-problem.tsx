@@ -14,9 +14,6 @@ export function ProblemSlide() {
 					<SlideCard title="Manual Process Pain">
 						<div className="space-y-3">
 							<BulletPoint>
-								<strong>70% of institutions</strong> report collateral delivery challenges
-							</BulletPoint>
-							<BulletPoint>
 								<strong>30+ minutes</strong> per margin call using Excel + phone coordination
 							</BulletPoint>
 							<BulletPoint>
@@ -25,16 +22,19 @@ export function ProblemSlide() {
 							<BulletPoint>
 								<strong>No immutable audit trail</strong> — regulatory reporting is manual
 							</BulletPoint>
+							<BulletPoint>
+								<strong>Yield leakage</strong> — institutions send yield-bearing assets first
+							</BulletPoint>
 						</div>
 					</SlideCard>
 
 					<SlideCard title="The Canton Gap">
 						<div className="space-y-3">
 							<BulletPoint>
-								<strong>$6T+</strong> tokenized assets on Canton Network
+								<strong>$10bn+</strong> tokenized Treasuries globally (Jan 2026)
 							</BulletPoint>
 							<BulletPoint>
-								<strong>$4T+/month</strong> transaction volume
+								<strong>Trillions</strong> in monthly UST repo on Canton (Broadridge DLR)
 							</BulletPoint>
 							<BulletPoint>
 								<strong>Zero</strong> native collateral routing engines exist
@@ -48,9 +48,9 @@ export function ProblemSlide() {
 
 				<div className="space-y-4">
 					<div className="grid grid-cols-2 gap-4">
-						<StatBox value="70%" label="Firms with delivery challenges" />
 						<StatBox value="30+" label="Minutes per manual decision" />
-						<StatBox value="$6T+" label="Tokenized assets on Canton" />
+						<StatBox value="3s" label="With SignUIT automation" />
+						<StatBox value="$10bn+" label="Tokenized Treasuries globally" />
 						<StatBox value="0" label="Native routing engines" />
 					</div>
 

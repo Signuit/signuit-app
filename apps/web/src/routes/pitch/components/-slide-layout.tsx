@@ -55,7 +55,7 @@ export function SlideLayout({
 
 			{/* Footer */}
 			<div className="flex items-center justify-between px-8 py-4 border-t text-xs text-muted-foreground">
-				<span>signuit.org</span>
+				<span>signuit.com</span>
 				<span>Hackathon Submission 2026</span>
 			</div>
 		</div>

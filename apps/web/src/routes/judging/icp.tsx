@@ -26,9 +26,8 @@ function IcpPage() {
 					<p className="text-lg leading-relaxed text-foreground">
 						SignUIT serves <strong>institutional financial firms</strong> that manage
 						tokenized or traditional collateral on Canton Network or are planning to
-						migrate on-chain. Our audience ranges from early Canton adopters (DTCC,
-						Digital Asset partners) to independent institutions exploring tokenized
-						asset management.
+						migrate on-chain. Our audience ranges from early Canton adopters to
+						independent institutions exploring tokenized asset management.
 					</p>
 				</JudgingCard>
 			</JudgingSection>
@@ -52,15 +51,14 @@ function IcpPage() {
 								</p>
 								<p className="text-sm text-muted-foreground mb-2 leading-relaxed">
 									<strong className="text-foreground">Canton Connection:</strong> Partnered with Digital Asset to
-									tokenize DTC-custodied U.S. Treasury securities on Canton (targeted for 2026)
+									explore tokenization of DTC-custodied securities on Canton
 								</p>
 								<p className="text-sm text-muted-foreground mb-3 leading-relaxed">
-									<strong className="text-foreground">Why SignUIT:</strong> As DTCC moves treasuries on-chain, they need
-									automated collateral management for repo, securities lending, and margin operations.
+									<strong className="text-foreground">Why SignUIT:</strong> As DTCC explores on-chain assets, automated
+									collateral management becomes essential for repo and margin operations.
 								</p>
 								<div className="flex gap-2 flex-wrap">
 									<Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border/50">Use Case: On-chain repo</Badge>
-									<Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border/50">Est. Deal: $500K-1M/year</Badge>
 								</div>
 							</div>
 						</div>
@@ -76,15 +74,16 @@ function IcpPage() {
 									<strong className="text-foreground">Role:</strong> Canton Network developer and enterprise blockchain solutions provider
 								</p>
 								<p className="text-sm text-muted-foreground mb-2 leading-relaxed">
-									<strong className="text-foreground">Canton Connection:</strong> Built and maintains Canton Network; raised $135M to accelerate growth
+									<strong className="text-foreground">Canton Connection:</strong> Built and maintains Canton Network;
+									raised $135M to accelerate ecosystem growth
 								</p>
 								<p className="text-sm text-muted-foreground mb-3 leading-relaxed">
-									<strong className="text-foreground">Why SignUIT:</strong> Digital Asset needs ecosystem tooling to attract developers.
-									Nexus Framework (powering SignUIT) addresses the #1 pain point from their developer survey.
+									<strong className="text-foreground">Why SignUIT:</strong> Digital Asset needs ecosystem tooling to
+									attract developers. Nexus Framework (powering SignUIT) addresses the #1
+									pain point from their developer survey.
 								</p>
 								<div className="flex gap-2 flex-wrap">
 									<Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border/50">Use Case: Developer tooling</Badge>
-									<Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border/50">Est. Deal: $200K-500K/year</Badge>
 								</div>
 							</div>
 						</div>
@@ -97,7 +96,7 @@ function IcpPage() {
 							</div>
 							<div className="flex-1">
 								<p className="text-sm text-muted-foreground mb-2 leading-relaxed">
-									<strong className="text-foreground">Includes:</strong> Major banks (BNP Paribas, Goldman Sachs pilots),
+									<strong className="text-foreground">Includes:</strong> Major banks (BNP Paribas, Bank of America, Citi),
 									asset managers, stablecoin issuers, insurance companies
 								</p>
 								<p className="text-sm text-muted-foreground mb-2 leading-relaxed">
@@ -117,7 +116,7 @@ function IcpPage() {
 			{/* Tier B */}
 			<JudgingSection title="Tier B: Independent Financial Institutions">
 				<p className="text-muted-foreground mb-8 leading-relaxed">
-					Organizations not yet on Canton but managing significant collateral operations.
+					Organizations managing significant collateral operations.
 					These represent the broader market expansion opportunity.
 				</p>
 
@@ -128,7 +127,7 @@ function IcpPage() {
 							<Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border/50">AUM &gt;$10B</Badge>
 						</div>
 						<p className="text-sm text-muted-foreground mb-2 leading-relaxed">
-							<strong className="text-foreground">Daily Volume:</strong> 50-100+ margin calls
+							<strong className="text-foreground">Daily Volume:</strong> High volume of margin calls
 						</p>
 						<p className="text-sm text-muted-foreground mb-2 leading-relaxed">
 							<strong className="text-foreground">Pain:</strong> Excel fatigue, after-hours coordination, manual policy checking
@@ -144,7 +143,7 @@ function IcpPage() {
 							<Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border/50">Multi-client</Badge>
 						</div>
 						<p className="text-sm text-muted-foreground mb-2 leading-relaxed">
-							<strong className="text-foreground">Daily Volume:</strong> 100-200+ margin calls
+							<strong className="text-foreground">Daily Volume:</strong> Very high volume across multiple clients
 						</p>
 						<p className="text-sm text-muted-foreground mb-2 leading-relaxed">
 							<strong className="text-foreground">Pain:</strong> Counterparty-specific rules, high operational cost, client reporting
@@ -160,7 +159,7 @@ function IcpPage() {
 							<Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border/50">High-frequency</Badge>
 						</div>
 						<p className="text-sm text-muted-foreground mb-2 leading-relaxed">
-							<strong className="text-foreground">Daily Volume:</strong> 30-50+ margin calls (volatile)
+							<strong className="text-foreground">Daily Volume:</strong> Variable, volatility-driven
 						</p>
 						<p className="text-sm text-muted-foreground mb-2 leading-relaxed">
 							<strong className="text-foreground">Pain:</strong> Speed-critical, regulatory pressure, operational risk
@@ -176,7 +175,7 @@ function IcpPage() {
 							<Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border/50">Systemic</Badge>
 						</div>
 						<p className="text-sm text-muted-foreground mb-2 leading-relaxed">
-							<strong className="text-foreground">Daily Volume:</strong> 500+ margin calls (system-wide)
+							<strong className="text-foreground">Daily Volume:</strong> System-wide scale
 						</p>
 						<p className="text-sm text-muted-foreground mb-2 leading-relaxed">
 							<strong className="text-foreground">Pain:</strong> Automated compliance, immutable audit, systemic risk
@@ -196,31 +195,31 @@ function IcpPage() {
 							<span className="text-2xl font-semibold text-muted-foreground">A</span>
 						</div>
 						<div className="flex-1">
-							<h3 className="font-semibold text-lg mb-6">Alex, 34, Treasury Ops Manager</h3>
+							<h3 className="font-semibold text-lg mb-6">Alex, Treasury Ops Manager <span className="text-sm font-normal text-muted-foreground">(Representative Persona)</span></h3>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-muted-foreground">
 								<div>
 									<p className="font-semibold text-foreground mb-2 text-xs uppercase tracking-wider">Profile</p>
 									<ul className="space-y-1.5 leading-relaxed">
-										<li>Manages collateral for $50B asset manager</li>
-										<li>50-100 margin calls per day</li>
-										<li>Team of 4 traders</li>
+										<li>Manages collateral for large asset manager</li>
+										<li>High daily volume of margin calls</li>
+										<li>Leads a team of traders</li>
 									</ul>
 								</div>
 								<div>
 									<p className="font-semibold text-foreground mb-2 text-xs uppercase tracking-wider">Daily Pain</p>
 									<ul className="space-y-1.5 leading-relaxed">
-										<li>3:47 PM: margin calls flood in</li>
-										<li>Opens Excel, checks eligibility</li>
-										<li>Calls counterparties</li>
+										<li>Margin calls flood in after market close</li>
+										<li>Opens Excel, checks eligibility manually</li>
+										<li>Coordinates with counterparties by phone</li>
 										<li>Hopes nothing breaks</li>
 									</ul>
 								</div>
 								<div>
-									<p className="font-semibold text-foreground mb-2 text-xs uppercase tracking-wider">By 4:15 PM</p>
+									<p className="font-semibold text-foreground mb-2 text-xs uppercase tracking-wider">By End of Day</p>
 									<ul className="space-y-1.5 leading-relaxed">
 										<li>Exhausted</li>
-										<li>Worried about audit trail</li>
-										<li>Praying no errors surface</li>
+										<li>Worried about audit trail gaps</li>
+										<li>Hoping no errors surface tomorrow</li>
 									</ul>
 								</div>
 								<div>
@@ -241,9 +240,9 @@ function IcpPage() {
 			{/* Summary Stats */}
 			<JudgingSection title="Market Size Summary">
 				<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-					<Stat value="$6T+" label="Tokenized RWA on Canton" />
-					<Stat value="$4T+" label="Monthly tx volume" />
-					<Stat value="70%" label="Firms with collateral pain" />
+					<Stat value="$10bn+" label="Tokenized Treasuries globally" />
+					<Stat value="450+" label="Projects in Canton ecosystem" />
+					<Stat value="Trillions" label="Monthly UST repo (Broadridge)" />
 					<Stat value="0" label="Competitors on Canton" />
 				</div>
 			</JudgingSection>

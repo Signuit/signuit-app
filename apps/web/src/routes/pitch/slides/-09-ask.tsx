@@ -85,7 +85,7 @@ export function AskSlide() {
 								</Button>
 							</div>
 							<div className="mt-6 pt-6 border-t text-sm text-muted-foreground">
-								<p>signuit.org</p>
+								<p>signuit.com</p>
 								<p>github.com/Signuit</p>
 								<p>@signuit</p>
 							</div>

@@ -20,7 +20,6 @@ export function TeamSlide() {
 								</div>
 								<div>
 									<h3 className="font-bold text-lg">Mehmet Kar</h3>
-									<p className="text-sm text-muted-foreground">Founder & Lead Developer</p>
 									<p className="text-sm text-muted-foreground mt-1">
 										Full-stack developer with expertise in TypeScript, React, and Daml smart contracts.
 										Passionate about bridging traditional finance and blockchain technology.
@@ -30,6 +29,25 @@ export function TeamSlide() {
 						</CardContent>
 					</Card>
 
+					<Card>
+						<CardContent className="p-6">
+							<div className="flex items-center gap-4">
+								<div className="size-16 rounded-full bg-primary/10 flex items-center justify-center">
+									<span className="text-2xl font-bold text-primary">AT</span>
+								</div>
+								<div>
+									<h3 className="font-bold text-lg">Ali Tap</h3>
+									<p className="text-sm text-muted-foreground mt-1">
+										Core contributor with deep experience in system architecture and
+										backend development. Active in the SignUIT codebase since inception.
+									</p>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				</div>
+
+				<div className="space-y-4">
 					<Card>
 						<CardContent className="p-6">
 							<h3 className="font-bold text-lg mb-4">Team Background</h3>
@@ -48,14 +66,12 @@ export function TeamSlide() {
 								</div>
 								<div className="flex items-start gap-3">
 									<div className="size-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-									<span>Open-source contributors to Canton ecosystem tooling</span>
+									<span>Building open-source tooling for the Canton ecosystem</span>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-				</div>
 
-				<div className="space-y-4">
 					<Card>
 						<CardContent className="p-6">
 							<h3 className="font-bold text-lg mb-4">Links & Resources</h3>
@@ -73,7 +89,7 @@ export function TeamSlide() {
 									</div>
 								</a>
 								<a
-									href="https://signuit.org"
+									href="https://signuit.com"
 									target="_blank"
 									rel="noopener noreferrer"
 									className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
@@ -81,7 +97,7 @@ export function TeamSlide() {
 									<GlobeIcon className="size-5 text-primary" />
 									<div>
 										<p className="font-medium">Website</p>
-										<p className="text-xs text-muted-foreground">signuit.org</p>
+										<p className="text-xs text-muted-foreground">signuit.com</p>
 									</div>
 								</a>
 								<a
@@ -102,7 +118,7 @@ export function TeamSlide() {
 									<MailIcon className="size-5 text-primary" />
 									<div>
 										<p className="font-medium">Email</p>
-										<p className="text-xs text-muted-foreground">team@signuit.org</p>
+										<p className="text-xs text-muted-foreground">team@signuit.com</p>
 									</div>
 								</div>
 							</div>

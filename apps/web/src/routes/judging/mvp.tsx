@@ -1,3 +1,4 @@
+import { cn } from "@nexus/ui/lib/utils";
 import { Button } from "@nexus/ui/components/button";
 import { Card, CardContent } from "@nexus/ui/components/card";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -28,14 +29,14 @@ function MvpPage() {
 		>
 			{/* Live Demo */}
 			<JudgingSection title="Live Demo">
-				<JudgingCard>
+				<JudgingCard index={1}>
 					<div className="flex items-start gap-6">
 						<div className="size-16 rounded-xl bg-muted flex items-center justify-center shrink-0">
-							<MonitorIcon className="size-8 text-muted-foreground" />
+							<MonitorIcon className="size-8 text-primary/70" />
 						</div>
 						<div className="flex-1">
 							<h3 className="text-xl font-semibold mb-2 tracking-tight">SignUIT Dashboard</h3>
-							<p className="text-muted-foreground mb-6 leading-relaxed">
+							<p className="text-muted-foreground mb-6 leading-[1.7] max-w-prose">
 								A live, interactive dashboard demonstrating the full collateral routing
 								workflow. Built with React + TanStack Query + Nexus Framework.
 							</p>
@@ -46,7 +47,7 @@ function MvpPage() {
 										Open Live Dashboard
 									</Link>
 								</Button>
-								<Button variant="outline" className="border-border/50" asChild>
+								<Button variant="outline" className="border-border/40 hover:border-primary/30 transition-all duration-500" asChild>
 									<a href="https://github.com/Signuit/signuit-app" target="_blank" rel="noopener noreferrer">
 										<GitBranchIcon className="size-4 mr-2" />
 										GitHub Repository
@@ -58,17 +59,17 @@ function MvpPage() {
 				</JudgingCard>
 
 				<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-					<Stat value="9" label="Pitch slides" />
-					<Stat value="1,000+" label="Test holdings" />
-					<Stat value="3s" label="CTD compute" />
-					<Stat value="100%" label="Policy compliance" />
+					<Stat value="9" label="Pitch slides" index={1} />
+					<Stat value="1,000+" label="Test holdings" index={2} />
+					<Stat value="3s" label="CTD compute" index={3} />
+					<Stat value="100%" label="Policy compliance" index={4} />
 				</div>
 			</JudgingSection>
 
 			{/* Demo Scenarios */}
 			<JudgingSection title="Demo Scenarios">
-				<JudgingCard title="Scenario 1: Basic Margin Call Routing">
-					<div className="space-y-4">
+				<JudgingCard title="Scenario 1: Basic Margin Call Routing" index={1}>
+					<div className="max-w-prose space-y-4">
 						<Bullet>
 							<strong>Trigger:</strong> PrimeBank issues a $15M margin call to VantageCapital
 						</Bullet>
@@ -90,17 +91,17 @@ function MvpPage() {
 							recommendation trail, timestamp, and approver identity
 						</Bullet>
 					</div>
-					<div className="mt-5 p-4 bg-primary/5 border border-primary/10 rounded-lg flex items-start gap-3">
+					<div className="mt-5 p-4 bg-primary/5 border border-primary/10 rounded-xl flex items-start gap-3 animate-fade-in-up stagger-3">
 						<CheckCircleIcon className="size-5 text-primary shrink-0 mt-0.5" />
-						<span className="text-sm text-muted-foreground leading-relaxed">
+						<span className="text-sm text-muted-foreground leading-[1.7]">
 							<strong className="text-foreground">Result:</strong> 3 seconds vs. 30 minutes. $15M routed. $2,300/day
 							yield preserved. Immutable audit created.
 						</span>
 					</div>
 				</JudgingCard>
 
-				<JudgingCard title="Scenario 2: After-Hours Emergency" className="mt-6">
-					<div className="space-y-4">
+				<JudgingCard title="Scenario 2: After-Hours Emergency" className="mt-6" index={2}>
+					<div className="max-w-prose space-y-4">
 						<Bullet>
 							<strong>Trigger:</strong> 2:47 AM — flash crash triggers $50M margin call
 							from 3 counterparties simultaneously
@@ -118,9 +119,9 @@ function MvpPage() {
 							reviews batch approval, clicks confirm
 						</Bullet>
 					</div>
-					<div className="mt-5 p-4 bg-primary/5 border border-primary/10 rounded-lg flex items-start gap-3">
+					<div className="mt-5 p-4 bg-primary/5 border border-primary/10 rounded-xl flex items-start gap-3 animate-fade-in-up stagger-4">
 						<CheckCircleIcon className="size-5 text-primary shrink-0 mt-0.5" />
-						<span className="text-sm text-muted-foreground leading-relaxed">
+						<span className="text-sm text-muted-foreground leading-[1.7]">
 							<strong className="text-foreground">Result:</strong> All 3 calls resolved in &lt;10 seconds. No overnight
 							team wake-ups. Zero errors.
 						</span>
@@ -130,104 +131,29 @@ function MvpPage() {
 
 			{/* Technical Architecture */}
 			<JudgingSection title="Technical Architecture">
-				<JudgingCard>
+				<JudgingCard index={1}>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-						<div>
-							<div className="flex items-center gap-2 mb-4">
-								<LayersIcon className="size-5 text-muted-foreground" />
-								<h4 className="font-semibold text-foreground">Frontend</h4>
+						{[
+							{ icon: LayersIcon, title: "Frontend", items: ["React 19 + TypeScript", "TanStack Router + Query", "Tailwind CSS + shadcn/ui", "Real-time WebSocket updates"] },
+							{ icon: ZapIcon, title: "Backend", items: ["Bun runtime (high-performance)", "SQLite (bun:sqlite)", "Better Auth (authentication)", "WebSocket server"] },
+							{ icon: ShieldIcon, title: "Blockchain", items: ["Canton Network (sub-transaction privacy)", "Daml smart contracts", "Ledger API integration", "Immutable audit trail"] },
+							{ icon: BoxIcon, title: "Smart Contracts", items: ["CollateralPolicy (institution-controlled)", "CollateralHolding (asset registry)", "MarginCall (counterparty-triggered)", "RoutingSuggestion + AllocationRecord"] },
+						].map((section, i) => (
+							<div key={section.title} className={cn("animate-fade-in-up", `stagger-${Math.min(i + 1, 8)}`)}>
+								<div className="flex items-center gap-2 mb-4">
+									<section.icon className="size-5 text-primary/70" />
+									<h4 className="font-semibold text-foreground">{section.title}</h4>
+								</div>
+								<ul className="space-y-2.5 text-sm text-muted-foreground">
+									{section.items.map((item) => (
+										<li key={item} className="flex items-center gap-2">
+											<CheckCircleIcon className="size-3.5 text-primary" />
+											{item}
+										</li>
+									))}
+								</ul>
 							</div>
-							<ul className="space-y-2.5 text-sm text-muted-foreground">
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									React 19 + TypeScript
-								</li>
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									TanStack Router + Query
-								</li>
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									Tailwind CSS + shadcn/ui
-								</li>
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									Real-time WebSocket updates
-								</li>
-							</ul>
-						</div>
-						<div>
-							<div className="flex items-center gap-2 mb-4">
-								<ZapIcon className="size-5 text-muted-foreground" />
-								<h4 className="font-semibold text-foreground">Backend</h4>
-							</div>
-							<ul className="space-y-2.5 text-sm text-muted-foreground">
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									Bun runtime (high-performance)
-								</li>
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									SQLite (bun:sqlite)
-								</li>
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									Better Auth (authentication)
-								</li>
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									WebSocket server
-								</li>
-							</ul>
-						</div>
-						<div>
-							<div className="flex items-center gap-2 mb-4">
-								<ShieldIcon className="size-5 text-muted-foreground" />
-								<h4 className="font-semibold text-foreground">Blockchain</h4>
-							</div>
-							<ul className="space-y-2.5 text-sm text-muted-foreground">
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									Canton Network (sub-transaction privacy)
-								</li>
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									Daml smart contracts
-								</li>
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									Ledger API integration
-								</li>
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									Immutable audit trail
-								</li>
-							</ul>
-						</div>
-						<div>
-							<div className="flex items-center gap-2 mb-4">
-								<BoxIcon className="size-5 text-muted-foreground" />
-								<h4 className="font-semibold text-foreground">Smart Contracts</h4>
-							</div>
-							<ul className="space-y-2.5 text-sm text-muted-foreground">
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									CollateralPolicy (institution-controlled)
-								</li>
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									CollateralHolding (asset registry)
-								</li>
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									MarginCall (counterparty-triggered)
-								</li>
-								<li className="flex items-center gap-2">
-									<CheckCircleIcon className="size-3.5 text-primary" />
-									RoutingSuggestion + AllocationRecord
-								</li>
-							</ul>
-						</div>
+						))}
 					</div>
 				</JudgingCard>
 			</JudgingSection>
@@ -235,7 +161,10 @@ function MvpPage() {
 			{/* MVP Feature Checklist */}
 			<JudgingSection title="MVP Feature Checklist">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<Card className="border border-border/50 bg-card/30">
+					<Card className={cn(
+						"border border-border/40 bg-card/30 animate-fade-in-up stagger-1",
+						"hover:border-primary/10 transition-all duration-500"
+					)}>
 						<CardContent className="pt-6">
 							<div className="flex items-center gap-2 mb-4">
 								<CheckCircleIcon className="size-5 text-primary" />
@@ -255,7 +184,10 @@ function MvpPage() {
 							</ul>
 						</CardContent>
 					</Card>
-					<Card className="border border-border/50 bg-card/30">
+					<Card className={cn(
+						"border border-border/40 bg-card/30 animate-fade-in-up stagger-2",
+						"hover:border-primary/10 transition-all duration-500"
+					)}>
 						<CardContent className="pt-6">
 							<div className="flex items-center gap-2 mb-4">
 								<TerminalIcon className="size-5 text-muted-foreground" />
@@ -281,94 +213,42 @@ function MvpPage() {
 			{/* Artifacts & Links */}
 			<JudgingSection title="Artifacts & Links">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<Card className="border border-border/50 bg-card/30 hover:bg-card/60 transition-colors">
-						<CardContent className="pt-6">
-							<div className="flex items-start gap-4">
-								<div className="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-									<MonitorIcon className="size-5 text-muted-foreground" />
-								</div>
-								<div>
-									<p className="font-semibold text-foreground mb-1">Live Dashboard</p>
-									<p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-										Interactive demo with real CTD computation, policy checks,
-										and approval workflow.
-									</p>
-									<Button variant="outline" size="sm" className="border-border/50" asChild>
-										<Link to="/dashboard">
-											<ExternalLinkIcon className="size-3 mr-1.5" />
-											Open Dashboard
-										</Link>
-									</Button>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-					<Card className="border border-border/50 bg-card/30 hover:bg-card/60 transition-colors">
-						<CardContent className="pt-6">
-							<div className="flex items-start gap-4">
-								<div className="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-									<GitBranchIcon className="size-5 text-muted-foreground" />
-								</div>
-								<div>
-									<p className="font-semibold text-foreground mb-1">GitHub Repository</p>
-									<p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-										Full source code: Daml smart contracts, React frontend,
-										Nexus Framework integration.
-									</p>
-									<Button variant="outline" size="sm" className="border-border/50" asChild>
-										<a href="https://github.com/Signuit/signuit-app" target="_blank" rel="noopener noreferrer">
-											<ExternalLinkIcon className="size-3 mr-1.5" />
-											View Code
-										</a>
-									</Button>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-					<Card className="border border-border/50 bg-card/30 hover:bg-card/60 transition-colors">
-						<CardContent className="pt-6">
-							<div className="flex items-start gap-4">
-								<div className="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-									<PlayIcon className="size-5 text-muted-foreground" />
-								</div>
-								<div>
-									<p className="font-semibold text-foreground mb-1">Pitch Deck</p>
-									<p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-										9-slide dynamic pitch deck. Navigate with arrow keys.
-										Built with React + Tailwind.
-									</p>
-									<Button variant="outline" size="sm" className="border-border/50" asChild>
-										<Link to="/pitch">
-											<ExternalLinkIcon className="size-3 mr-1.5" />
-											Open Pitch
-										</Link>
-									</Button>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-					<Card className="border border-border/50 bg-card/30 hover:bg-card/60 transition-colors">
-						<CardContent className="pt-6">
-							<div className="flex items-start gap-4">
-								<div className="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-									<TerminalIcon className="size-5 text-muted-foreground" />
-								</div>
-								<div>
-									<p className="font-semibold text-foreground mb-1">Daml Contracts</p>
-									<p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-										Smart contract templates: CollateralRouter.daml,
-										SeedData.daml demo script.
-									</p>
-									<Button variant="outline" size="sm" className="border-border/50" asChild>
-										<a href="https://github.com/Signuit/signuit-app/tree/main/sandbox/daml" target="_blank" rel="noopener noreferrer">
-											<ExternalLinkIcon className="size-3 mr-1.5" />
-											View Contracts
-										</a>
-									</Button>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
+					{[
+						{ icon: MonitorIcon, title: "Live Dashboard", desc: "Interactive demo with real CTD computation, policy checks, and approval workflow.", link: "/dashboard", external: false },
+						{ icon: GitBranchIcon, title: "GitHub Repository", desc: "Full source code: Daml smart contracts, React frontend, Nexus Framework integration.", link: "https://github.com/Signuit/signuit-app", external: true },
+						{ icon: PlayIcon, title: "Pitch Deck", desc: "9-slide dynamic pitch deck. Navigate with arrow keys. Built with React + Tailwind.", link: "/pitch", external: false },
+						{ icon: TerminalIcon, title: "Daml Contracts", desc: "Smart contract templates: CollateralRouter.daml, SeedData.daml demo script.", link: "https://github.com/Signuit/signuit-app/tree/main/sandbox/daml", external: true },
+					].map((item, i) => {
+						const Wrapper = item.external ? "a" : Link;
+						const props = item.external
+							? { href: item.link, target: "_blank", rel: "noopener noreferrer" }
+							: { to: item.link };
+						return (
+							<Card key={item.title} className={cn(
+								"border border-border/40 bg-card/30 animate-fade-in-up",
+								`stagger-${Math.min(i + 1, 8)}`,
+								"hover:bg-card/50 hover:border-primary/15 hover:-translate-y-0.5 transition-all duration-500"
+							)}>
+								<CardContent className="pt-6">
+									<div className="flex items-start gap-4">
+										<div className="size-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+											<item.icon className="size-5 text-primary/70" />
+										</div>
+										<div>
+											<p className="font-semibold text-foreground mb-1">{item.title}</p>
+											<p className="text-sm text-muted-foreground mb-4 leading-[1.7]">{item.desc}</p>
+											<Button variant="outline" size="sm" className="border-border/40 hover:border-primary/30 transition-all duration-500" asChild>
+												<Wrapper {...props}>
+													<ExternalLinkIcon className="size-3 mr-1.5" />
+													{item.external ? "View Code" : "Open"}
+												</Wrapper>
+											</Button>
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+						);
+					})}
 				</div>
 			</JudgingSection>
 		</JudgingLayout>

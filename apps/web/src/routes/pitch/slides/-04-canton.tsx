@@ -50,26 +50,26 @@ export function CantonSlide() {
 			<div className="mt-6 grid grid-cols-2 gap-6">
 				<SlideCard title="Canton Network Growth">
 					<div className="grid grid-cols-2 gap-4">
-						<StatBox value="$6T+" label="Tokenized RWA" />
-						<StatBox value="$4T+" label="Monthly volume" />
-						<StatBox value="$12B+" label="Digital securities" />
-						<StatBox value="$3M" label="Savings per repo participant" />
+						<StatBox value="$10bn+" label="Tokenized Treasuries globally" />
+						<StatBox value="$1.4B" label="Tokenized on Canton (Ctrl Alt)" />
+						<StatBox value="450+" label="Projects in ecosystem" />
+						<StatBox value="0" label="Native routing engines" />
 					</div>
 				</SlideCard>
 
 				<SlideCard title="Key Partnerships">
 					<div className="space-y-3">
 						<BulletPoint>
-							<strong>DTCC</strong> — Tokenizing DTC-custodied Treasuries on Canton (2026)
+							<strong>DTCC</strong> — Exploring tokenization of DTC-custodied securities on Canton
 						</BulletPoint>
 						<BulletPoint>
-							<strong>Digital Asset</strong> — $135M raised for Canton growth
+							<strong>Digital Asset</strong> — $135M raised for Canton ecosystem growth
 						</BulletPoint>
 						<BulletPoint>
 							<strong>Global Synchronizer</strong> — Decentralized interoperability backbone
 						</BulletPoint>
 						<BulletPoint>
-							<strong>Major Banks</strong> — Active pilots for repo and securities lending
+							<strong>Major Banks</strong> — BNP Paribas, Bank of America, Citi in active pilots
 						</BulletPoint>
 					</div>
 				</SlideCard>

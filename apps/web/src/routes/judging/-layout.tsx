@@ -24,7 +24,7 @@ export function JudgingLayout({
 	return (
 		<div className={cn("min-h-screen bg-background antialiased", className)}>
 			{/* Header */}
-			<header className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border/50">
+			<header className="sticky top-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border/40">
 				<div className="mx-auto max-w-6xl px-6 h-14 flex items-center justify-between">
 					<div className="flex items-center gap-4">
 						<Link to="/judging">
@@ -33,14 +33,10 @@ export function JudgingLayout({
 								Back
 							</Button>
 						</Link>
-						<Separator orientation="vertical" className="h-4 bg-border/50" />
+						<Separator orientation="vertical" className="h-4 bg-border/40" />
 						<div className="flex items-center gap-2.5">
-							<img
-								src="/assets/logo.png"
-								alt="SignUIT"
-								className="h-6 w-auto object-contain"
-							/>
-							<span className="text-xs text-muted-foreground">
+							<img src="/assets/logo.png" alt="SignUIT" className="h-5 w-auto object-contain" />
+							<span className="text-[10px] text-muted-foreground uppercase tracking-widest">
 								Judging Panel · {section}
 							</span>
 						</div>
@@ -55,13 +51,13 @@ export function JudgingLayout({
 			</header>
 
 			{/* Content */}
-			<main className="mx-auto max-w-6xl px-6 py-16 md:py-20">
-				<div className="mb-16 md:mb-20">
-					<h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
+			<main className="mx-auto max-w-6xl px-6 py-20 md:py-28">
+				<div className="mb-20 md:mb-28 animate-fade-in">
+					<h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-5 text-balance">
 						{title}
 					</h1>
 					{subtitle && (
-						<p className="text-lg text-muted-foreground max-w-3xl leading-relaxed">
+						<p className="text-lg text-muted-foreground max-w-2xl leading-relaxed text-balance">
 							{subtitle}
 						</p>
 					)}
@@ -70,10 +66,10 @@ export function JudgingLayout({
 			</main>
 
 			{/* Footer */}
-			<footer className="border-t border-border/50">
+			<footer className="border-t border-border/40">
 				<div className="mx-auto max-w-6xl px-6 h-14 flex items-center justify-between text-xs text-muted-foreground">
 					<span>SignUIT CollateralRouter — Hackathon Submission 2026</span>
-					<span>signuit.org</span>
+					<span>signuit.com</span>
 				</div>
 			</footer>
 		</div>
@@ -84,17 +80,21 @@ export function JudgingSection({
 	title,
 	children,
 	className,
+	stagger = false,
 }: {
 	title: string;
 	children: ReactNode;
 	className?: string;
+	stagger?: boolean;
 }) {
 	return (
-		<section className={cn("mb-20 md:mb-24", className)}>
-			<h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-8">
+		<section className={cn("mb-28 md:mb-36", className)}>
+			<h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-10 text-balance">
 				{title}
 			</h2>
-			<div className="space-y-6">{children}</div>
+			<div className={cn("space-y-6", stagger && "stagger-children")}>
+				{children}
+			</div>
 		</section>
 	);
 }
@@ -103,16 +103,24 @@ export function JudgingCard({
 	title,
 	children,
 	className,
+	index = 0,
 }: {
 	title?: string;
 	children: ReactNode;
 	className?: string;
+	index?: number;
 }) {
+	const staggerClass = index > 0 ? `stagger-${Math.min(index, 8)}` : "";
 	return (
-		<Card className={cn("border border-border/50 bg-card/50 backdrop-blur-sm", className)}>
+		<Card className={cn(
+			"border border-border/40 bg-card/40 backdrop-blur-sm animate-fade-in-up",
+			staggerClass,
+			"hover:-translate-y-0.5 hover:border-primary/15 transition-all duration-500",
+			className
+		)}>
 			{title && (
 				<CardHeader className="pb-4">
-					<CardTitle className="text-base font-semibold text-muted-foreground tracking-wide uppercase text-xs">
+					<CardTitle className="text-xs font-semibold text-muted-foreground tracking-widest uppercase">
 						{title}
 					</CardTitle>
 				</CardHeader>
@@ -127,17 +135,23 @@ export function JudgingCard({
 export function Bullet({ children }: { children: ReactNode }) {
 	return (
 		<div className="flex items-start gap-4">
-			<div className="size-1 rounded-full bg-muted-foreground/50 mt-2.5 shrink-0" />
-			<span className="text-muted-foreground leading-relaxed">{children}</span>
+			<div className="size-1 rounded-full bg-muted-foreground/40 mt-2.5 shrink-0" />
+			<span className="text-muted-foreground leading-[1.7]">{children}</span>
 		</div>
 	);
 }
 
-export function Stat({ value, label }: { value: string; label: string }) {
+export function Stat({ value, label, index = 0 }: { value: string; label: string; index?: number }) {
+	const staggerClass = index > 0 ? `stagger-${Math.min(index, 8)}` : "";
 	return (
-		<div className="flex flex-col items-start p-5 bg-card/50 border border-border/50 rounded-lg">
-			<span className="text-3xl font-semibold tracking-tight text-foreground">{value}</span>
-			<span className="text-xs text-muted-foreground mt-1.5 uppercase tracking-wider">{label}</span>
+		<div className={cn(
+			"flex flex-col items-start p-6 bg-card/40 border border-border/40 rounded-xl animate-fade-in-up",
+			staggerClass,
+			"hover:border-primary/10 transition-all duration-500"
+		)}>
+			<span className="text-4xl font-semibold tracking-tighter text-foreground">{value}</span>
+			<div className="w-8 h-px bg-border mt-3 mb-2" />
+			<span className="text-[10px] text-muted-foreground uppercase tracking-widest">{label}</span>
 		</div>
 	);
 }

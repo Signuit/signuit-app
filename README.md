@@ -54,8 +54,7 @@ The platform replaces manual spreadsheet-based workflows that take 30+ minutes w
 
 Institutions managing tokenized assets on Canton still rely on significant human coordination to determine which collateral to deploy, when to substitute it, and how to respond to margin or liquidity needs.
 
-> *"70% of firms report delivery challenges. Operational costs can represent the majority of total trade cost."*
-> — ValueExchange / Canton Network, Jan 2026
+> *"Treasury teams spend hours daily on manual collateral decisions. Errors cost millions. Regulatory pressure is increasing."*
 
 **Current state at most institutions:**
 

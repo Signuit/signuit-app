@@ -10,10 +10,10 @@ export function MarketSlide() {
 			totalSlides={9}
 		>
 			<div className="grid grid-cols-4 gap-4">
-				<StatBox value="$6T+" label="Tokenized RWA on Canton" />
-				<StatBox value="$4T+" label="Monthly tx volume" />
-				<StatBox value="70%" label="Firms with collateral pain" />
-				<StatBox value="$3M" label="Annual savings per participant" />
+				<StatBox value="$10bn+" label="Tokenized Treasuries globally" />
+				<StatBox value="$1.4B" label="Tokenized on Canton (Ctrl Alt)" />
+				<StatBox value="450+" label="Projects in Canton ecosystem" />
+				<StatBox value="0" label="Native routing competitors" />
 			</div>
 
 			<div className="mt-6 grid grid-cols-2 gap-6">
@@ -25,7 +25,7 @@ export function MarketSlide() {
 							</div>
 							<div>
 								<p className="font-semibold">Large Asset Managers</p>
-								<p className="text-sm text-muted-foreground">AUM &gt;$10B, 50-100+ daily margin calls</p>
+								<p className="text-sm text-muted-foreground">AUM &gt;$10B, high daily margin call volume</p>
 							</div>
 						</div>
 						<div className="flex items-start gap-3">
@@ -34,7 +34,7 @@ export function MarketSlide() {
 							</div>
 							<div>
 								<p className="font-semibold">Prime Brokers</p>
-								<p className="text-sm text-muted-foreground">100-200+ calls/day, multi-client management</p>
+								<p className="text-sm text-muted-foreground">Multi-client, very high call volume</p>
 							</div>
 						</div>
 						<div className="flex items-start gap-3">
@@ -43,7 +43,7 @@ export function MarketSlide() {
 							</div>
 							<div>
 								<p className="font-semibold">Hedge Funds</p>
-								<p className="text-sm text-muted-foreground">High-volume derivatives, speed-critical</p>
+								<p className="text-sm text-muted-foreground">Speed-critical, volatility-driven calls</p>
 							</div>
 						</div>
 						<div className="flex items-start gap-3">
@@ -51,8 +51,8 @@ export function MarketSlide() {
 								<GlobeIcon className="size-4 text-primary" />
 							</div>
 							<div>
-								<p className="font-semibold">Clearinghouses & CBDCs</p>
-								<p className="text-sm text-muted-foreground">Systemic risk management, cross-border</p>
+								<p className="font-semibold">Clearinghouses & CCPs</p>
+								<p className="text-sm text-muted-foreground">Systemic risk management, regulatory audit</p>
 							</div>
 						</div>
 					</div>
@@ -61,10 +61,10 @@ export function MarketSlide() {
 				<SlideCard title="Market Timing">
 					<div className="space-y-3">
 						<BulletPoint>
-							<strong>DTCC tokenizing Treasuries</strong> on Canton (2026) — on-chain collateral demand surging
+							<strong>DTCC exploring tokenization</strong> on Canton — on-chain collateral demand surging
 						</BulletPoint>
 						<BulletPoint>
-							<strong>T+5 to T+0</strong> settlement now possible — speed is the new competitive advantage
+							<strong>T+0 settlement now possible</strong> — speed is the new competitive advantage
 						</BulletPoint>
 						<BulletPoint>
 							<strong>71% of Canton developers</strong> come from Ethereum — they expect modern tooling

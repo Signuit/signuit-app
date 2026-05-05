@@ -54,7 +54,7 @@ export function RoadmapSlide() {
 			icon: <CircleIcon className="size-4 text-muted-foreground" />,
 			bg: "bg-muted",
 			items: [
-				"150+ institutions",
+				"50+ institutions (target)",
 				"Chainlink oracle integration",
 				"DAO governance (Phase 3)",
 				"Multi-chain expansion",
@@ -99,12 +99,12 @@ export function RoadmapSlide() {
 										<div className="size-1 rounded-full bg-primary mt-1.5 shrink-0" />
 										<span>{item}</span>
 									</li>
-									))}
-								</ul>
-							</div>
+								))}
+							</ul>
 						</div>
-					))}
-				</div>
+					</div>
+				))}
+			</div>
 		</SlideLayout>
 	);
 }

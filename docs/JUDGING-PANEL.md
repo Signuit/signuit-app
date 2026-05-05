@@ -22,7 +22,7 @@
 
 ### The Problem
 
-**70% of financial institutions report collateral delivery challenges** (ValueExchange / Canton Network, Jan 2026). Treasury teams still rely on Excel spreadsheets, manual phone coordination, and email chains to respond to margin calls — a process that takes **30+ minutes per call**, introduces human error, and creates regulatory blind spots.
+Treasury teams still rely on Excel spreadsheets, manual phone coordination, and email chains to respond to margin calls — a process that takes **30+ minutes per call**, introduces human error, and creates regulatory blind spots.
 
 | Challenge | Impact |
 |-----------|--------|
@@ -34,7 +34,7 @@
 
 ### The Canton Gap
 
-Despite **$6T+ in tokenized real-world assets** on Canton Network and **$4T+ in monthly transaction volume**, there is **no native collateral routing engine**. Institutions managing tokenized treasuries, repos, and stablecoins lack automated, policy-compliant tools to optimize collateral selection in real time.
+Despite **$10bn+ in tokenized Treasuries globally** (Markets Media, Jan 2026) and **trillions in monthly UST repo volume on Canton** (Broadridge DLR), there is **no native collateral routing engine**. Institutions managing tokenized treasuries, repos, and stablecoins lack automated, policy-compliant tools to optimize collateral selection in real time.
 
 ### SignUIT Solution
 
@@ -50,9 +50,9 @@ SignUIT CollateralRouter is a **policy-based collateral routing recommendation e
 
 ### Why This Matters Now
 
-- DTCC is tokenizing DTC-custodied U.S. Treasury securities on Canton (targeted for 2026)
-- $3M+ annual savings per repo participant on Canton Network
-- T+5 to T+0 settlement in under 60 seconds is now possible
+- DTCC is exploring tokenization of DTC-custodied U.S. Treasury securities on Canton
+- Broadridge DLR processes trillions in UST repo monthly on Canton
+- T+0 settlement is now possible on Canton Network
 - Institutions need tooling, not just infrastructure
 
 ---
@@ -124,11 +124,12 @@ Nexus Framework is not just infrastructure for SignUIT — it is a **standalone 
 
 | Evidence | Source |
 |----------|--------|
-| 70% of firms report collateral delivery challenges | ValueExchange / Canton Network, Jan 2026 |
-| $6T+ tokenized real-world assets on Canton | canton.network homepage |
-| $4T+ transaction volume per month on Canton | canton.network homepage |
-| $3M annual savings per repo participant | canton.network homepage |
-| T+5 to T+0 settlement in under 60 seconds | canton.network homepage |
+| $10bn+ tokenized Treasuries globally | Markets Media, Jan 2026 |
+| $1.4B tokenized on Canton (Ctrl Alt) | Ctrl Alt announcement, Apr 2026 |
+| Trillions in monthly UST repo on Canton | Broadridge DLR |
+| 450+ projects in Canton ecosystem | canton.network |
+| T+0 settlement possible on Canton | canton.network |
+| Digital Asset raised $135M for Canton | canton.network news |
 | 41 active Canton developers surveyed (2026) | `referance.md` |
 | 71% of Canton developers come from Ethereum | Canton Developer Survey 2026 |
 | "Typed SDKs" most requested missing tool | Canton Developer Survey 2026 |
@@ -252,7 +253,7 @@ Unlike SaaS subscriptions that create vendor lock-in, a **network fee model** ma
 
 ### Opening Statement (60 seconds)
 
-> "Good morning. We're SignUIT CollateralRouter. 70% of financial institutions report collateral delivery challenges. Manual decisioning takes 30+ minutes per margin call using Excel spreadsheets and phone calls. There's no Canton-native solution for intelligent collateral routing.
+> "Good morning. We're SignUIT CollateralRouter. Treasury teams spend hours daily on manual collateral decisions using Excel spreadsheets and phone calls. There's no Canton-native solution for intelligent collateral routing.
 >
 > Our solution: a recommendation engine that computes optimal collateral in 3 seconds using a Cheapest-to-Deliver algorithm, records the suggestion on Canton, and the ops team approves. Day 1 MVP: human approval required. Phase 2: optional auto-execution. Value: 600x faster decisions, immutable audit trail, and yield preservation. Let me show you how it works."
 
@@ -294,4 +295,4 @@ Unlike SaaS subscriptions that create vendor lock-in, a **network fee model** ma
 
 *SignUIT CollateralRouter — Built on Canton Network.*  
 *Team: https://github.com/Signuit*  
-*Website: https://signuit.org*
+*Website: https://signuit.com*

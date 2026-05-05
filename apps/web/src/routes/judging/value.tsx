@@ -35,10 +35,10 @@ function ValuePage() {
 			{/* The Problem */}
 			<JudgingSection title="The Problem: Collateral Management is Broken">
 				<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-					<Stat value="70%" label="Firms with delivery challenges" />
 					<Stat value="30+" label="Minutes per manual decision" />
-					<Stat value="$6T+" label="Tokenized assets on Canton" />
-					<Stat value="0" label="Native routing engines" />
+					<Stat value="600x" label="Speed improvement with SignUIT" />
+					<Stat value="$10bn+" label="Tokenized Treasuries globally" />
+					<Stat value="0" label="Native routing engines on Canton" />
 				</div>
 
 				<JudgingCard title="Current State: Manual, Error-Prone, Slow">
@@ -65,8 +65,8 @@ function ValuePage() {
 						</Bullet>
 						<Bullet>
 							<strong>Yield leakage:</strong> Without intelligent optimization, institutions
-							inadvertently send yield-bearing assets as collateral, sacrificing thousands
-							of dollars in daily income.
+							inadvertently send yield-bearing assets as collateral, sacrificing daily
+							income that compounds over time.
 						</Bullet>
 					</div>
 				</JudgingCard>
@@ -77,8 +77,8 @@ function ValuePage() {
 						<div>
 							<p className="font-semibold text-destructive/90 mb-2">The Human Cost</p>
 							<p className="text-muted-foreground leading-relaxed">
-								Treasury teams at large asset managers process 50-100+ margin calls per day.
-								At 30 minutes per call, that's <strong className="text-foreground">25-50 hours of manual work daily</strong> —
+								Treasury teams at large asset managers process dozens of margin calls per day.
+								At 30 minutes per call, that adds up to <strong className="text-foreground">hours of manual work daily</strong> —
 								just for collateral selection. Errors cost millions. Regulatory pressure is
 								increasing. There has to be a better way.
 							</p>
@@ -96,11 +96,15 @@ function ValuePage() {
 					</p>
 					<div className="space-y-4">
 						<Bullet>
-							<strong>$6T+ in tokenized assets</strong> on Canton Network (U.S. Treasuries,
+							<strong>Growing tokenized asset volume</strong> on Canton Network (U.S. Treasuries,
 							repos, money market funds, bonds)
 						</Bullet>
 						<Bullet>
-							<strong>$4T+ in monthly transaction volume</strong> — growing rapidly
+							<strong>Broadridge DLR processes trillions in UST repo monthly</strong> on Canton —
+							validating massive institutional transaction demand
+						</Bullet>
+						<Bullet>
+							<strong>450+ projects, apps, and validators</strong> in the Canton ecosystem
 						</Bullet>
 						<Bullet>
 							<strong>Zero native collateral routing engines</strong> exist on Canton
@@ -148,11 +152,11 @@ function ValuePage() {
 							3 seconds vs. 30+ minutes per margin call. Treasury teams reclaim hours daily.
 						</p>
 					</JudgingCard>
-					<JudgingCard title="Zero Opportunity Cost">
+					<JudgingCard title="Yield Preservation">
 						<TrendingUpIcon className="size-6 text-muted-foreground mb-4" />
 						<p className="text-sm text-muted-foreground leading-relaxed">
-							Yield-preserving algorithm sends non-yielding assets first. Saves ~$2,300/day
-							on a $20M portfolio.
+							Yield-preserving algorithm sends non-yielding assets first. Reduces
+							opportunity cost on collateral portfolios.
 						</p>
 					</JudgingCard>
 					<JudgingCard title="Immutable Audit">
@@ -170,19 +174,23 @@ function ValuePage() {
 				<JudgingCard>
 					<div className="space-y-4">
 						<Bullet>
-							<strong>DTCC tokenizing Treasuries on Canton (2026):</strong> On-chain collateral
+							<strong>DTCC exploring tokenization on Canton:</strong> On-chain collateral
 							demand is surging. Institutions need tools to manage it.
 						</Bullet>
 						<Bullet>
-							<strong>T+5 to T+0 settlement now possible:</strong> Speed is the new competitive
+							<strong>Broadridge DLR processes trillions in UST repo monthly on Canton:</strong>
+							Proof of massive institutional transaction volume.
+						</Bullet>
+						<Bullet>
+							<strong>T+0 settlement now possible:</strong> Speed is the new competitive
 							advantage. Manual processes can't keep up.
 						</Bullet>
 						<Bullet>
-							<strong>$3M+ annual savings per repo participant:</strong> Canton Network's own
-							data proves the economic value of on-chain collateral optimization.
+							<strong>Tokenized Treasuries surpass $10bn globally</strong> (Markets Media, Jan 2026):
+							The on-chain collateral market is expanding rapidly.
 						</Bullet>
 						<Bullet>
-							<strong>No competitors:</strong> SignUIT is the first and only Canton-native
+							<strong>No competitors:</strong> SignUIT is the first Canton-native
 							collateral routing engine.
 						</Bullet>
 					</div>

@@ -71,27 +71,27 @@ export function BusinessSlide() {
 			</div>
 
 			<div className="mt-6 p-6 bg-muted/30 rounded-lg border">
-				<h3 className="font-bold text-lg mb-4">Revenue Projection</h3>
+				<h3 className="font-bold text-lg mb-4">Revenue Projection (Forward-Looking)</h3>
 				<div className="grid grid-cols-4 gap-4">
 					<div className="text-center">
 						<p className="text-sm text-muted-foreground mb-1">Q3 2026</p>
 						<p className="text-2xl font-bold">$5-10K</p>
-						<p className="text-xs text-muted-foreground">/month</p>
+						<p className="text-xs text-muted-foreground">/month target</p>
 					</div>
 					<div className="text-center">
 						<p className="text-sm text-muted-foreground mb-1">Q4 2026</p>
 						<p className="text-2xl font-bold">$25-50K</p>
-						<p className="text-xs text-muted-foreground">/month</p>
+						<p className="text-xs text-muted-foreground">/month target</p>
 					</div>
 					<div className="text-center">
 						<p className="text-sm text-muted-foreground mb-1">2027</p>
 						<p className="text-2xl font-bold">$150-300K</p>
-						<p className="text-xs text-muted-foreground">/month</p>
+						<p className="text-xs text-muted-foreground">/month target</p>
 					</div>
 					<div className="text-center">
 						<p className="text-sm text-muted-foreground mb-1">Target</p>
-						<p className="text-2xl font-bold text-primary">150+</p>
-						<p className="text-xs text-muted-foreground">institutions</p>
+						<p className="text-2xl font-bold text-primary">50+</p>
+						<p className="text-xs text-muted-foreground">institutions (projection)</p>
 					</div>
 				</div>
 			</div>
