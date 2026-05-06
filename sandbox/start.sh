@@ -75,7 +75,27 @@ for attempt in 1 2 3 4 5; do
 done
 
 if [ "$UPLOAD_OK" = false ]; then
-  echo "WARNING: DAR upload failed after 5 attempts. Web app will auto-retry on startup."
+  echo "WARNING: DAR upload failed after 5 attempts."
+fi
+
+# Seed flag is tied to the sandbox PID — guarantees re-seed on every fresh start.
+# Old flags from previous runs are cleaned up automatically.
+rm -f /tmp/canton-seeded-* 2>/dev/null || true
+SEED_FLAG="/tmp/canton-seeded-${SANDBOX_PID}"
+
+echo "Running seed script (SeedData:seed_demo_scenario)..."
+SEED_OUT=$($DAML script \
+  --dar "$DAR" \
+  --script-name SeedData:seed_demo_scenario \
+  --ledger-host localhost \
+  --ledger-port 6865 2>&1 \
+  | grep -v "WARNING\|deprecated\|DPM\|dpm.html\|removed in\|disable" || true)
+if echo "$SEED_OUT" | grep -qi "error\|failed\|exception"; then
+  echo "WARNING: Seed script may have failed:"
+  echo "$SEED_OUT" | tail -5
+else
+  echo "Seed script completed successfully."
+  touch "$SEED_FLAG"
 fi
 
 echo "Canton sandbox ready (PID: $SANDBOX_PID)"

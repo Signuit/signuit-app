@@ -34,7 +34,7 @@ import { nexus } from "@/lib/nexus-client";
 import { orpc } from "@/utils/orpc";
 
 // Navigation Items Mapping
-function getNavItemsForRole(role: string) {
+function getNavItemsForRole(role?: string) {
 	const baseItems = [
 		{
 			to: "/dashboard" as const,
@@ -131,7 +131,7 @@ function getNavItemsForRole(role: string) {
 	return baseItems;
 }
 
-function NavMainItems({ role }: { role: string }) {
+function NavMainItems({ role }: { role?: string }) {
 	const items = useMemo(() => getNavItemsForRole(role), [role]);
 
 	return (

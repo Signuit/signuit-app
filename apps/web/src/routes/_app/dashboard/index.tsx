@@ -19,19 +19,16 @@ import {
 	ArrowDownIcon,
 	ArrowRightIcon,
 	ArrowUpIcon,
-	DatabaseIcon,
 	FileTextIcon,
 	ShieldCheckIcon,
 	WalletIcon,
 } from "lucide-react";
 import * as RechartsPrimitive from "recharts";
-import { toast } from "sonner";
 import { useAuthRole } from "@/hooks/use-auth";
 import {
 	useAuditTrail,
 	useHoldings,
 	useMarginCalls,
-	useSeedDemoData,
 	useStats,
 	useSuggestions,
 } from "@/hooks/use-collateral-api";
@@ -848,57 +845,25 @@ function IncomingMarginCallsCard() {
 }
 
 // ─── Welcome ──────────────────────────────────────────────────────────────────
-function WelcomeCard({ userRole }: { userRole: string }) {
-	const { data: holdings, isLoading: holdingsLoading } = useHoldings();
-	const seedMutation = useSeedDemoData();
-	const isEmpty = !holdingsLoading && holdings?.length === 0;
-
+function WelcomeCard({ userRole }: { userRole?: string }) {
 	const titles: Record<string, string> = {
 		institution: "Institution Dashboard",
 		counterparty: "Counterparty Terminal",
 		operator: "Network Control Center",
 	};
 
-	const handleSeed = async () => {
-		try {
-			await seedMutation.mutateAsync(undefined);
-			toast.success("Demo data initialized — POLICY-001 + 3 holdings created on Canton");
-		} catch (err) {
-			toast.error(`Setup failed: ${err instanceof Error ? err.message : "Unknown error"}`);
-		}
-	};
-
 	return (
 		<div className="flex items-center justify-between">
 			<div>
-				<h2 className="text-xl font-bold tracking-tight">{titles[userRole] ?? "Dashboard"}</h2>
+				<h2 className="text-xl font-bold tracking-tight">
+					{userRole ? (titles[userRole] ?? "Dashboard") : "Dashboard"}
+				</h2>
 				<p className="text-muted-foreground/60 text-sm flex items-center gap-1.5 mt-0.5">
 					<ShieldCheckIcon className="size-3 text-emerald-500" />
 					Live from Canton ledger
 				</p>
 			</div>
 			<div className="flex items-center gap-2">
-				{userRole === "institution" && isEmpty && (
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={handleSeed}
-						disabled={seedMutation.isPending}
-						className="border-primary/30 text-primary hover:bg-primary/5"
-					>
-						{seedMutation.isPending ? (
-							<>
-								<div className="mr-2 size-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-								Initializing...
-							</>
-						) : (
-							<>
-								<DatabaseIcon className="mr-2 size-4" />
-								Initialize Demo Data
-							</>
-						)}
-					</Button>
-				)}
 				<Link to="/dashboard/holdings">
 					<Button size="sm" variant="ghost" className="gap-1 text-muted-foreground">
 						Holdings <ArrowRightIcon className="size-3" />
