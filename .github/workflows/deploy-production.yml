@@ -89,6 +89,8 @@ jobs:
         env:
           GIT_COMMIT_HASH: ${{ github.sha }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
@@ -100,9 +102,9 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: GIT_COMMIT_HASH,GITHUB_REPOSITORY_OWNER,DATABASE_URL,TURSO_AUTH_TOKEN,BETTER_AUTH_SECRET,SESSION_SECRET,SANDBOX_SECRET,DOMAIN,ACME_EMAIL
+          envs: GIT_COMMIT_HASH,GITHUB_REPOSITORY_OWNER,GHCR_TOKEN,GHCR_USER,DATABASE_URL,TURSO_AUTH_TOKEN,BETTER_AUTH_SECRET,SESSION_SECRET,SANDBOX_SECRET,DOMAIN,ACME_EMAIL
           script: |
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USER}" --password-stdin
 
             cd /opt/signuit
             git fetch origin
