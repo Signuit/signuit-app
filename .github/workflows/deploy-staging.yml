@@ -1,9 +1,9 @@
 name: Deploy to Staging
 
+# Şu an devre dışı — tek sunucu var, production yeterli
+# Staging sunucu eklendiğinde aktif edilecek
 on:
-  push:
-    branches:
-      - staging
+  workflow_dispatch: # Sadece manuel tetiklenebilir
 
 permissions:
   contents: read
