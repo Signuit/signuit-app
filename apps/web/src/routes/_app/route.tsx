@@ -5,6 +5,15 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { ensureSession } from "@/functions/ensure-session";
 
 export const Route = createFileRoute("/_app")({
+	ssr: false,
+	head: () => ({
+		meta: [
+			{
+				name: "robots",
+				content: "noindex, nofollow",
+			},
+		],
+	}),
 	component: AppLayout,
 	beforeLoad: async () => {
 		const session = await ensureSession();

@@ -33,8 +33,22 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 				content:
 					"SignUIT is a policy-based collateral routing recommendation engine on Canton Network, enabling institutional-grade efficiency with human-in-the-loop oversight.",
 			},
+			{
+				name: "robots",
+				content: "index, follow",
+			},
 		],
-		links: [],
+		links: [
+			{
+				rel: "icon",
+				href: "/assets/logo.png",
+				type: "image/png",
+			},
+			{
+				rel: "apple-touch-icon",
+				href: "/assets/logo.png",
+			},
+		],
 	}),
 
 	component: RootDocument,
