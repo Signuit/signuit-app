@@ -4,195 +4,181 @@ import Daml.Script
 import CollateralRouter
 import DA.Time
 import DA.Date
+import DA.List (head)
+import DA.Action (when)
 
+-- | Input: pre-resolved party IDs passed via --input-file JSON
+data SeedInput = SeedInput
+  { operatorId     : Party
+  , institutionId  : Party
+  , counterpartyId : Party
+  } deriving (Show)
+
+-- | Idempotent seed — accepts party IDs externally so no allocateParty is needed.
+seed_with_parties : SeedInput -> Script ()
+seed_with_parties input = script do
+  let operator     = input.operatorId
+      institution  = input.institutionId
+      counterparty = input.counterpartyId
+      now          = time (date 2026 Apr 22) 14 30 0
+
+  debug "=== SignUIT CollateralRouter Demo Seed ==="
+
+  -- Step 1: Onboarding
+  existingAgreements <- query @ServiceAgreement institution
+  when (null existingAgreements) $ do
+    joinRequestCid <- submit institution do
+      createCmd JoinRequest with
+        applicant     = institution
+        operator      = operator
+        companyName   = "Vantage Capital Ltd"
+        companyId     = "VC-REG-2024-001"
+        requestedTier = "standard"
+        contactEmail  = "ops@vantage.capital"
+        submittedAt   = now
+        status        = OnboardingPending
+    let initialPolicy = CollateralPolicy with
+          operator          = operator
+          institution       = institution
+          policyId          = "POLICY-001"
+          ruleType          = CTD
+          priorityList      = ["USYC", "UST", "USDC"]
+          minLtv            = 0.95
+          maxHaircut        = 0.10
+          counterpartyRules = [("PrimeBank", ["USYC", "UST", "USDC"])]
+          autoApprove       = False
+          notificationEmail = Some "ops@vantage.capital"
+          active            = True
+          createdAt         = now
+    submitMulti [operator] [institution] do
+      exerciseCmd joinRequestCid AcceptRequest with
+        agreementId    = "SVC-001"
+        approvedPolicy = initialPolicy
+    debug "ServiceAgreement created"
+
+  -- Step 2: Standalone CollateralPolicy (requires operator + institution)
+  existingPolicies <- query @CollateralPolicy institution
+  when (null existingPolicies) $ do
+    submitMulti [operator, institution] [] do
+      createCmd CollateralPolicy with
+        operator          = operator
+        institution       = institution
+        policyId          = "POLICY-001"
+        ruleType          = CTD
+        priorityList      = ["USYC", "UST", "USDC"]
+        minLtv            = 0.95
+        maxHaircut        = 0.10
+        counterpartyRules = [("PrimeBank", ["USYC", "UST", "USDC"])]
+        autoApprove       = False
+        notificationEmail = Some "ops@vantage.capital"
+        active            = True
+        createdAt         = now
+    debug "CollateralPolicy created"
+
+  -- Step 3: Asset Metadata
+  existingMeta <- query @CollateralAssetMetadata operator
+  when (null existingMeta) $ do
+    submit operator do
+      createCmd CollateralAssetMetadata with
+        operator = operator; assetSymbol = "USDC"
+        currentYield = 0.0; haircut = 0.0; eligible = True; updatedAt = now
+    submit operator do
+      createCmd CollateralAssetMetadata with
+        operator = operator; assetSymbol = "USYC"
+        currentYield = 0.045; haircut = 0.02; eligible = True; updatedAt = now
+    submit operator do
+      createCmd CollateralAssetMetadata with
+        operator = operator; assetSymbol = "UST"
+        currentYield = 0.042; haircut = 0.05; eligible = True; updatedAt = now
+    debug "Asset metadata created"
+
+  -- Step 4: Holdings
+  existingHoldings <- query @CollateralHolding institution
+  when (null existingHoldings) $ do
+    submit institution do
+      createCmd CollateralHolding with
+        operator = operator; holdingId = "HOLD-USYC-001"
+        institution = institution; asset = "USYC"
+        amount = 8200000.0; yield = 0.045; haircut = 0.02; expiry = None
+    submit institution do
+      createCmd CollateralHolding with
+        operator = operator; holdingId = "HOLD-UST-001"
+        institution = institution; asset = "UST"
+        amount = 12000000.0; yield = 0.042; haircut = 0.05; expiry = None
+    submit institution do
+      createCmd CollateralHolding with
+        operator = operator; holdingId = "HOLD-USDC-001"
+        institution = institution; asset = "USDC"
+        amount = 25000000.0; yield = 0.0; haircut = 0.0; expiry = None
+    debug "Holdings created"
+
+  -- Step 5: Margin Call
+  existingCalls <- query @MarginCall institution
+  marginCallCid <-
+    if null existingCalls
+      then do
+        cid <- submit counterparty do
+          createCmd MarginCall with
+            callId         = "MC-4821"
+            operator       = operator
+            institution    = institution
+            counterparty   = counterparty
+            amountRequired = 15000000.0
+            currency       = "USD"
+            dueBy          = time (date 2026 Apr 22) 16 0 0
+            status         = RoutePending
+            createdAt      = time (date 2026 Apr 22) 15 47 0
+        debug "MarginCall created"
+        return cid
+      else do
+        debug "MarginCall exists, skipping"
+        return (fst (head existingCalls))
+
+  -- Step 6: Routing Suggestion
+  existingSuggestions <- query @RoutingSuggestion institution
+  routingCid <-
+    if null existingSuggestions
+      then do
+        cid <- submit institution do
+          createCmd RoutingSuggestion with
+            routeId                  = "ROUTE-001"
+            institution              = institution
+            operator                 = operator
+            counterparty             = Some counterparty
+            marginCallId             = "MC-4821"
+            amountRequired           = 15000000.0
+            suggestedAssets          = ["USYC", "UST"]
+            suggestedAmounts         = [8000000.0, 7000000.0]
+            estimatedOpportunityCost = 15000.0
+            opportunityCostBps       = 10.0
+            alternativeOptions       = [RoutingOption with assets = ["USDC"]; amounts = [15000000.0]; savings = 0.0; label = "USDC fallback"]
+            expiryWarnings           = []
+            explanation              = "CTD routing: USYC ($8M @ 4.5%) + UST ($7M @ 4.2%) = $15M net after haircuts"
+            status                   = RoutePending
+            createdAt                = time (date 2026 Apr 22) 15 50 0
+        debug "RoutingSuggestion created"
+        return cid
+      else do
+        debug "RoutingSuggestion exists, skipping"
+        return (fst (head existingSuggestions))
+
+  -- Step 7: Approve
+  existingAllocations <- query @AllocationRecord institution
+  when (null existingAllocations) $ do
+    submit institution do
+      exerciseCmd routingCid ApproveSuggestion with approvedBy = institution
+    debug "AllocationRecord created"
+
+  debug "=== Seed complete ==="
+  return ()
+
+-- | Legacy entry point — allocates fresh parties (only works on empty ledger)
 seed_demo_scenario : Script ()
 seed_demo_scenario = script do
-  debug "=== SignUIT CollateralRouter Multi-Party Demo ==="
-  debug "Flow: Institution applies → Operator accepts → Routing executes"
-  
-  operator <- allocateParty "SignUIT"
-  institution <- allocateParty "VantageCapital"
-  counterparty <- allocateParty "PrimeBank"
-  
-  debug "Parties: SignUIT (operator), VantageCapital (institution), PrimeBank (counterparty)"
-  
-  let now = time (date 2026 Apr 22) 14 30 0
-
-  -- ─────────────────────────────────────────────────────────────────────────────
-  -- Step 1: ONBOARDING - Institution applies, Operator accepts
-  -- ─────────────────────────────────────────────────────────────────────────────
-  
-  joinRequestCid <- submit institution do
-    createCmd JoinRequest with
-      applicant = institution
-      operator = operator
-      companyName = "Vantage Capital Ltd"
-      companyId = "VC-REG-2024-001"
-      requestedTier = "standard"
-      contactEmail = "ops@vantage.capital"
-      submittedAt = now
-      status = OnboardingPending
-  
-  debug "VantageCapital submitted JoinRequest"
-  
-  let initialPolicy = CollateralPolicy with
-        operator = operator
-        institution = institution
-        policyId = "POLICY-001"
-        ruleType = CTD
-        priorityList = ["USYC", "UST", "USDC"]
-        minLtv = 0.95
-        maxHaircut = 0.10
-        counterpartyRules = [("PrimeBank", ["USYC", "UST", "USDC"])]
-        autoApprove = False
-        notificationEmail = Some "ops@vantage.capital"
-        active = True
-        createdAt = now
-
-  -- operator acts-as, institution read-as (contract visible from institution's perspective)
-  agreementCid <- submitMulti [operator] [institution] do
-    exerciseCmd joinRequestCid AcceptRequest with
-      agreementId = "SVC-001"
-      approvedPolicy = initialPolicy
-  
-  debug "SignUIT accepted → ServiceAgreement created"
-
-  -- Create a standalone CollateralPolicy contract so the web app can query it directly
-  submit institution do
-    createCmd CollateralPolicy with
-      operator = operator
-      institution = institution
-      policyId = "POLICY-001"
-      ruleType = CTD
-      priorityList = ["USYC", "UST", "USDC"]
-      minLtv = 0.95
-      maxHaircut = 0.10
-      counterpartyRules = [("PrimeBank", ["USYC", "UST", "USDC"])]
-      autoApprove = False
-      notificationEmail = Some "ops@vantage.capital"
-      active = True
-      createdAt = now
-
-  debug "CollateralPolicy created as standalone contract"
-  
-  -- ─────────────────────────────────────────────────────────────────────────────
-  -- Step 2: ASSET METADATA (Operator creates, all can query)
-  -- ─────────────────────────────────────────────────────────────────────────────
-  
-  submit operator do
-    createCmd CollateralAssetMetadata with
-      operator = operator; assetSymbol = "USDC"
-      currentYield = 0.0; haircut = 0.0; eligible = True; updatedAt = now
-  
-  submit operator do
-    createCmd CollateralAssetMetadata with
-      operator = operator; assetSymbol = "USYC"
-      currentYield = 0.045; haircut = 0.02; eligible = True; updatedAt = now
-  
-  submit operator do
-    createCmd CollateralAssetMetadata with
-      operator = operator; assetSymbol = "UST"
-      currentYield = 0.042; haircut = 0.05; eligible = True; updatedAt = now
-  
-  debug "Asset metadata created by SignUIT"
-  
-  -- ─────────────────────────────────────────────────────────────────────────────
-  -- Step 3: COLLATERAL HOLDINGS (Institution-only signatory)
-  -- ─────────────────────────────────────────────────────────────────────────────
-  
-  submit institution do
-    createCmd CollateralHolding with
-      operator = operator
-      holdingId = "HOLD-USYC-001"
-      institution = institution
-      asset = "USYC"
-      amount = 8200000.0
-      yield = 0.045
-      haircut = 0.02
-      expiry = None
-  
-  submit institution do
-    createCmd CollateralHolding with
-      operator = operator
-      holdingId = "HOLD-UST-001"
-      institution = institution
-      asset = "UST"
-      amount = 12000000.0
-      yield = 0.042
-      haircut = 0.05
-      expiry = None
-  
-  submit institution do
-    createCmd CollateralHolding with
-      operator = operator
-      holdingId = "HOLD-USDC-001"
-      institution = institution
-      asset = "USDC"
-      amount = 25000000.0
-      yield = 0.0
-      haircut = 0.0
-      expiry = None
-  
-  debug "Collateral holdings created by VantageCapital (institution-only)"
-  
-  -- ─────────────────────────────────────────────────────────────────────────────
-  -- Step 4: MARGIN CALL (Counterparty initiates, Institution observes)
-  -- ─────────────────────────────────────────────────────────────────────────────
-  
-  marginCallCid <- submit counterparty do
-    createCmd MarginCall with
-      callId = "MC-4821"
-      operator = operator
-      institution = institution
-      counterparty = counterparty
-      amountRequired = 15000000.0
-      currency = "USD"
-      dueBy = time (date 2026 Apr 22) 16 0 0
-      status = RoutePending
-      createdAt = time (date 2026 Apr 22) 15 47 0
-  
-  debug "PrimeBank created MarginCall → VantageCapital sees it"
-  
-  -- ─────────────────────────────────────────────────────────────────────────────
-  -- Step 5: ROUTING SUGGESTION (Institution-only signatory)
-  -- ─────────────────────────────────────────────────────────────────────────────
-  
-  routingCid <- submit institution do
-    createCmd RoutingSuggestion with
-      routeId = "ROUTE-001"
-      institution = institution
-      operator = operator
-      counterparty = Some counterparty
-      marginCallId = "MC-4821"
-      amountRequired = 15000000.0
-      suggestedAssets = ["USYC", "UST"]
-      suggestedAmounts = [8000000.0, 7000000.0]
-      estimatedOpportunityCost = 15000.0
-      opportunityCostBps = 10.0
-      alternativeOptions = [RoutingOption with assets = ["USDC"]; amounts = [15000000.0]; savings = 0.0; label = "USDC fallback"]
-      expiryWarnings = []
-      explanation = "CTD routing: USYC ($8M @ 4.5%) + UST ($7M @ 4.2%) = $15M net after haircuts"
-      status = RoutePending
-      createdAt = time (date 2026 Apr 22) 15 50 0
-  
-  debug "RoutingSuggestion created by VantageCapital"
-  
-  -- ─────────────────────────────────────────────────────────────────────────────
-  -- Step 6: INSTITUTION APPROVES (Institution-only decision)
-  -- ─────────────────────────────────────────────────────────────────────────────
-  
-  submit institution do
-    exerciseCmd routingCid ApproveSuggestion with approvedBy = institution
-  
-  debug "VantageCapital approved → AllocationRecord created"
-  debug "=== Demo seed complete ==="
-  debug ""
-  debug "Flow Summary:"
-  debug "  1. Institution applies (JoinRequest)"
-  debug "  2. Operator accepts (ServiceAgreement)"
-  debug "  3. Institution creates holdings (CollateralHolding)"
-  debug "  4. Counterparty issues margin call (MarginCall)"
-  debug "  5. Institution creates routing suggestion (RoutingSuggestion)"
-  debug "  6. Institution approves (AllocationRecord) ← SOLE DECISION"
-  
-  return ()
+  operator     <- allocatePartyByHint (PartyIdHint "SignUIT")
+  institution  <- allocatePartyByHint (PartyIdHint "VantageCapital")
+  counterparty <- allocatePartyByHint (PartyIdHint "PrimeBank")
+  seed_with_parties SeedInput with
+    operatorId     = operator
+    institutionId  = institution
+    counterpartyId = counterparty

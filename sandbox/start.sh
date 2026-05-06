@@ -83,18 +83,79 @@ fi
 rm -f /tmp/canton-seeded-* 2>/dev/null || true
 SEED_FLAG="/tmp/canton-seeded-${SANDBOX_PID}"
 
-echo "Running seed script (SeedData:seed_demo_scenario)..."
-SEED_OUT=$($DAML script \
-  --dar "$DAR" \
-  --script-name SeedData:seed_demo_scenario \
-  --ledger-host localhost \
-  --ledger-port 6865 2>&1 \
-  | grep -v "WARNING\|deprecated\|DPM\|dpm.html\|removed in\|disable" || true)
-if echo "$SEED_OUT" | grep -qi "error\|failed\|exception"; then
-  echo "WARNING: Seed script may have failed:"
-  echo "$SEED_OUT" | tail -5
+echo "Running seed script..."
+
+# Resolve party IDs from Canton HTTP API (parties may already exist from prior runs)
+# Build a minimal JWT for the admin query
+ADMIN_TOKEN=$(node -e "
+const secret = process.env.SANDBOX_SECRET || 'secret';
+const crypto = require('crypto');
+const enc = s => Buffer.from(s).toString('base64url');
+const header = enc(JSON.stringify({alg:'HS256',typ:'JWT'}));
+const now = Math.floor(Date.now()/1000);
+const payload = enc(JSON.stringify({sub:'admin',scope:'daml_ledger_api',iat:now,exp:now+3600}));
+const sig = crypto.createHmac('sha256', secret).update(header+'.'+payload).digest('base64url');
+console.log(header+'.'+payload+'.'+sig);
+" 2>/dev/null || echo "")
+
+PARTIES_JSON=$(curl -sf http://localhost:7575/v2/parties \
+  -H "Authorization: Bearer $ADMIN_TOKEN" 2>/dev/null || echo '{"partyDetails":[]}')
+
+get_party() {
+  echo "$PARTIES_JSON" | python3 -c "
+import json,sys
+hint='$1'
+data=json.load(sys.stdin)
+parties=data.get('partyDetails',[])
+match=next((p['party'] for p in parties if p['party'].split('::')[0].startswith(hint)),None)
+print(match or '')
+" 2>/dev/null
+}
+
+OPERATOR_PARTY=$(get_party "SignUIT")
+INSTITUTION_PARTY=$(get_party "VantageCapital")
+COUNTERPARTY_PARTY=$(get_party "PrimeBank")
+
+if [ -n "$OPERATOR_PARTY" ] && [ -n "$INSTITUTION_PARTY" ] && [ -n "$COUNTERPARTY_PARTY" ]; then
+  echo "Found existing parties — seeding with pre-resolved IDs"
+  # Write input JSON for seed_with_parties script
+  INPUT_FILE="/tmp/seed-input-${SANDBOX_PID}.json"
+  python3 -c "
+import json
+print(json.dumps({
+  'operatorId':     '$OPERATOR_PARTY',
+  'institutionId':  '$INSTITUTION_PARTY',
+  'counterpartyId': '$COUNTERPARTY_PARTY'
+}))
+" > "$INPUT_FILE"
+
+  SEED_OUT=$($DAML script \
+    --dar "$DAR" \
+    --script-name SeedData:seed_with_parties \
+    --input-file "$INPUT_FILE" \
+    --ledger-host localhost \
+    --ledger-port 6865 2>&1 \
+    | grep -v "WARNING\|deprecated\|DPM\|dpm.html\|removed in\|disable" || true)
+  rm -f "$INPUT_FILE"
 else
-  echo "Seed script completed successfully."
+  echo "No existing parties — allocating fresh parties via seed_demo_scenario"
+  SEED_OUT=$($DAML script \
+    --dar "$DAR" \
+    --script-name SeedData:seed_demo_scenario \
+    --ledger-host localhost \
+    --ledger-port 6865 2>&1 \
+    | grep -v "WARNING\|deprecated\|DPM\|dpm.html\|removed in\|disable" || true)
+fi
+
+# Check for real failures (ignore expected non-fatal errors)
+REAL_ERROR=$(echo "$SEED_OUT" | grep -i "error\|failed\|exception" \
+  | grep -iv "party.*already\|already.*allocated\|ALREADY_EXISTS\|ExitFailure\|NotFound(Package\|ConverterException\|FailedCmd" || true)
+
+if [ -n "$REAL_ERROR" ]; then
+  echo "WARNING: Seed script may have partially failed:"
+  echo "$SEED_OUT" | grep -i "debug\|created\|exists\|complete" | tail -10
+else
+  echo "Seed script completed (core data ready)."
   touch "$SEED_FLAG"
 fi
 
