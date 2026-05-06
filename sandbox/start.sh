@@ -14,11 +14,12 @@ pkill -f "daml sandbox" 2>/dev/null || true
 pkill -f "CantonCommunityApp" 2>/dev/null || true
 sleep 2
 
-# Build if DAR doesn't exist
-if [ ! -f "$DAR" ]; then
-  echo "Building DAML..."
-  $DAML build
-fi
+# Always rebuild DAR and regenerate JS codegen so package ID stays in sync
+echo "Building DAML..."
+$DAML build
+
+echo "Regenerating JS codegen..."
+$DAML codegen js "$DAR" -o daml.js 2>&1 | grep -v "WARNING\|deprecated\|DPM\|dpm.html\|removed in\|disable\|Skipping\|Generating"
 
 # Start sandbox
 SANDBOX_LOG="/tmp/canton-sandbox.log"
