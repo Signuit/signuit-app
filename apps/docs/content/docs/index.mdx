@@ -1,91 +1,87 @@
 ---
 title: Introduction
-description: A modular, plugin-based SDK for building Canton Ledger dApps with React and TanStack Query. Powering SignUIT — institutional collateral routing on Canton Network.
+description: Nexus Framework — a type-safe SDK for building Canton dApps. Built to power SignUIT, open for everyone.
 icon: BookOpen
 ---
 
-**Nexus Framework** is a modular SDK that bridges the Canton JSON Ledger API v2 with the modern React ecosystem. Inspired by [better-auth](https://better-auth.com), every capability is a **plugin** — auth strategies, query hooks, and real-time streaming are all opt-in and composable.
+**Nexus Framework** connects the Canton JSON Ledger API v2 to React and TanStack Query. It is the infrastructure [SignUIT](https://signuit.com) is built on — a production multi-party collateral routing application running on Canton Network.
 
-<Callout type="info">
-  Nexus Framework powers **[SignUIT](https://signuit.com)** — a policy-based collateral routing engine running on Canton Network. The examples throughout this documentation use SignUIT's real Daml templates (`CollateralHolding`, `MarginCall`, `AllocationRecord`) alongside generic examples so you can see how the framework works in a production context.
-</Callout>
+---
+
+## The problem it solves
+
+Building a Canton dApp means dealing with three recurring headaches before you can write a single line of product code:
+
+**Auth is complicated.** Should you use Sandbox HMAC256, JWT, or OIDC? How do you refresh tokens automatically? How do you resolve a userId to a Canton partyId? Each of these has a different answer depending on your environment, and they all need wiring.
+
+**Types disappear at the boundary.** Every time you query a contract, you have to manually write a generic type parameter and copy-paste a templateId string. If the Daml template changes, nothing tells you — runtime errors only.
+
+**The browser-to-Canton bridge is non-trivial.** Canton tokens should never live in the browser. You need a server proxy, a session layer, and a way to scope requests to the right party per user.
+
+Nexus Framework solves all three — once, at setup time.
+
+---
+
+## How it works
+
+You register your Daml generated types once:
+
+```ts title="lib/nexus-types.ts"
+import { CollateralHolding, MarginCall, RoutingSuggestion } from '@daml.js/your-package/lib/Module';
+
+export const nexusTypes = { CollateralHolding, MarginCall, RoutingSuggestion };
+```
+
+Pass them to the client:
+
+```ts title="lib/nexus-client.ts"
+export const nexus = createNexusClient({
+  baseUrl: '/api/ledger',
+  plugins: [authPlugin(), tanstackQueryPlugin(), nexusTypes],
+});
+```
+
+And from that point on, every contract query across your entire app is one line — fully typed, no strings, no generics:
+
+```tsx
+const { data } = nexus.types.CollateralHolding.useContracts();
+const { mutate } = nexus.types.RoutingSuggestion.useExercise('ApproveSuggestion');
+```
+
+If a Daml template field gets renamed, TypeScript catches it at compile time. Before it reaches production.
+
+---
 
 ## Packages
 
 <Cards>
-  <Card title="@nexus-framework/core" href="/docs/getting-started/quick-start" description="Canton HTTP client, plugin registry, auth plugins (sandbox, JWT, OIDC), contract queries, commands." />
-  <Card title="@nexus-framework/react" href="/docs/react/setup" description="createNexusClient, tanstackQueryPlugin, streamingPlugin, SSR prefetch, Server Actions." />
+  <Card title="@nexus-framework/core" href="/docs/core/client" description="Canton HTTP client, auth plugins (sandbox, JWT, OIDC), contract queries, command submission, session management." />
+  <Card title="@nexus-framework/react" href="/docs/react/setup" description="createNexusClient, tanstackQueryPlugin, streamingPlugin, typed namespaces, SSR prefetch, server adapters." />
 </Cards>
 
-## Architecture
+---
 
-```
-Your App (React / Next.js / TanStack Start)
-       │
-       ▼
-createNexusClient({ plugins: [sandboxAuth(), tanstackQueryPlugin(), streamingPlugin()] })
-       │
-       ▼
-@nexus-framework/core   ← CantonClient, ContractQuery, CommandSubmitter
-       │
-       ▼
-Canton JSON Ledger API v2
-```
+## What you get
 
-## Features
+| Feature | What it means in practice |
+|---------|--------------------------|
+| **Plugin-based auth** | One line to switch from sandbox to JWT to OIDC. Token refresh is automatic. |
+| **Typed namespaces** | Register your Daml codegen once. Every query, mutation, and fetch is fully typed forever. |
+| **Auto cache invalidation** | After a mutation, every affected `useContracts` refetches automatically. No manual `invalidateQueries`. |
+| **Real-time streaming** | `useStreamContracts` opens a WebSocket and keeps your UI in sync with zero polling delay. |
+| **Session management** | AES-GCM encrypted HttpOnly cookies. Auth endpoints created in one call. |
+| **SSR prefetch** | Populate the TanStack Query cache on the server. Client components render without a loading state. |
+| **PQS support** | Read directly from PostgreSQL via Canton's Participant Query Store — up to 50× faster than ACS polling for dashboards. |
 
-| Feature | Description |
-|---------|-------------|
-| **Plugin-based auth** | `sandboxAuth()`, `jwtAuth()`, `oidcAuth()` — swap without touching your app code |
-| **Contract queries** | Typed ACS queries, pagination, `fetchContractByKey`, Daml interface views |
-| **Choice return values** | `exerciseAndGetResult<TResult>()` — typed Daml return values |
-| **TanStack Query** | `tanstackQueryPlugin()` adds `useContracts`, `useInterface`, `useExerciseAndGetResult` and more |
-| **Real-time streaming** | `streamingPlugin()` adds `useStreamContracts` — live WebSocket ACS updates |
-| **SSR prefetch** | `prefetchContracts` + `HydrationBoundary` for Next.js and TanStack Start |
-| **Type-safe** | Zod-validated API responses, full TypeScript inference |
+---
 
-## How SignUIT uses Nexus Framework
+## Built on SignUIT
 
-[SignUIT](https://signuit.com) is a multi-party collateral routing application where:
+[SignUIT](https://signuit.com) is a three-party collateral routing application — VantageCapital (institution), PrimeBank (counterparty), and SignUIT (operator). Every ownership rule is enforced at the Daml level. Nexus Framework is what makes the React layer connect to that ledger cleanly.
 
-- **VantageCapital** (institution) owns `CollateralHolding` contracts and approves routing decisions
-- **PrimeBank** (counterparty) issues `MarginCall` commands
-- **SignUIT** (operator) observes all contracts but never gates institution-owned approvals
+The SignUIT section of these docs walks through the real architecture and full workflow end to end:
 
-```ts title="apps/web/src/lib/nexus-client.ts"
-import { createNexusClient, sandboxAuth, tanstackQueryPlugin, streamingPlugin } from '@nexus-framework/react';
-
-export const nexus = createNexusClient({
-  baseUrl: process.env.CANTON_API_URL,
-  plugins: [
-    sandboxAuth({ secret: process.env.SANDBOX_SECRET, userId: 'vantage', partyId: process.env.PARTY_ID }),
-    tanstackQueryPlugin(),
-    streamingPlugin(),
-  ],
-});
-```
-
-From there, querying the institution's active holdings is a single hook call:
-
-```tsx title="CollateralDashboard.tsx"
-import { nexus } from '@/lib/nexus-client';
-import type { CollateralHolding } from '@daml.js/nexus-example-0.0.1/lib/CollateralRouter';
-
-export function CollateralDashboard() {
-  const { data } = nexus.useContracts<CollateralHolding>({
-    templateId: 'nexus-example-0.0.1:CollateralRouter:CollateralHolding',
-  });
-
-  return (
-    <ul>
-      {data?.contracts.map((c) => (
-        <li key={c.contractId}>
-          {c.payload.assetType} — {c.payload.quantity} units
-        </li>
-      ))}
-    </ul>
-  );
-}
-```
-
-See [Contracts: Querying](/docs/contracts/querying) and [React: Hooks](/docs/react/hooks) for full API reference with SignUIT examples.
+<Cards>
+  <Card title="SignUIT Overview" href="/docs/signuit/overview" description="Multi-party ownership model, the operator-as-infrastructure principle, and how each layer maps to Nexus Framework." />
+  <Card title="Collateral Workflow" href="/docs/signuit/collateral-workflow" description="Step-by-step from JoinRequest to AllocationRecord — every template, every party, every hook." />
+</Cards>

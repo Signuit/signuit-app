@@ -1,0 +1,182 @@
+---
+title: Collateral Workflow
+description: The complete SignUIT workflow from JoinRequest to AllocationRecord — every template, every party, and the Nexus Framework hook for each step.
+icon: GitBranch
+---
+
+A collateral routing operation in SignUIT passes through six Daml templates. At each step, the ownership model determines who can create the contract, who can see it, and who controls it. Nexus Framework maps each step to a single hook call.
+
+```
+JoinRequest → ServiceAgreement → CollateralHolding + CollateralPolicy
+                                          ↓
+                                    MarginCall  (counterparty issues)
+                                          ↓
+                                  RoutingSuggestion  (institution proposes)
+                                          ↓
+                                   AllocationRecord  (institution approves)
+```
+
+---
+
+## 1. Onboarding — JoinRequest → ServiceAgreement
+
+VantageCapital submits a `JoinRequest` to signal they want to join the network. SignUIT (the operator) accepts it, which atomically creates a `ServiceAgreement` on the ledger.
+
+**Daml:** `signatory applicant` — institution creates. `AcceptRequest` controller: `operator`.
+
+```tsx
+// VantageCapital's onboarding button
+const { mutate } = nexus.types.JoinRequest.useCreate();
+
+mutate({
+  createArguments: {
+    applicant: institutionPartyId,
+    operator:  operatorPartyId,
+    status:    { tag: 'Pending', value: {} },
+  },
+  actAs: [institutionPartyId],
+});
+```
+
+The SignUIT backend processes `AcceptRequest` automatically — the new `ServiceAgreement` is written to the ledger without any additional action from the institution.
+
+---
+
+## 2. Register collateral — CollateralHolding
+
+Once the `ServiceAgreement` exists, VantageCapital registers their assets on the ledger.
+
+**Daml:** `signatory institution`, `observer operator` — the operator can read this contract but cannot modify it in any way.
+
+```tsx
+const { mutate } = nexus.types.CollateralHolding.useCreate();
+
+mutate({
+  createArguments: {
+    institution: institutionPartyId,
+    operator:    operatorPartyId,
+    assetId:     'UST_10Y',
+    quantity:    '10000000',
+    currency:    'USD',
+    custodian:   'JPMorgan',
+  },
+  actAs: [institutionPartyId], // institution signs alone
+});
+```
+
+---
+
+## 3. Margin call — PrimeBank issues
+
+PrimeBank creates a `MarginCall`. VantageCapital and the operator are observers — they can see the call but cannot act on it directly.
+
+**Daml:** `signatory counterparty`, `observer institution, operator`
+
+```tsx
+// Runs under PrimeBank's session (counterparty party)
+const { mutate } = nexus.types.MarginCall.useCreate();
+
+mutate({
+  createArguments: {
+    counterparty: counterpartyPartyId,
+    institution:  institutionPartyId,
+    operator:     operatorPartyId,
+    callAmount:   '2000000',
+    currency:     'USD',
+    dueDate:      '2026-06-01',
+  },
+  actAs: [counterpartyPartyId],
+});
+```
+
+The call appears in VantageCapital's dashboard immediately. Use polling or real-time streaming depending on your latency requirements:
+
+```tsx
+// Polling (TanStack Query, refetches on stale)
+const { data } = nexus.types.MarginCall.useContracts();
+
+// Real-time (WebSocket, zero-latency ACS updates)
+const { contracts } = nexus.useStreamContracts({
+  templateId: 'nexus-example-0.0.1:CollateralRouter:MarginCall',
+});
+```
+
+---
+
+## 4. Routing suggestion — institution proposes
+
+VantageCapital selects which assets to use to satisfy the margin call and creates a `RoutingSuggestion`.
+
+**Daml:** `signatory institution`, `observer operator` — the operator can see the suggestion but has no choice controller rights.
+
+```tsx
+const { mutate } = nexus.types.RoutingSuggestion.useCreate();
+
+mutate({
+  createArguments: {
+    institution:      institutionPartyId,
+    operator:         operatorPartyId,
+    counterparty:     counterpartyPartyId,
+    marginCallCid:    marginCallContractId,
+    suggestedAssets:  [collateralHoldingContractId],
+    suggestedAmounts: ['2000000'],
+    routingRule:      'CTD',
+    notes:            null,
+  },
+  actAs: [institutionPartyId],
+});
+```
+
+---
+
+## 5. Approval — ApproveSuggestion → AllocationRecord
+
+VantageCapital approves the suggestion. The `ApproveSuggestion` choice archives the `RoutingSuggestion` and creates an `AllocationRecord` in a single atomic transaction.
+
+**Daml:** `controller institution` — the operator **cannot** call this choice.
+
+```tsx
+const { mutate, isPending } = nexus.types.RoutingSuggestion.useExercise('ApproveSuggestion');
+
+mutate({
+  contractId:     suggestionContractId,
+  choiceArgument: {},
+  actAs:          [institutionPartyId], // institution only — never include operator
+});
+```
+
+When this succeeds:
+- The `RoutingSuggestion` is removed from the ACS
+- A new `AllocationRecord` is created (immutable audit trail)
+- The `useContracts` caches for both templates are automatically invalidated
+
+<Callout type="warn">
+  **Do not add the operator to `actAs`.** Writing `actAs: [institutionPartyId, operatorPartyId]` will cause Canton to reject the transaction — the Daml `ApproveSuggestion` choice declares `controller institution` only. This is enforced at the ledger level, not the application level.
+</Callout>
+
+---
+
+## 6. AllocationRecord — immutable audit trail
+
+`AllocationRecord` is write-once. The only available choice is `MarkFailed`, and only the institution controls it.
+
+```tsx
+// Read the audit trail
+const { data } = nexus.types.AllocationRecord.useContracts();
+// data.contracts[n].payload.status — "RouteApproved" | "RouteExecuted" | "RouteFailed"
+```
+
+For historical records including archived contracts, use PQS — see [Advanced: PQS](/docs/advanced/pqs).
+
+---
+
+## Summary
+
+| Step | Template | Who creates | Who controls | Nexus hook |
+|------|----------|------------|--------------|-----------|
+| Onboarding | `JoinRequest` | Institution | Operator (accepts) | `nexus.types.JoinRequest.useCreate()` |
+| Agreement | `ServiceAgreement` | Operator (from JoinRequest) | Neither | — |
+| Asset registration | `CollateralHolding` | Institution | Institution | `nexus.types.CollateralHolding.useCreate()` |
+| Margin call | `MarginCall` | Counterparty | Counterparty | `nexus.types.MarginCall.useCreate()` |
+| Routing proposal | `RoutingSuggestion` | Institution | Institution | `nexus.types.RoutingSuggestion.useCreate()` |
+| **Approval** | `AllocationRecord` | Institution (via ApproveSuggestion) | Institution | `nexus.types.RoutingSuggestion.useExercise('ApproveSuggestion')` |

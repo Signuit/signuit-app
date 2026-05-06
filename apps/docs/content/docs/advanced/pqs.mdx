@@ -1,0 +1,189 @@
+---
+title: Participant Query Store (PQS)
+description: Read-optimized PostgreSQL queries against Canton's indexed contract state — faster than ACS polling for dashboards and reports.
+icon: Database
+---
+
+The **Participant Query Store (PQS)** is Canton's indexed projection of the ledger into a PostgreSQL database. Instead of hitting the Canton JSON API for every query, you read directly from a structured table with full SQL expressiveness.
+
+Nexus Framework wraps PQS via `@nexus-framework/pqs` with a Kysely-backed query engine and a server plugin for seamless integration.
+
+---
+
+## ACS polling vs PQS
+
+| | ACS (`fetchActiveContracts`) | PQS (`KyselyPqsEngine`) |
+|-|-----|-----|
+| Transport | HTTP → Canton JSON API | Direct PostgreSQL query |
+| Latency | ~100–500ms per call | ~1–10ms |
+| Filtering | Canton's filter syntax | Full SQL (`WHERE`, `JOIN`, `ORDER BY`) |
+| Pagination | Canton cursor tokens | SQL `LIMIT` / `OFFSET` |
+| Historical data | No — ACS is live state only | Yes — PQS retains archived contracts |
+| Row-Level Security | Party-based filtering by Canton | RLS via `SET LOCAL app.current_user` |
+
+**Use PQS when:**
+- You need complex filters (multiple fields, ranges, joins)
+- You're building read-heavy dashboards with many concurrent users
+- You need historical data (archived contracts, past transactions)
+- ACS polling latency is too high for your UX
+
+**Use ACS when:**
+- You're writing to the ledger and need read-after-write consistency
+- You don't control the Canton infrastructure (no PQS setup)
+- Data volume is small and HTTP overhead is acceptable
+
+---
+
+## Setup
+
+### 1. Start PQS
+
+PQS runs as a sidecar alongside the Canton Participant. It streams ledger events and projects them into a `active_contracts` table.
+
+```bash
+# docker-compose.yml (SignUIT sandbox)
+services:
+  pqs:
+    image: digitalasset/canton-pqs:latest
+    environment:
+      CANTON_LEDGER_API_HOST: canton
+      CANTON_LEDGER_API_PORT: 6865
+      PQS_POSTGRES_URL: postgresql://pqs:pqs@postgres:5432/pqs
+    depends_on: [canton, postgres]
+```
+
+### 2. Install the package
+
+```bash
+bun add @nexus-framework/pqs
+```
+
+### 3. Add pqsDatabasePlugin to createNexusServer
+
+```ts title="lib/nexus-server.ts"
+import { createNexusServer } from '@nexus-framework/core/server';
+import { pqsDatabasePlugin } from '@nexus-framework/pqs';
+
+export const nexus = await createNexusServer({
+  auth: sandboxAuthOptions,
+  session: sessionManager,
+  pqs: {
+    connectionString: process.env.PQS_DATABASE_URL!,
+    // e.g. "postgresql://pqs:pqs@localhost:5432/pqs"
+  },
+});
+```
+
+---
+
+## KyselyPqsEngine
+
+The core query engine. Access it via `nexus.pqs` after adding `pqsDatabasePlugin`:
+
+```ts
+import { nexus } from '@/lib/nexus-server';
+
+// Find all active CollateralHolding contracts for a party
+const holdings = await nexus.pqs.findMany(
+  institutionPartyId,
+  'nexus-example-0.0.1:CollateralRouter:CollateralHolding',
+  {
+    limit: 50,
+    orderBy: { field: 'created_at', direction: 'DESC' },
+  }
+);
+
+// Find a specific contract by ID
+const holding = await nexus.pqs.findById(
+  institutionPartyId,
+  'nexus-example-0.0.1:CollateralRouter:CollateralHolding',
+  contractId,
+);
+```
+
+### findMany options
+
+<TypeTable
+  type={{
+    where: {
+      description: "Payload-level filter conditions. Fields map to JSONB columns in `active_contracts.payload`.",
+      type: "Record<string, unknown>",
+    },
+    limit: {
+      description: "Maximum number of results to return.",
+      type: "number",
+      default: "100",
+    },
+    orderBy: {
+      description: "Sort field and direction. Fields: `created_at`, `contract_id`, or any payload field.",
+      type: "{ field: string; direction: 'ASC' | 'DESC' }",
+    },
+  }}
+/>
+
+---
+
+## pqsDatabasePlugin
+
+Server plugin that initializes `KyselyPqsEngine` during `createNexusServer()`:
+
+```ts
+import { pqsDatabasePlugin } from '@nexus-framework/pqs';
+
+// Used internally by createNexusServer({ pqs: { connectionString } })
+// You can also add it manually:
+export const nexus = createNexus({
+  ledgerApiUrl: 'http://localhost:7575',
+  plugins: [
+    sandboxAuth({ ... }),
+    pqsDatabasePlugin({
+      connectionString: process.env.PQS_DATABASE_URL!,
+    }),
+  ],
+});
+```
+
+---
+
+## SignUIT: using PQS for the allocation dashboard
+
+The allocation history page in SignUIT reads `AllocationRecord` contracts from PQS instead of the Canton ACS — enabling fast filtering and sorting across thousands of historical records:
+
+```ts title="apps/web/src/routes/api/allocations.ts"
+import { createServerFn } from '@tanstack/react-start';
+import { nexus } from '@/lib/nexus-server';
+import { getSessionOrRedirect } from '@/lib/get-session';
+
+export const getAllocations = createServerFn({ method: 'GET' })
+  .validator((q: { status?: string; limit?: number }) => q)
+  .handler(async ({ request, data }) => {
+    const session = await getSessionOrRedirect();
+
+    const records = await nexus.pqs.findMany(
+      session.partyId,
+      'nexus-example-0.0.1:CollateralRouter:AllocationRecord',
+      {
+        where: data.status ? { status: data.status } : undefined,
+        limit: data.limit ?? 100,
+        orderBy: { field: 'created_at', direction: 'DESC' },
+      }
+    );
+
+    return { records };
+  });
+```
+
+---
+
+## Row-Level Security
+
+PQS enforces Canton party-based visibility via PostgreSQL RLS. The `KyselyPqsEngine` sets `SET LOCAL app.current_user = '<partyId>'` at the start of every transaction — only contracts visible to that party are returned.
+
+```sql
+-- PQS RLS policy (applied automatically by Canton PQS)
+CREATE POLICY party_visibility ON active_contracts
+  USING (payload->'signatories' ? current_setting('app.current_user')
+      OR payload->'observers'   ? current_setting('app.current_user'));
+```
+
+You never need to filter by `partyId` manually — passing it to `findMany` is sufficient.

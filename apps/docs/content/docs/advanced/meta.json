@@ -1,0 +1,5 @@
+{
+	"title": "Advanced",
+	"icon": "Settings2",
+	"pages": ["session", "pqs", "plugins"]
+}

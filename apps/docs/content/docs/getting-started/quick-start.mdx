@@ -1,351 +1,267 @@
 ---
 title: Quick Start
-description: Connect to Canton Sandbox and build your first dApp in under 10 minutes.
+description: Wire up the server, register your Daml types, and make your first typed contract query — end to end.
 icon: Zap
 ---
 
-This guide walks you through creating a full Nexus client, querying the Canton ledger, submitting commands, and wiring everything up in a React project. By the end you'll have a live contract list with create and archive.
+This guide walks through a complete Nexus Framework setup from scratch. By the end you'll have a working server, a typed browser client, and a live contract query — with no templateId strings and no generic type parameters anywhere in your components.
 
-<Callout type="info">
-  **SignUIT context:** The examples below use a generic `Iou` template. The same patterns power [SignUIT](https://signuit.com) — just swap `templateId` for `nexus-example-0.0.1:CollateralRouter:CollateralHolding` and the payload type for your own Daml template shape. A full SignUIT walkthrough is in [Contracts: Querying](/docs/contracts/querying) and [React: Hooks](/docs/react/hooks).
-</Callout>
-
-## Before you start
-
-Make sure you have:
-- Canton Sandbox running on port 7575 (see [Installation](/docs/getting-started/installation))
-- `@nexus-framework/core` and `@nexus-framework/react` installed
-- A `partyId` from the sandbox admin API:
+## Install
 
 ```bash
-curl http://localhost:7575/v2/admin/parties | jq '.parties[0].partyId'
-# "Alice::122059a10c67ef1bb38e4e7ff3fd9c827e2e6cbbfd68bb5cd8fa4c0c56fecdf0734b"
+bun add @nexus-framework/core @nexus-framework/react @tanstack/react-query
 ```
-
-## Server client (Node.js / scripts)
-
-<Steps>
-  <Step>
-
-  ### Import createNexus and an auth plugin
-
-  `createNexus` is the core factory. It takes a `plugins` array — at minimum one auth plugin is required.
-
-  ```ts title="lib/nexus.ts"
-  import { createNexus, sandboxAuth } from '@nexus-framework/core';
-  ```
-
-  </Step>
-  <Step>
-
-  ### Create the client
-
-  Pass your Canton endpoint and the `sandboxAuth` plugin with your partyId:
-
-  ```ts title="lib/nexus.ts"
-  import { createNexus, sandboxAuth } from '@nexus-framework/core';
-
-  export const nexus = createNexus({
-    ledgerApiUrl: 'http://localhost:7575',
-    plugins: [
-      sandboxAuth({
-        secret: 'secret',
-        userId: 'alice',
-        partyId: 'Alice::122059a10c67ef1bb38e4e7ff3fd9c827e2e6cbbfd68bb5cd8fa4c0c56fecdf0734b',
-      }),
-    ],
-  });
-  ```
-
-  The client exposes three namespaces: `nexus.ledger.contracts`, `nexus.ledger.commands`, and `nexus.ledger.identity`.
-
-  </Step>
-  <Step>
-
-  ### Query active contracts
-
-  `fetchActiveContracts` hits `POST /v2/state/active-contracts` and returns a typed page of contracts:
-
-  ```ts
-  import { nexus } from './lib/nexus';
-
-  const result = await nexus.ledger.contracts.fetchActiveContracts<{
-    owner: string;
-    amount: string;
-    currency: string;
-  }>({
-    templateId: 'my-package:Iou:Iou',
-  });
-
-  console.log(`Found ${result.contracts.length} contracts`);
-
-  for (const c of result.contracts) {
-    console.log(`  ${c.contractId}: ${c.payload.amount} ${c.payload.currency}`);
-  }
-  ```
-
-  </Step>
-  <Step>
-
-  ### Create a contract
-
-  `createContract` submits a `CreateCommand` and waits for the transaction to commit:
-
-  ```ts
-  const result = await nexus.ledger.commands.createContract(
-    'my-package:Iou:Iou',
-    {
-      owner: 'Alice::122059a10c...',
-      amount: '100',
-      currency: 'USD',
-    },
-    ['Alice::122059a10c...'], // actAs
-  );
-
-  console.log('Transaction ID:', result.transactionId);
-  console.log('Ledger offset:', result.offset);
-  ```
-
-  </Step>
-  <Step>
-
-  ### Exercise a choice and get the return value
-
-  `exerciseAndGetResult` calls `POST /v2/commands/submit-and-wait-for-transaction` and extracts the typed Daml return value from the exercised event:
-
-  ```ts
-  interface TransferResult {
-    newContractId: string;
-  }
-
-  const result = await nexus.ledger.commands.exerciseAndGetResult<
-    { newOwner: string },  // choice argument type
-    TransferResult         // Daml return value type
-  >(
-    'my-package:Iou:Iou',
-    contractId,
-    'Transfer',
-    { newOwner: 'Bob::xyz...' },
-    ['Alice::122059a10c...'],
-  );
-
-  console.log('New contract:', result.result.newContractId);
-  ```
-
-  </Step>
-</Steps>
 
 ---
 
-## React client (Next.js App Router)
+## Step 1 — Wire up the server
 
-<Steps>
-  <Step>
+The browser client never talks to Canton directly. All requests go through two server endpoints you mount:
 
-  ### Create the React client module
+- **`/api/nexus-auth`** — handles login, logout, session reads, and token refresh
+- **`/api/ledger`** — proxies authenticated requests from the browser to Canton
 
-  `createNexusClient` (from `@nexus-framework/react`) wraps `createNexus` and additionally registers React plugins. The `tanstackQueryPlugin()` adds all the hooks (`useContracts`, `useInterface`, `useExerciseAndGetResult`, etc.).
+Create your server module:
 
-  Mark the file `"use client"` — it runs in the browser only.
+```ts title="lib/nexus-server.ts"
+import { createNexusServer, createAuthHandler, SessionManager } from '@nexus-framework/core/server';
 
-  ```ts title="lib/nexus-client.ts"
-  "use client";
+// Encrypts session cookies with AES-GCM.
+// Generate the key once: bun -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+export const sessionManager = new SessionManager({
+  encryptionKey: process.env.SESSION_ENCRYPTION_KEY,
+  ttlMs: 2 * 60 * 60 * 1000, // 2 hours
+  secure: process.env.NODE_ENV === 'production',
+});
 
-  import {
-    createNexusClient,
-    sandboxAuth,
-    tanstackQueryPlugin,
-  } from '@nexus-framework/react';
+// Creates the Canton HTTP client, session layer, and party resolver in one call.
+export const nexus = await createNexusServer({
+  auth: {
+    secret: process.env.SANDBOX_SECRET ?? 'secret',
+    // Resolves per-request userId from the session cookie.
+    // This is what makes each request scoped to the right Canton party.
+    getUserId: (ctx) => ctx.session?.userId,
+  },
+  session: sessionManager,
+  ledgerApiUrl: process.env.CANTON_API_URL ?? 'http://localhost:7575',
+});
 
-  export const nexus = createNexusClient({
-    baseUrl: process.env.NEXT_PUBLIC_CANTON_API_URL ?? 'http://localhost:7575',
-    plugins: [
-      sandboxAuth({
-        secret: process.env.NEXT_PUBLIC_SANDBOX_SECRET ?? 'secret',
-        userId: process.env.NEXT_PUBLIC_SANDBOX_USER_ID ?? 'alice',
-        partyId:
-          process.env.NEXT_PUBLIC_SANDBOX_PARTY_ID ??
-          'Alice::122059a10c67ef1bb38e4e7ff3fd9c827e2e6cbbfd68bb5cd8fa4c0c56fecdf0734b',
-      }),
-      tanstackQueryPlugin(),
-    ],
+// Creates POST /login, POST /logout, GET /session, GET /refresh handlers in one call.
+// sandboxProvision: true automatically allocates a Canton party on first login.
+export const authHandler = createAuthHandler({
+  nexusServer: nexus,
+  session: sessionManager,
+  sandboxProvision: true,
+});
+```
+
+Mount both handlers in your router:
+
+<Tabs items={["TanStack Start", "Next.js"]}>
+  <Tab value="TanStack Start">
+  ```ts title="src/routes/api/nexus-auth.$.ts"
+  import { createServerFileRoute } from '@tanstack/react-start/server';
+  import { authHandler } from '@/lib/nexus-server';
+
+  export const ServerRoute = createServerFileRoute('/api/nexus-auth/$').methods({
+    GET: ({ request }) => authHandler(request),
+    POST: ({ request }) => authHandler(request),
   });
   ```
 
-  </Step>
-  <Step>
+  ```ts title="src/routes/api/ledger.$.ts"
+  import { createServerFileRoute } from '@tanstack/react-start/server';
+  import { createTanStackLedgerContext } from '@nexus-framework/react/server';
+  import { nexus } from '@/lib/nexus-server';
 
-  ### Add NexusProvider to your root layout
+  const handle = createTanStackLedgerContext(nexus);
 
-  `nexus.NexusProvider` is a `QueryClientProvider` wrapper returned by `createNexusClient`. It must wrap any component tree that calls `nexus.*` hooks.
-
-  ```tsx title="app/layout.tsx"
-  import { nexus } from '@/lib/nexus-client';
-  import type { ReactNode } from 'react';
-
-  export default function RootLayout({ children }: { children: ReactNode }) {
-    return (
-      <html lang="en">
-        <body>
-          <nexus.NexusProvider>
-            {children}
-          </nexus.NexusProvider>
-        </body>
-      </html>
-    );
-  }
+  export const ServerRoute = createServerFileRoute('/api/ledger/$').methods({
+    GET: ({ request }) => handle(request),
+    POST: ({ request }) => handle(request),
+  });
+  ```
+  </Tab>
+  <Tab value="Next.js">
+  ```ts title="app/api/nexus-auth/[...path]/route.ts"
+  import { authHandler } from '@/lib/nexus-server';
+  export const GET = (req: Request) => authHandler(req);
+  export const POST = (req: Request) => authHandler(req);
   ```
 
-  </Step>
-  <Step>
+  ```ts title="app/api/ledger/[...path]/route.ts"
+  import { createLedgerRouteHandler } from '@nexus-framework/react/server';
+  import { nexus } from '@/lib/nexus-server';
+  const handler = createLedgerRouteHandler({ nexusServer: nexus });
+  export const GET = handler;
+  export const POST = handler;
+  ```
+  </Tab>
+</Tabs>
 
-  ### Query contracts in a component
+---
 
-  `nexus.useContracts` is a TanStack Query hook — it caches the result, refetches in the background, and supports Suspense. The contract payload is typed via the generic parameter.
+## Step 2 — Register your Daml types once
 
-  ```tsx title="components/IouList.tsx"
-  "use client";
+This is the most important step. You import your Daml generated types, put them in a single object, and pass that object to the client. After this, you never write a templateId string or a generic type parameter again — anywhere in your app.
 
+```ts title="lib/nexus-types.ts"
+import {
+  CollateralHolding,
+  MarginCall,
+  RoutingSuggestion,
+  AllocationRecord,
+  CollateralPolicy,
+  JoinRequest,
+  ServiceAgreement,
+} from '@daml.js/nexus-example-0.0.1/lib/CollateralRouter';
+
+// This object is the plugin — pass it directly to createNexusClient below.
+export const nexusTypes = {
+  CollateralHolding,
+  MarginCall,
+  RoutingSuggestion,
+  AllocationRecord,
+  CollateralPolicy,
+  JoinRequest,
+  ServiceAgreement,
+};
+```
+
+When you add a new Daml template, you add one line here. That's the only place you ever touch to register a new template.
+
+---
+
+## Step 3 — Create the browser client
+
+```ts title="lib/nexus-client.ts"
+import { createNexusClient, authPlugin, tanstackQueryPlugin } from '@nexus-framework/react';
+import { nexusTypes } from './nexus-types';
+
+export const nexus = createNexusClient({
+  baseUrl: '/api/ledger',
+  plugins: [
+    // Reads the session cookie and attaches the Canton token to every request.
+    // The token never lives in the browser bundle.
+    authPlugin({ basePath: '/api/nexus-auth' }),
+
+    // Adds useContracts, useCreateContract, useExerciseChoice, and all other hooks.
+    tanstackQueryPlugin(),
+
+    // Unlocks nexus.types.CollateralHolding.useContracts() and all typed namespaces.
+    nexusTypes,
+  ],
+});
+```
+
+Add the provider to your app root:
+
+<Tabs items={["TanStack Start", "Next.js"]}>
+  <Tab value="TanStack Start">
+  ```tsx title="src/routes/__root.tsx"
+  import { createRootRoute, Outlet } from '@tanstack/react-router';
   import { nexus } from '@/lib/nexus-client';
 
-  interface IouPayload {
-    owner: string;
-    amount: string;
-    currency: string;
+  export const Route = createRootRoute({
+    component: () => (
+      <nexus.NexusProvider>
+        <Outlet />
+      </nexus.NexusProvider>
+    ),
+  });
+  ```
+  </Tab>
+  <Tab value="Next.js">
+  ```tsx title="components/providers.tsx"
+  'use client';
+  import { nexus } from '@/lib/nexus-client';
+
+  export function Providers({ children }: { children: React.ReactNode }) {
+    return <nexus.NexusProvider>{children}</nexus.NexusProvider>;
   }
+  ```
+  </Tab>
+</Tabs>
 
-  export function IouList() {
-    const { data, isLoading, error } = nexus.useContracts<IouPayload>({
-      templateId: 'my-package:Iou:Iou',
-    });
+---
 
-    if (isLoading) return <p>Loading contracts…</p>;
-    if (error) return <p>Error: {error.message}</p>;
+## Step 4 — Query the ledger
 
-    const contracts = data?.contracts ?? [];
+Every component in your app can now read Canton contracts with a single hook call. The payload type comes from your Daml codegen — TypeScript knows exactly what fields exist, and will error at compile time if a field is missing or renamed.
 
-    if (contracts.length === 0) {
-      return <p>No active Iou contracts. Create one below.</p>;
-    }
+```tsx title="components/Dashboard.tsx"
+import { nexus } from '@/lib/nexus-client';
 
-    return (
-      <ul>
-        {contracts.map((c) => (
-          <li key={c.contractId}>
-            <strong>{c.payload.amount} {c.payload.currency}</strong>
-            {' '}— owner: {c.payload.owner.slice(0, 12)}…
-          </li>
+export function Dashboard() {
+  const { data: holdings, isLoading } = nexus.types.CollateralHolding.useContracts();
+  const { data: calls } = nexus.types.MarginCall.useContracts();
+
+  if (isLoading) return <p>Loading…</p>;
+
+  return (
+    <div>
+      <section>
+        <h2>Holdings ({holdings?.contracts.length ?? 0})</h2>
+        {holdings?.contracts.map((c) => (
+          // c.payload is fully typed from Daml codegen — no casting needed
+          <div key={c.contractId}>
+            {c.payload.assetId} — {c.payload.quantity} {c.payload.currency}
+          </div>
         ))}
-      </ul>
-    );
-  }
-  ```
+      </section>
 
-  </Step>
-  <Step>
+      <section>
+        <h2>Pending Margin Calls ({calls?.contracts.length ?? 0})</h2>
+        {calls?.contracts.map((c) => (
+          <div key={c.contractId}>
+            {c.payload.callAmount} {c.payload.currency} due {c.payload.dueDate}
+          </div>
+        ))}
+      </section>
+    </div>
+  );
+}
+```
 
-  ### Create a contract from a form
+---
 
-  `nexus.useCreateContract` is a TanStack Mutation that automatically invalidates the contract cache after success, so `useContracts` refetches without any manual work.
+## Step 5 — Write to the ledger
 
-  ```tsx title="components/CreateIouForm.tsx"
-  "use client";
+Mutations follow the same pattern. The choice argument type and the Daml return value type are both inferred:
 
-  import { useState } from 'react';
-  import { nexus } from '@/lib/nexus-client';
+```tsx title="components/ApproveButton.tsx"
+import { nexus } from '@/lib/nexus-client';
 
-  const PARTY_ID = process.env.NEXT_PUBLIC_SANDBOX_PARTY_ID!;
+export function ApproveButton({ contractId, partyId }: Props) {
+  const { mutate, isPending } = nexus.types.RoutingSuggestion.useExercise('ApproveSuggestion');
 
-  export function CreateIouForm() {
-    const [amount, setAmount] = useState('100');
-    const [currency, setCurrency] = useState('USD');
+  return (
+    <button
+      disabled={isPending}
+      onClick={() => mutate({ contractId, choiceArgument: {}, actAs: [partyId] })}
+    >
+      {isPending ? 'Approving…' : 'Approve'}
+    </button>
+  );
+}
+```
 
-    const { mutate, isPending, error } = nexus.useCreateContract({
-      onSuccess: () => {
-        setAmount('100');
-      },
-    });
+When the mutation succeeds, the caches for `RoutingSuggestion` and `AllocationRecord` are automatically invalidated and refetched. You do not need to call `invalidateQueries` anywhere.
 
-    return (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          mutate({
-            templateId: 'my-package:Iou:Iou',
-            createArguments: { owner: PARTY_ID, amount, currency },
-            actAs: [PARTY_ID],
-          });
-        }}
-      >
-        <input
-          type="number"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          min="1"
-          required
-        />
-        <input
-          type="text"
-          value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
-          maxLength={3}
-          required
-        />
-        {error && <p style={{ color: 'red' }}>{error.message}</p>}
-        <button type="submit" disabled={isPending}>
-          {isPending ? 'Creating…' : 'Create Iou'}
-        </button>
-      </form>
-    );
-  }
-  ```
+<Callout type="info">
+  **Environment setup:** Add `SESSION_ENCRYPTION_KEY` to your `.env`. Generate the value with:
+  `bun -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
-  </Step>
-  <Step>
+  Bun loads `.env` automatically — no dotenv package needed.
+</Callout>
 
-  ### Add Server-Side prefetch (optional but recommended)
-
-  Pre-populate the TanStack Query cache in a Server Component so the client renders the contract list instantly without a loading state:
-
-  ```tsx title="app/page.tsx"
-  import { contractQueryOptions } from '@nexus-framework/react';
-  import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
-  import { createServerNexusClient } from '@nexus-framework/react/server';
-  import { cookies } from 'next/headers';
-  import { IouList } from '@/components/IouList';
-  import { CreateIouForm } from '@/components/CreateIouForm';
-
-  export default async function HomePage() {
-    const client = await createServerNexusClient({
-      request: new Request('http://localhost', {
-        headers: { cookie: (await cookies()).toString() },
-      }),
-      config: { ledgerApiUrl: process.env.CANTON_API_URL! },
-    });
-
-    const queryClient = new QueryClient();
-    await queryClient.prefetchQuery(
-      contractQueryOptions({ client, templateId: 'my-package:Iou:Iou' })
-    );
-
-    return (
-      <HydrationBoundary state={dehydrate(queryClient)}>
-        <h1>My Ious</h1>
-        <IouList />        {/* renders immediately — no loading state */}
-        <CreateIouForm />
-      </HydrationBoundary>
-    );
-  }
-  ```
-
-  </Step>
-</Steps>
+---
 
 ## What's next
 
 <Cards>
-  <Card title="Authentication plugins" href="/docs/authentication/sandbox" description="Swap sandboxAuth for jwtAuth or oidcAuth in production." />
-  <Card title="Contract queries" href="/docs/contracts/querying" description="Pagination, fetchByKey, Daml interface views — with SignUIT examples." />
-  <Card title="Real-time streaming" href="/docs/react/streaming" description="Add streamingPlugin() for live WebSocket contract updates." />
-  <Card title="SignUIT hooks guide" href="/docs/react/hooks" description="See how MarginCall and AllocationRecord are handled in production." />
+  <Card title="Typed Namespaces" href="/docs/react/typed-namespaces" description="Everything nexus.types gives you — all hooks, mutations, and fetching patterns." />
+  <Card title="Collateral Workflow" href="/docs/signuit/collateral-workflow" description="Full end-to-end workflow with every SignUIT template — from onboarding to AllocationRecord." />
+  <Card title="Session & Auth" href="/docs/advanced/session" description="Deep dive into createAuthHandler, session cookies, and party provisioning." />
+  <Card title="Real-time Streaming" href="/docs/react/streaming" description="Live contract updates via WebSocket with useStreamContracts." />
 </Cards>

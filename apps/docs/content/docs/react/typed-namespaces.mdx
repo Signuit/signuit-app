@@ -1,0 +1,191 @@
+---
+title: Typed Namespaces
+description: Register your Daml types once — get fully typed queries, mutations, and fetching everywhere, with no templateId strings and no generic parameters.
+icon: Braces
+---
+
+Typed namespaces are the core ergonomic feature of Nexus Framework. Instead of writing:
+
+```ts
+// Every single query, everywhere in your codebase
+nexus.useContracts<CollateralHoldingPayload>({
+  templateId: 'nexus-example-0.0.1:CollateralRouter:CollateralHolding',
+});
+```
+
+You write this once at setup time, and then:
+
+```ts
+// Every single query, everywhere in your codebase
+nexus.types.CollateralHolding.useContracts();
+```
+
+The payload type is inferred automatically from your Daml codegen. The templateId is derived automatically from the same object. TypeScript knows the shape of `c.payload` without any help from you.
+
+---
+
+## Setup
+
+### 1. Register your Daml types
+
+Create a `nexus-types.ts` file and import your Daml codegen objects into it. You only do this once. When a new template is added to your Daml project, you add one line here.
+
+```ts title="lib/nexus-types.ts"
+import {
+  CollateralHolding,
+  MarginCall,
+  RoutingSuggestion,
+  AllocationRecord,
+  CollateralPolicy,
+  JoinRequest,
+  ServiceAgreement,
+} from '@daml.js/nexus-example-0.0.1/lib/CollateralRouter';
+
+export const nexusTypes = {
+  CollateralHolding,
+  MarginCall,
+  RoutingSuggestion,
+  AllocationRecord,
+  CollateralPolicy,
+  JoinRequest,
+  ServiceAgreement,
+};
+```
+
+### 2. Pass it to createNexusClient
+
+The `nexusTypes` object is a plugin — pass it directly in the plugins array:
+
+```ts title="lib/nexus-client.ts"
+import { createNexusClient, authPlugin, tanstackQueryPlugin } from '@nexus-framework/react';
+import { nexusTypes } from './nexus-types'; // [!code highlight]
+
+export const nexus = createNexusClient({
+  baseUrl: '/api/ledger',
+  plugins: [
+    authPlugin({ basePath: '/api/nexus-auth' }),
+    tanstackQueryPlugin(),
+    nexusTypes, // [!code highlight]
+  ],
+});
+```
+
+That's the entire setup. From this point, `nexus.types` is available in every component.
+
+---
+
+## Querying contracts
+
+All `useContracts` options work exactly the same — you just don't have to provide `templateId` or a generic type:
+
+```tsx
+import { nexus } from '@/lib/nexus-client';
+
+// All active holdings
+const { data, isLoading } = nexus.types.CollateralHolding.useContracts();
+
+// Scoped to a specific party
+const { data } = nexus.types.MarginCall.useContracts({ parties: [partyId] });
+
+// All pages, not just the first
+const { data } = nexus.types.AllocationRecord.useContracts({ fetchAll: true });
+
+// Suspense variant — data is never undefined inside the component
+const { data } = nexus.types.RoutingSuggestion.useContractsSuspense();
+```
+
+`data.contracts` is typed as `ActiveContract<CollateralHolding>[]`. The `payload` field reflects your Daml template exactly. If you access a field that doesn't exist, TypeScript tells you immediately.
+
+<Callout>
+  **Why this matters beyond convenience:** When a Daml template is updated — a field renamed, a new field added, an old field removed — TypeScript will show a compile error at every affected call site. You find breaking changes before they reach production, not after.
+</Callout>
+
+---
+
+## Creating contracts
+
+`createArguments` is typed to match your Daml template's fields. Provide the wrong type, leave a required field out, or add a field that doesn't exist — TypeScript rejects it at compile time:
+
+```tsx
+const { mutate, isPending } = nexus.types.RoutingSuggestion.useCreate();
+
+mutate({
+  createArguments: {
+    institution:      institutionPartyId,
+    operator:         operatorPartyId,
+    counterparty:     null,              // Optional field
+    marginCallCid:    marginCallId,
+    suggestedAssets:  [holdingContractId],
+    suggestedAmounts: ['5000000'],
+    routingRule:      'CTD',
+    notes:            null,
+  },
+  actAs: [institutionPartyId],
+});
+```
+
+After a successful create, the cache for `RoutingSuggestion.useContracts()` is automatically invalidated. Components using that hook refetch without any extra code.
+
+---
+
+## Exercising choices
+
+Pass the choice name as a string — the argument type is inferred from the Daml codegen for that specific choice:
+
+```tsx
+// A choice with no arguments
+const { mutate } = nexus.types.RoutingSuggestion.useExercise('ApproveSuggestion');
+mutate({ contractId, choiceArgument: {}, actAs: [institutionPartyId] });
+```
+
+If you need the Daml return value from the choice — for example, to get the new `AllocationRecord` contractId — use `useExerciseAndGetResult`:
+
+```tsx
+const { mutate, data } = nexus.types.RoutingSuggestion.useExerciseAndGetResult('ApproveSuggestion');
+
+mutate({
+  contractId,
+  choiceArgument: {},
+  actAs: [institutionPartyId],
+  onSuccess: (result) => {
+    console.log('New AllocationRecord:', result.allocationCid);
+  },
+});
+```
+
+<Callout type="warn">
+  After `useExercise` or `useExerciseAndGetResult`, the caches for all affected templates are automatically invalidated. You do **not** need to call `invalidateQueries` manually.
+</Callout>
+
+---
+
+## Fetching without hooks
+
+For server-side code, one-off lookups, or anywhere you can't use React hooks:
+
+```ts
+// Fetch by contract ID
+const contract = await nexus.types.CollateralHolding.fetchById(contractId);
+// Returns ActiveContract<CollateralHolding> | undefined
+
+// Fetch by a payload predicate (equivalent of Daml's fetchByKey)
+const policy = await nexus.types.CollateralPolicy.fetchByKey(
+  (payload) => payload.institution === institutionPartyId
+);
+```
+
+---
+
+## Quick reference
+
+| What you want to do | How |
+|--------------------|-----|
+| List all active contracts | `nexus.types.X.useContracts()` |
+| List contracts for a specific party | `nexus.types.X.useContracts({ parties: [id] })` |
+| List all pages (no pagination) | `nexus.types.X.useContracts({ fetchAll: true })` |
+| Suspense-based loading | `nexus.types.X.useContractsSuspense()` |
+| Create a new contract | `nexus.types.X.useCreate()` |
+| Exercise a choice | `nexus.types.X.useExercise('ChoiceName')` |
+| Exercise a choice and get return value | `nexus.types.X.useExerciseAndGetResult('ChoiceName')` |
+| Fetch by ID (no hook) | `nexus.types.X.fetchById(contractId)` |
+| Fetch by payload predicate | `nexus.types.X.fetchByKey(predicateFn)` |

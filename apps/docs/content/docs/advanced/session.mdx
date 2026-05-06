@@ -1,152 +1,261 @@
 ---
 title: Session Management
-description: AES-GCM encrypted HttpOnly cookies for Next.js SSR authentication.
+description: Full auth flow with createAuthHandler — login, logout, session cookies, and sandbox provisioning.
 icon: Lock
 ---
 
-`SessionManager` provides secure session cookies for Next.js App Router. Sessions are serialized as AES-GCM encrypted JSON and stored in an HttpOnly cookie.
+Nexus Framework provides a complete, framework-agnostic auth system via `createAuthHandler()`. It handles login, logout, session reading, and token refresh — all as a single `(req: Request) => Promise<Response>` handler you mount at any path.
 
-## Generate an encryption key
+<Callout type="info">
+  This page covers the **server-side** session system. For the client side, see [React: Setup](/docs/react/setup) — specifically `authPlugin()` which calls these endpoints automatically.
+</Callout>
 
-```bash
-# Generate a 32-byte hex key once and store it as an environment variable
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-# SESSION_ENCRYPTION_KEY=a3f8c2d1e4b9...
-```
+---
 
-## Setup
+## createAuthHandler
 
-```ts
-import { SessionManager } from '@nexus-framework/core';
+Returns a universal request handler with four routes built in:
 
-const sessionMgr = new SessionManager({
-  encryptionKey: process.env.SESSION_ENCRYPTION_KEY!, // 32-byte hex
-  cookieName: 'nexus_session',    // optional, default: 'nexus_session'
-  ttlMs: 60 * 60 * 1000,          // optional, default: 1 hour
-  secure: true,                    // optional, auto-enabled in production
+| Method | Path (relative to mount) | Description |
+|--------|--------------------------|-------------|
+| `POST` | `/login` | Issue session cookie after auth |
+| `POST` | `/logout` | Clear session cookie |
+| `GET` | `/session` | Read current session — returns `NexusSession` or 401 |
+| `GET` | `/refresh` | Extend session TTL |
+
+```ts title="lib/nexus-server.ts"
+import { createNexusServer, createAuthHandler, SessionManager } from '@nexus-framework/core/server';
+import { sandboxAuth } from '@nexus-framework/core';
+
+export const sessionManager = new SessionManager({
+  encryptionKey: process.env.SESSION_ENCRYPTION_KEY,
+  ttlMs: process.env.NODE_ENV === 'production'
+    ? 2 * 60 * 60 * 1000   // 2h prod
+    : 24 * 60 * 60 * 1000, // 24h dev
+  secure: process.env.NODE_ENV === 'production',
+});
+
+export const nexus = await createNexusServer({
+  auth: {
+    secret: process.env.SANDBOX_SECRET ?? 'secret',
+    userId: 'admin',
+    partyId: '',
+    getUserId: (ctx) => ctx.session?.userId,
+  },
+  session: sessionManager,
+  ledgerApiUrl: process.env.CANTON_API_URL ?? 'http://localhost:7575',
+});
+
+export const authHandler = createAuthHandler({
+  nexusServer: nexus,
+  session: sessionManager,
+  sandboxProvision: true, // auto-allocate Canton parties on first login
 });
 ```
 
+Mount it in your router:
+
+<Tabs items={["TanStack Start", "Next.js"]}>
+  <Tab value="TanStack Start">
+  ```ts title="src/routes/api/nexus-auth.$.ts"
+  import { createServerFileRoute } from '@tanstack/react-start/server';
+  import { authHandler } from '@/lib/nexus-server';
+
+  export const ServerRoute = createServerFileRoute('/api/nexus-auth/$').methods({
+    GET: ({ request }) => authHandler(request),
+    POST: ({ request }) => authHandler(request),
+  });
+  ```
+  </Tab>
+  <Tab value="Next.js">
+  ```ts title="app/api/nexus-auth/[...path]/route.ts"
+  import { authHandler } from '@/lib/nexus-server';
+
+  export const GET = (req: Request) => authHandler(req);
+  export const POST = (req: Request) => authHandler(req);
+  ```
+  </Tab>
+</Tabs>
+
+---
+
+## Login flow with sandbox provisioning
+
+When `sandboxProvision: true`, the login handler:
+
+1. Receives `POST /login` with `{ userId: string }` body
+2. Calls `provisionSandboxUser()` — allocates a Canton party + creates ledger user (idempotent)
+3. Generates a signed JWT for the party
+4. Creates an AES-GCM encrypted session cookie
+5. Returns `200` with `Set-Cookie` header
+
+```ts
+// Client-side (handled automatically by authPlugin + nexus.auth.useLogin())
+const response = await fetch('/api/nexus-auth/login', {
+  method: 'POST',
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ userId: 'alice' }),
+});
+// → 200 + Set-Cookie: nexus_session=<encrypted>; HttpOnly; SameSite=Lax
+```
+
+---
+
+## provisionSandboxUser
+
+Called automatically inside `createAuthHandler` when `sandboxProvision: true`. You can also call it manually for pre-seeding parties:
+
+```ts
+import { provisionSandboxUser } from '@nexus-framework/core/server';
+
+// Provision VantageCapital institution party
+const { partyId: institutionPartyId } = await provisionSandboxUser(
+  nexus.client.http, // raw CantonClient
+  {
+    userId: 'vantage',
+    displayName: 'VantageCapital',
+    adminToken: await nexus.client.getToken(),
+  }
+);
+
+// Provision PrimeBank counterparty party
+const { partyId: counterpartyPartyId } = await provisionSandboxUser(
+  nexus.client.http,
+  {
+    userId: 'primebank',
+    displayName: 'PrimeBank',
+    adminToken: await nexus.client.getToken(),
+  }
+);
+```
+
+---
+
 ## NexusSession
+
+The session object stored in the encrypted cookie:
 
 ```ts
 interface NexusSession {
-  token: string;      // JWT bearer token
-  partyId: string;    // Canton partyId
-  userId?: string;    // Canton userId
-  expiresAt: number;  // Unix timestamp (ms)
+  token: string;      // JWT bearer token for Canton API calls
+  userId: string;     // Canton userId (e.g. "alice")
+  partyId: string;    // Canton partyId (e.g. "Alice::122059a10c...")
+  expiresAt: number;  // Unix timestamp in ms
 }
 ```
 
-## API
+---
+
+## SessionManager API
+
+```ts
+import { SessionManager, generateEncryptionKey } from '@nexus-framework/core';
+
+const sessionManager = new SessionManager({
+  encryptionKey: process.env.SESSION_ENCRYPTION_KEY, // 32-byte hex
+  cookieName: 'nexus_session',  // default
+  ttlMs: 2 * 60 * 60 * 1000,   // 2 hours
+  secure: true,                  // auto-enabled in production
+});
+```
+
+Generate an encryption key once:
+
+```bash
+bun -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+# → SESSION_ENCRYPTION_KEY=a3f8c2d1e4b9...
+```
 
 ### createSessionCookie
 
-Creates the session and returns a `Set-Cookie` header value:
-
 ```ts
-const cookieValue = await sessionMgr.createSessionCookie({
+const cookieValue = await sessionManager.createSessionCookie({
   token: jwtToken,
   userId: 'alice',
   partyId: 'Alice::122059a10c...',
 });
+// Returns the value for Set-Cookie header
 ```
 
 ### getSession
 
-Parses and validates a session from a `Cookie` header. Returns `null` if missing, invalid, or expired:
-
 ```ts
-const session = await sessionMgr.getSession(request.headers.get('cookie'));
-
-if (!session) {
-  redirect('/login');
-}
-
-// session.partyId, session.token, session.expiresAt
+const session = await sessionManager.getSession(request.headers.get('cookie'));
+// Returns NexusSession | null — null if missing, invalid, or expired
 ```
 
 ### destroySessionCookie
 
-Returns a `Set-Cookie` header that clears the cookie:
-
 ```ts
-const clearCookie = sessionMgr.destroySessionCookie();
+const clearCookie = sessionManager.destroySessionCookie();
+// Returns a Set-Cookie value with maxAge=0
 ```
 
-## Next.js login action
+---
 
-```ts title="app/login/actions.ts"
-'use server';
+## Reading the session on the server
 
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { sessionMgr } from '@/lib/session';
+<Tabs items={["TanStack Start", "Next.js"]}>
+  <Tab value="TanStack Start">
+  ```ts title="src/lib/get-session.ts"
+  import { getWebRequest } from '@tanstack/react-start/server';
+  import { sessionManager } from './nexus-server';
+  import { redirect } from '@tanstack/react-router';
 
-export async function loginAction(formData: FormData) {
-  const userId = formData.get('userId') as string;
+  export async function getSessionOrRedirect() {
+    const request = getWebRequest();
+    const session = await sessionManager.getSession(
+      request.headers.get('cookie')
+    );
+    if (!session) throw redirect({ to: '/login' });
+    return session;
+  }
+  ```
 
-  // Get Canton token (sandbox or OIDC)
-  const token = await getCantonToken(userId);
-  const partyId = await resolvePartyId(userId, token);
+  ```ts title="src/routes/dashboard/index.tsx"
+  import { createServerFn } from '@tanstack/react-start';
+  import { createServerNexusClient } from '@nexus-framework/react/server';
+  import { getSessionOrRedirect } from '@/lib/get-session';
 
-  const cookieValue = await sessionMgr.createSessionCookie({ token, userId, partyId });
+  const loadDashboard = createServerFn({ method: 'GET' }).handler(
+    async ({ request }) => {
+      const session = await getSessionOrRedirect();
+      const client = await createServerNexusClient({
+        request,
+        config: { ledgerApiUrl: process.env.CANTON_API_URL! },
+      });
+      // client is scoped to session.partyId automatically
+      return { partyId: session.partyId };
+    }
+  );
+  ```
+  </Tab>
+  <Tab value="Next.js">
+  ```ts title="lib/get-session.ts"
+  import { cookies } from 'next/headers';
+  import { redirect } from 'next/navigation';
+  import { sessionManager } from './nexus-server';
 
-  (await cookies()).set('nexus_session', cookieValue, {
-    httpOnly: true,
-    sameSite: 'lax',
-    path: '/',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 60 * 60,
-  });
+  export async function getSessionOrRedirect() {
+    const session = await sessionManager.getSession(
+      (await cookies()).toString()
+    );
+    if (!session) redirect('/login');
+    return session;
+  }
+  ```
+  </Tab>
+</Tabs>
 
-  redirect('/dashboard');
-}
+---
 
-export async function logoutAction() {
-  const clearValue = sessionMgr.destroySessionCookie();
-  (await cookies()).set('nexus_session', clearValue, { maxAge: 0 });
-  redirect('/login');
-}
-```
-
-## Reading the session in Server Components
-
-```ts title="lib/get-session.ts"
-import { cookies } from 'next/headers';
-import { sessionMgr } from '@/lib/session';
-
-export async function getSessionOrRedirect() {
-  const session = await sessionMgr.getSession((await cookies()).toString());
-  if (!session) redirect('/login');
-  return session;
-}
-```
-
-```tsx title="app/dashboard/page.tsx"
-import { getSessionOrRedirect } from '@/lib/get-session';
-import { createServerNexusClient } from '@nexus-framework/react/server';
-
-export default async function DashboardPage() {
-  const session = await getSessionOrRedirect();
-
-  const client = await createServerNexusClient({
-    request: new Request('http://localhost', {
-      headers: { cookie: `nexus_session=${session.token}` },
-    }),
-    config: { ledgerApiUrl: process.env.CANTON_API_URL! },
-  });
-
-  // use client to prefetch, fetch, etc.
-}
-```
-
-## Security
+## Security properties
 
 | Property | Value |
 |----------|-------|
-| Encryption | AES-256-GCM |
-| IV | Random 12 bytes per session |
-| Cookie flags | HttpOnly, SameSite=Lax |
-| HTTPS | `Secure` flag auto-set in production |
-| Expiry | Checked on `getSession()` |
+| Encryption | AES-256-GCM with random 12-byte IV per session |
+| Cookie flags | `HttpOnly`, `SameSite=Lax`, `Path=/` |
+| HTTPS | `Secure` flag auto-set when `secure: true` |
+| Expiry | Checked on every `getSession()` call |
+| No encryption key | Base64 fallback — dev only, not for production |

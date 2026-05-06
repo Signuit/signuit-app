@@ -1,0 +1,149 @@
+---
+title: SignUIT Overview
+description: How SignUIT uses Nexus Framework — multi-party collateral routing on Canton with the "operator as infrastructure" ownership model.
+icon: Building2
+---
+
+[SignUIT](https://signuit.com) is a policy-based collateral routing engine built on Canton Network. It is the production application that Nexus Framework was built to power — every framework feature exists because SignUIT needed it.
+
+Understanding how SignUIT works gives you a complete picture of how Nexus Framework is meant to be used in a real, multi-party Canton application.
+
+---
+
+## Three parties, one ledger
+
+SignUIT is not a single-user app. Every contract on the ledger involves at least two of these three parties, and the rights of each party are enforced at the Daml level — not by application logic.
+
+| Party | Role | Description |
+|-------|------|-------------|
+| **SignUIT** | Operator | Network infrastructure. Observes contracts and facilitates onboarding. Never approves or gates institution decisions. |
+| **VantageCapital** | Institution | Asset owner. Creates and controls their own collateral holdings. Makes all routing decisions. |
+| **PrimeBank** | Counterparty | Issues margin calls. Cannot touch institution-owned contracts. |
+
+This maps to Canton's party model: every contract has signatories (who must authorize its creation), observers (who can read it), and choice controllers (who can exercise actions on it).
+
+---
+
+## The operator as infrastructure principle
+
+The most important design constraint in SignUIT is:
+
+> **The operator provides the network. The institution makes the decisions.**
+
+This is not a convention. It is enforced in the Daml smart contracts themselves:
+
+```haskell
+template CollateralHolding
+  with
+    institution : Party   -- Creates and fully controls this contract
+    operator    : Party   -- Can see it, but cannot change it
+  where
+    signatory institution  -- Only institution authorizes the creation
+    observer operator      -- SignUIT can read it for routing purposes
+
+    choice UpdateHolding : ContractId CollateralHolding
+      controller institution  -- Only institution can modify their own holdings
+      do ...
+```
+
+The operator cannot call `UpdateHolding`. The operator cannot approve a `RoutingSuggestion`. The operator cannot create an `AllocationRecord`. These are not application-level guards — Canton will reject any transaction that violates these controller declarations.
+
+---
+
+## Ownership model
+
+| Template | Signatory | Observer | Controller |
+|----------|-----------|----------|------------|
+| `JoinRequest` | Institution | Operator | Operator (accept/reject) |
+| `ServiceAgreement` | Institution + Operator | — | Neither (immutable agreement) |
+| `CollateralPolicy` | Institution + Operator | — | Institution (update/archive) |
+| `CollateralHolding` | **Institution** | Operator | Institution |
+| `CollateralAssetMetadata` | Operator | — | Operator |
+| `MarginCall` | **Counterparty** | Institution, Operator | Counterparty |
+| `RoutingSuggestion` | **Institution** | Operator, Counterparty | Institution (approve/reject) |
+| `AllocationRecord` | **Institution** | Operator, Counterparty | Institution (MarkFailed only) |
+
+The pattern is consistent: the party whose assets or decisions are at stake is the signatory and controller. The operator is always an observer — present for routing visibility, but never in control.
+
+---
+
+## How Nexus Framework maps to each layer
+
+### Server layer
+
+One `createNexusServer` instance handles all three parties. It resolves the correct party per request by reading `userId` from the session cookie:
+
+```ts title="apps/web/src/lib/nexus-server.ts"
+export const nexus = await createNexusServer({
+  auth: {
+    secret: process.env.SANDBOX_SECRET,
+    getUserId: (ctx) => ctx.session?.userId,
+    // Returns 'vantage', 'primebank', or 'signuit' depending on who is logged in
+  },
+  session: sessionManager,
+  ledgerApiUrl: process.env.CANTON_API_URL,
+});
+
+export const authHandler = createAuthHandler({
+  nexusServer: nexus,
+  session: sessionManager,
+  sandboxProvision: true,
+  // When 'vantage' logs in for the first time, Canton allocates their party automatically
+});
+```
+
+### Browser layer
+
+The browser client uses `authPlugin` — the Canton token never lives in the browser bundle:
+
+```ts title="apps/web/src/lib/nexus-client.ts"
+export const nexus = createNexusClient({
+  baseUrl: '/api/ledger',
+  plugins: [
+    authPlugin({ basePath: '/api/nexus-auth' }),
+    tanstackQueryPlugin(),
+    nexusTypes, // All 8 CollateralRouter templates registered once
+  ],
+});
+```
+
+### Query layer
+
+Each party sees exactly what Canton's party model allows them to see. VantageCapital's session produces a token with VantageCapital's party — they can only read contracts where they are a signatory or observer:
+
+```tsx
+// VantageCapital sees their own holdings (institution = signatory)
+const { data } = nexus.types.CollateralHolding.useContracts();
+
+// VantageCapital sees incoming margin calls (institution = observer)
+const { data } = nexus.types.MarginCall.useContracts();
+
+// VantageCapital approves — Canton enforces that only institution can call this choice
+nexus.types.RoutingSuggestion.useExercise('ApproveSuggestion');
+```
+
+No application-level party filtering is needed. The Canton ledger enforces visibility automatically.
+
+---
+
+## Onboarding flow
+
+New institutions join SignUIT through a simple self-service process:
+
+1. Institution sends a `POST /api/nexus-auth/login` request with their `userId`
+2. `createAuthHandler` calls `provisionSandboxUser()` — allocates a Canton party and creates a ledger user automatically (idempotent, safe to call multiple times)
+3. Institution is issued a session cookie scoped to their newly allocated party
+4. Institution can now create `JoinRequest`, and SignUIT's backend accepts it to create a `ServiceAgreement`
+
+This means any new institution can be onboarded without manual operator intervention in development.
+
+---
+
+## Related pages
+
+<Cards>
+  <Card title="Collateral Workflow" href="/docs/signuit/collateral-workflow" description="Step-by-step: every template from JoinRequest to AllocationRecord with real code." />
+  <Card title="Core: Server" href="/docs/core/server" description="createNexusServer, createAuthHandler, and provisionSandboxUser in detail." />
+  <Card title="React: Hooks" href="/docs/react/hooks" description="Hook examples with the real CollateralRouter Daml field names." />
+  <Card title="Advanced: PQS" href="/docs/advanced/pqs" description="PostgreSQL-backed queries for the allocation history dashboard." />
+</Cards>

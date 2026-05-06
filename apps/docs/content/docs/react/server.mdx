@@ -1,108 +1,263 @@
 ---
 title: Server Components & Actions
-description: SSR prefetch, Server Components, and Server Actions for Next.js App Router.
+description: SSR prefetch, server-side contract fetching, and ledger actions for TanStack Start and Next.js.
 icon: Server
 ---
 
-Server-side utilities live in `@nexus-framework/react/server`. **Do not import this in Client Components.**
+Server-side utilities live in `@nexus-framework/react/server`. **Never import this in Client Components.**
 
 ```ts
-import { createServerNexusClient, getLedgerData, withLedgerAction }
-  from '@nexus-framework/react/server';
+import {
+  createServerNexusClient,
+  getLedgerData,
+  withLedgerAction,
+  createTanStackLedgerContext,
+} from '@nexus-framework/react/server';
 ```
+
+---
 
 ## createServerNexusClient
 
-Reads the session cookie from a `Request` and returns a `NexusClient` scoped to that user.
+Reads the session cookie from a `Request` and returns a `NexusClient` scoped to that user's party. Use in Server Components, `createServerFn`, and Server Actions.
 
-```ts
-// app/contracts/page.tsx (Server Component)
-import { cookies } from 'next/headers';
-import { createServerNexusClient } from '@nexus-framework/react/server';
+<Tabs items={["TanStack Start", "Next.js"]}>
+  <Tab value="TanStack Start">
+  ```ts title="src/routes/dashboard/index.tsx"
+  import { createServerFn } from '@tanstack/react-start';
+  import { createServerNexusClient } from '@nexus-framework/react/server';
 
-const client = await createServerNexusClient({
-  request: new Request('http://localhost', {
-    headers: { cookie: (await cookies()).toString() },
-  }),
-  config: {
-    ledgerApiUrl: process.env.CANTON_API_URL!,
-  },
-});
-```
+  const getDashboardData = createServerFn({ method: 'GET' }).handler(
+    async ({ request }) => {
+      const client = await createServerNexusClient({
+        request,
+        config: { ledgerApiUrl: process.env.CANTON_API_URL! },
+      });
+
+      const { contracts } = await client.ledger.contracts.fetchActiveContracts({
+        templateId: 'nexus-example-0.0.1:CollateralRouter:CollateralHolding',
+      });
+
+      return { holdings: contracts };
+    }
+  );
+  ```
+  </Tab>
+  <Tab value="Next.js">
+  ```ts title="app/dashboard/page.tsx"
+  import { cookies } from 'next/headers';
+  import { createServerNexusClient } from '@nexus-framework/react/server';
+
+  export default async function DashboardPage() {
+    const client = await createServerNexusClient({
+      request: new Request('http://localhost', {
+        headers: { cookie: (await cookies()).toString() },
+      }),
+      config: { ledgerApiUrl: process.env.CANTON_API_URL! },
+    });
+
+    const { contracts } = await client.ledger.contracts.fetchActiveContracts({
+      templateId: 'nexus-example-0.0.1:CollateralRouter:CollateralHolding',
+    });
+
+    return <pre>{JSON.stringify(contracts, null, 2)}</pre>;
+  }
+  ```
+  </Tab>
+</Tabs>
+
+---
 
 ## SSR Prefetch + HydrationBoundary
 
-Pre-populate the TanStack Query cache on the server — client components render instantly with no loading state:
+Pre-populate the TanStack Query cache on the server so Client Components render with zero loading state.
 
-```tsx
-// app/contracts/page.tsx
-import { contractQueryOptions } from '@nexus-framework/react';
-import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+<Tabs items={["TanStack Start", "Next.js"]}>
+  <Tab value="TanStack Start">
 
-export default async function ContractsPage() {
-  const client = await createServerNexusClient({ ... });
-  const queryClient = new QueryClient();
+  Use `createServerFn` to load data, then pass it as loader data to the route:
 
-  await queryClient.prefetchQuery(
-    contractQueryOptions({ client, templateId: 'my-package:Iou:Iou' })
+  ```tsx title="src/routes/dashboard/index.tsx"
+  import { createFileRoute } from '@tanstack/react-router';
+  import { createServerFn } from '@tanstack/react-start';
+  import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+  import { contractQueryOptions } from '@nexus-framework/react';
+  import { createServerNexusClient } from '@nexus-framework/react/server';
+  import { CollateralList } from './-components/CollateralList';
+
+  const serverLoader = createServerFn({ method: 'GET' }).handler(
+    async ({ request }) => {
+      const client = await createServerNexusClient({
+        request,
+        config: { ledgerApiUrl: process.env.CANTON_API_URL! },
+      });
+
+      const queryClient = new QueryClient();
+      await queryClient.prefetchQuery(
+        contractQueryOptions({
+          client,
+          templateId: 'nexus-example-0.0.1:CollateralRouter:CollateralHolding',
+        })
+      );
+
+      return { dehydratedState: dehydrate(queryClient) };
+    }
   );
 
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <IouList />  {/* nexus.useContracts() hits cache — zero loading state */}
-    </HydrationBoundary>
-  );
-}
-```
+  export const Route = createFileRoute('/dashboard/')({
+    loader: () => serverLoader(),
+    component: function DashboardPage() {
+      const { dehydratedState } = Route.useLoaderData();
+      return (
+        <HydrationBoundary state={dehydratedState}>
+          <CollateralList /> {/* nexus.useContracts() hits cache — no loading state */}
+        </HydrationBoundary>
+      );
+    },
+  });
+  ```
+
+  </Tab>
+  <Tab value="Next.js">
+  ```tsx title="app/dashboard/page.tsx"
+  import { contractQueryOptions } from '@nexus-framework/react';
+  import { createServerNexusClient } from '@nexus-framework/react/server';
+  import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+  import { cookies } from 'next/headers';
+  import { CollateralList } from '@/components/CollateralList';
+
+  export default async function DashboardPage() {
+    const client = await createServerNexusClient({
+      request: new Request('http://localhost', {
+        headers: { cookie: (await cookies()).toString() },
+      }),
+      config: { ledgerApiUrl: process.env.CANTON_API_URL! },
+    });
+
+    const queryClient = new QueryClient();
+    await queryClient.prefetchQuery(
+      contractQueryOptions({
+        client,
+        templateId: 'nexus-example-0.0.1:CollateralRouter:CollateralHolding',
+      })
+    );
+
+    return (
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <CollateralList /> {/* renders instantly — no loading state */}
+      </HydrationBoundary>
+    );
+  }
+  ```
+  </Tab>
+</Tabs>
+
+---
 
 ## getLedgerData
 
-Shorthand for fetching contracts in a Server Component:
+Shorthand for fetching contracts in a server context — no manual `contractQueryOptions` setup:
 
 ```ts
+import { getLedgerData } from '@nexus-framework/react/server';
+
 const { contracts } = await getLedgerData({
   client,
-  templateId: 'my-package:Iou:Iou',
-  parties: ['Alice::abc'],
+  templateId: 'nexus-example-0.0.1:CollateralRouter:MarginCall',
+  parties: [institutionPartyId],
 });
 ```
 
+---
+
 ## withLedgerAction
 
-Wraps any ledger operation in a Server Action with typed error handling:
+Wraps a ledger operation with typed error handling. Returns a serializable `LedgerActionResult<T>` — safe to return from Server Actions.
 
-```ts
-// app/contracts/actions.ts
-'use server';
+<Tabs items={["TanStack Start", "Next.js"]}>
+  <Tab value="TanStack Start">
+  ```ts title="src/routes/api/approve-routing.ts"
+  import { createServerFn } from '@tanstack/react-start';
+  import { withLedgerAction, createServerNexusClient } from '@nexus-framework/react/server';
 
-import { withLedgerAction, createServerNexusClient } from '@nexus-framework/react/server';
-import { cookies } from 'next/headers';
-import { revalidatePath } from 'next/cache';
+  export const approveRoutingSuggestion = createServerFn({ method: 'POST' })
+    .validator((data: { contractId: string; institutionPartyId: string }) => data)
+    .handler(async ({ request, data }) => {
+      const client = await createServerNexusClient({
+        request,
+        config: { ledgerApiUrl: process.env.CANTON_API_URL! },
+      });
 
-export async function createIouAction(formData: FormData) {
-  const client = await createServerNexusClient({
-    request: new Request('http://localhost', {
-      headers: { cookie: (await cookies()).toString() },
-    }),
-    config: { ledgerApiUrl: process.env.CANTON_API_URL! },
-  });
+      return withLedgerAction(client, (c) =>
+        c.ledger.commands.exerciseChoice(
+          'nexus-example-0.0.1:CollateralRouter:RoutingSuggestion',
+          data.contractId,
+          'ApproveSuggestion',
+          {},
+          [data.institutionPartyId],
+        )
+      );
+    });
+  ```
 
-  const result = await withLedgerAction(client, (c) =>
-    c.ledger.commands.createContract(
-      'my-package:Iou:Iou',
-      {
-        owner: formData.get('owner') as string,
-        amount: formData.get('amount') as string,
-        currency: formData.get('currency') as string,
-      },
-      [formData.get('owner') as string],
-    ),
-  );
+  Client usage:
 
-  if (result.success) revalidatePath('/contracts');
-  return result;
-}
-```
+  ```tsx title="src/routes/dashboard/-components/ApproveButton.tsx"
+  import { approveRoutingSuggestion } from '@/routes/api/approve-routing';
+
+  export function ApproveButton({ contractId, institutionPartyId }: Props) {
+    const [isPending, startTransition] = useTransition();
+
+    return (
+      <button
+        disabled={isPending}
+        onClick={() =>
+          startTransition(async () => {
+            const result = await approveRoutingSuggestion({
+              data: { contractId, institutionPartyId },
+            });
+            if (!result.success) console.error(result.error);
+          })
+        }
+      >
+        {isPending ? 'Approving…' : 'Approve'}
+      </button>
+    );
+  }
+  ```
+  </Tab>
+  <Tab value="Next.js">
+  ```ts title="app/dashboard/actions.ts"
+  'use server';
+
+  import { withLedgerAction, createServerNexusClient } from '@nexus-framework/react/server';
+  import { cookies } from 'next/headers';
+  import { revalidatePath } from 'next/cache';
+
+  export async function approveRoutingSuggestionAction(contractId: string, partyId: string) {
+    const client = await createServerNexusClient({
+      request: new Request('http://localhost', {
+        headers: { cookie: (await cookies()).toString() },
+      }),
+      config: { ledgerApiUrl: process.env.CANTON_API_URL! },
+    });
+
+    const result = await withLedgerAction(client, (c) =>
+      c.ledger.commands.exerciseChoice(
+        'nexus-example-0.0.1:CollateralRouter:RoutingSuggestion',
+        contractId,
+        'ApproveSuggestion',
+        {},
+        [partyId],
+      )
+    );
+
+    if (result.success) revalidatePath('/dashboard');
+    return result;
+  }
+  ```
+  </Tab>
+</Tabs>
 
 ### LedgerActionResult
 
@@ -112,27 +267,23 @@ type LedgerActionResult<T> =
   | { success: false; error: string; code: 'LEDGER_ERROR' | 'UNKNOWN_ERROR' };
 ```
 
-### Client Component consuming the action
+---
 
-```tsx
-"use client";
+## createTanStackLedgerContext
 
-import { useTransition } from 'react';
-import { createIouAction } from '../actions';
+Creates a TanStack Start-native ledger proxy handler. Mounts at `/api/ledger` and forwards authenticated requests to Canton — reading the session cookie automatically.
 
-export function CreateIouForm() {
-  const [isPending, startTransition] = useTransition();
+```ts title="src/routes/api/ledger.$.ts"
+import { createServerFileRoute } from '@tanstack/react-start/server';
+import { createTanStackLedgerContext } from '@nexus-framework/react/server';
+import { nexus } from '@/lib/nexus-server';
 
-  return (
-    <form action={(fd) => startTransition(async () => {
-      const result = await createIouAction(fd);
-      if (!result.success) alert(result.error);
-    })}>
-      <input name="owner" required />
-      <input name="amount" type="number" required />
-      <input name="currency" maxLength={3} required />
-      <button type="submit" disabled={isPending}>Create</button>
-    </form>
-  );
-}
+const ledgerHandler = createTanStackLedgerContext(nexus);
+
+export const ServerRoute = createServerFileRoute('/api/ledger/$').methods({
+  GET: ({ request }) => ledgerHandler(request),
+  POST: ({ request }) => ledgerHandler(request),
+});
 ```
+
+This is the bridge between the browser client (`baseUrl: '/api/ledger'`) and the Canton JSON Ledger API. All requests are authenticated via the session cookie — the token never leaves the server.

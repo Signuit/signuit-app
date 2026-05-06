@@ -2,26 +2,12 @@
 	"title": "Nexus Framework",
 	"pages": [
 		"index",
-		"---Getting Started---",
-		"getting-started/installation",
-		"getting-started/quick-start",
-		"---Authentication---",
-		"authentication/sandbox",
-		"authentication/jwt",
-		"authentication/oidc",
-		"---Contracts---",
-		"contracts/querying",
-		"contracts/by-key",
-		"contracts/interfaces",
-		"contracts/commands",
-		"---React---",
-		"react/setup",
-		"react/tanstack-query",
-		"react/streaming",
-		"react/server",
-		"react/query-keys",
-		"---Advanced---",
-		"advanced/session",
-		"advanced/plugins"
+		"getting-started",
+		"authentication",
+		"core",
+		"react",
+		"contracts",
+		"advanced",
+		"signuit"
 	]
 }

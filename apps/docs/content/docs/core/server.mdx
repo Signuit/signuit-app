@@ -1,0 +1,339 @@
+---
+title: createNexusServer
+description: Server-side factory for Canton Ledger connections with auth handler, session management, and sandbox provisioning.
+icon: Server
+---
+
+`createNexusServer` is the server-side companion to `createNexus`. It wires a Canton HTTP client together with session management, auth route handling, and optional PQS (Participant Query Store) in one call. Import from `@nexus-framework/core/server`.
+
+<Callout type="info">
+  This is the pattern [SignUIT](https://signuit.com) uses in production. The `apps/web/src/lib/nexus-server.ts` file is the exact real-world reference for everything on this page.
+</Callout>
+
+## createNexusServer
+
+```ts
+import { createNexusServer } from '@nexus-framework/core/server';
+
+const nexus = await createNexusServer({
+  auth: sandboxAuthOptions,
+  session: sessionManager,
+});
+```
+
+### Options
+
+<TypeTable
+  type={{
+    auth: {
+      description: "Auth plugin options — the same object passed to `sandboxAuth()`, `jwtAuth()`, or `oidcAuth()`.",
+      type: "SandboxAuthOptions | JwtAuthOptions | OidcAuthOptions",
+      required: true,
+    },
+    session: {
+      description: "`SessionManager` instance for HttpOnly cookie sessions.",
+      type: "SessionManager",
+      required: true,
+    },
+    ledgerApiUrl: {
+      description: "Canton JSON Ledger API URL. Defaults to `process.env.CANTON_API_URL ?? 'http://127.0.0.1:7575'`.",
+      type: "string",
+    },
+    pqs: {
+      description: "PQS (Participant Query Store) PostgreSQL config. When provided, `nexus.pqs` is available for read-optimized queries. See [Advanced: PQS](/docs/advanced/pqs).",
+      type: "PqsConfig",
+    },
+  }}
+/>
+
+### Return value
+
+```ts
+interface NexusServer {
+  /** The raw NexusClient — same as createNexus() output */
+  client: NexusClient;
+
+  /** Create a client scoped to a specific party (e.g. from session) */
+  forParty(partyId: string, token: string): NexusClient;
+
+  /** Create a client scoped to the requesting user (reads session cookie) */
+  forRequest(request: Request): Promise<NexusClient>;
+}
+```
+
+---
+
+## createAuthHandler
+
+Creates a universal `(req: Request) => Promise<Response>` handler covering login, logout, session read, and token refresh. Mount it at `/api/nexus-auth` (or any path).
+
+```ts
+import { createAuthHandler } from '@nexus-framework/core/server';
+
+export const authHandler = createAuthHandler({
+  nexusServer: nexus,
+  session: sessionManager,
+  sandboxProvision: true,  // auto-provision Canton sandbox users on login
+});
+```
+
+### Routes created
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/login` | Authenticate, provision sandbox party, set session cookie |
+| `POST` | `/logout` | Clear session cookie |
+| `GET` | `/session` | Read current session (returns `NexusSession` or 401) |
+| `GET` | `/refresh` | Extend session TTL |
+
+### Options
+
+<TypeTable
+  type={{
+    nexusServer: {
+      description: "The `NexusServer` instance from `createNexusServer()`.",
+      type: "NexusServer",
+      required: true,
+    },
+    session: {
+      description: "`SessionManager` instance — same one used in `createNexusServer()`.",
+      type: "SessionManager",
+      required: true,
+    },
+    sandboxProvision: {
+      description: "If `true`, the login handler calls `provisionSandboxUser()` to allocate a Canton party for the userId before issuing a session.",
+      type: "boolean",
+      default: "false",
+    },
+    onLoginSuccess: {
+      description: "Callback after a successful login. Receives the session and request.",
+      type: "(session: NexusSession, req: Request) => Promise<void> | void",
+    },
+    onLogoutSuccess: {
+      description: "Callback after logout.",
+      type: "(req: Request) => Promise<void> | void",
+    },
+    customHandlers: {
+      description: "Override any of the built-in routes with custom `(req) => Response` functions.",
+      type: "Partial<Record<'login' | 'logout' | 'session' | 'refresh', (req: Request) => Promise<Response>>>",
+    },
+  }}
+/>
+
+---
+
+## provisionSandboxUser
+
+Allocates a Canton party and creates a ledger user in one call. Safe to call multiple times — it checks for existing parties first and is idempotent.
+
+```ts
+import { provisionSandboxUser } from '@nexus-framework/core/server';
+
+const { partyId } = await provisionSandboxUser(cantonClient, {
+  userId: 'alice',
+  displayName: 'Alice VantageCapital',
+  adminToken: await nexus.client.getToken(),
+});
+// partyId: "alice::122059a10c..."
+```
+
+### What it does
+
+<Steps>
+  <Step>
+
+  ### Check for existing party
+
+  Queries `/v2/admin/parties` to see if a party already exists for this `userId`. Returns immediately if found — no duplicate allocation.
+
+  </Step>
+  <Step>
+
+  ### Allocate party
+
+  Calls `POST /v2/admin/parties` with the `userId` as the party hint. Retries up to 3 times to handle synchronizer startup delays.
+
+  </Step>
+  <Step>
+
+  ### Create ledger user
+
+  Calls `POST /v2/admin/users` (idempotent — 409 Conflict is handled). Links the user to the allocated party.
+
+  </Step>
+  <Step>
+
+  ### Grant rights
+
+  Grants `canActAs` and `canReadAs` rights for the newly allocated party to the ledger user.
+
+  </Step>
+</Steps>
+
+### Options
+
+<TypeTable
+  type={{
+    userId: {
+      description: "Canton userId — used as party hint and user identifier.",
+      type: "string",
+      required: true,
+    },
+    displayName: {
+      description: "Human-readable party display name.",
+      type: "string",
+    },
+    adminToken: {
+      description: "Admin-level JWT token with rights to call `/v2/admin/*` endpoints.",
+      type: "string",
+      required: true,
+    },
+  }}
+/>
+
+---
+
+## SessionManager
+
+Create and validate AES-GCM encrypted HttpOnly session cookies.
+
+```ts
+import { SessionManager, generateEncryptionKey } from '@nexus-framework/core';
+
+const sessionManager = new SessionManager({
+  encryptionKey: process.env.SESSION_ENCRYPTION_KEY, // 32-byte hex
+  cookieName: 'nexus_session',  // default
+  ttlMs: 2 * 60 * 60 * 1000,   // 2 hours
+  secure: process.env.NODE_ENV === 'production',
+});
+```
+
+Generate a key once:
+
+```bash
+bun -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+# → SESSION_ENCRYPTION_KEY=a3f8c2d1e4b9...
+```
+
+See [Advanced: Session Management](/docs/advanced/session) for the full API.
+
+---
+
+## SignUIT: full server wiring
+
+This is the production pattern from `apps/web/src/lib/nexus-server.ts`:
+
+```ts title="apps/web/src/lib/nexus-server.ts"
+import {
+  createNexusServer,
+  createAuthHandler,
+  SessionManager,
+} from '@nexus-framework/core/server';
+import { sandboxAuth } from '@nexus-framework/core';
+
+// 1. Auth plugin options
+const sandboxAuthOptions = {
+  secret: process.env.SANDBOX_SECRET ?? 'secret',
+  userId: 'admin',
+  partyId: process.env.ADMIN_PARTY_ID ?? '',
+  // Dynamic userId — resolved per-request from session
+  getUserId: (ctx: { session?: { userId?: string } }) => ctx.session?.userId,
+};
+
+// 2. Session manager — AES-GCM encrypted, 2h TTL in prod
+export const sessionManager = new SessionManager({
+  encryptionKey: process.env.SESSION_SECRET,
+  ttlMs: process.env.NODE_ENV === 'production'
+    ? 2 * 60 * 60 * 1000   // 2h
+    : 24 * 60 * 60 * 1000, // 24h dev
+  secure: process.env.NODE_ENV === 'production',
+});
+
+// 3. Nexus server instance
+export const nexus = await createNexusServer({
+  auth: sandboxAuthOptions,
+  session: sessionManager,
+  ledgerApiUrl: process.env.CANTON_API_URL ?? 'http://127.0.0.1:7575',
+});
+
+// 4. Auth route handler — mounted at /api/nexus-auth
+export const authHandler = createAuthHandler({
+  nexusServer: nexus,
+  session: sessionManager,
+  sandboxProvision: true, // auto-allocate Canton parties on first login
+});
+
+// 5. Auto-upload DAR on startup (dev/staging convenience)
+await ensureDarUploaded();
+
+async function ensureDarUploaded() {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const dar = Bun.file('./sandbox/nexus-example-0.0.1.dar');
+      if (!(await dar.exists())) return;
+
+      const adminToken = await nexus.client.getToken();
+      // upload via Canton package management endpoint...
+      console.log('DAR uploaded successfully');
+      return;
+    } catch (err) {
+      if (attempt === 3) console.error('DAR upload failed after 3 attempts:', err);
+      await Bun.sleep(2000 * attempt);
+    }
+  }
+}
+```
+
+Then mount the auth handler in your router:
+
+<Tabs items={["TanStack Start", "Next.js"]}>
+  <Tab value="TanStack Start">
+  ```ts title="apps/web/src/routes/api/nexus-auth.$.ts"
+  import { createServerFileRoute } from '@tanstack/react-start/server';
+  import { authHandler } from '@/lib/nexus-server';
+
+  export const ServerRoute = createServerFileRoute('/api/nexus-auth/$').methods({
+    GET: ({ request }) => authHandler(request),
+    POST: ({ request }) => authHandler(request),
+  });
+  ```
+  </Tab>
+  <Tab value="Next.js">
+  ```ts title="app/api/nexus-auth/[...path]/route.ts"
+  import { authHandler } from '@/lib/nexus-server';
+
+  export const GET = (req: Request) => authHandler(req);
+  export const POST = (req: Request) => authHandler(req);
+  ```
+  </Tab>
+</Tabs>
+
+And mount the Canton proxy (forwards `/api/ledger/*` → Canton JSON API):
+
+<Tabs items={["TanStack Start", "Next.js"]}>
+  <Tab value="TanStack Start">
+  ```ts title="apps/web/src/routes/api/ledger.$.ts"
+  import { createServerFileRoute } from '@tanstack/react-start/server';
+  import { createTanStackLedgerContext } from '@nexus-framework/react/server';
+  import { nexus } from '@/lib/nexus-server';
+
+  const ledgerHandler = createTanStackLedgerContext(nexus);
+
+  export const ServerRoute = createServerFileRoute('/api/ledger/$').methods({
+    GET: ({ request }) => ledgerHandler(request),
+    POST: ({ request }) => ledgerHandler(request),
+  });
+  ```
+  </Tab>
+  <Tab value="Next.js">
+  ```ts title="app/api/ledger/[...path]/route.ts"
+  import { createLedgerRouteHandler } from '@nexus-framework/react/server';
+  import { nexus } from '@/lib/nexus-server';
+
+  const handler = createLedgerRouteHandler({ nexusServer: nexus });
+
+  export const GET = handler;
+  export const POST = handler;
+  ```
+  </Tab>
+</Tabs>

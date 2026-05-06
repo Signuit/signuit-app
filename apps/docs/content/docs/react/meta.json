@@ -1,0 +1,5 @@
+{
+	"title": "React",
+	"icon": "Atom",
+	"pages": ["setup", "tanstack-query", "typed-namespaces", "streaming", "server", "hooks", "provider", "query-keys"]
+}

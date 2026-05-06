@@ -1,0 +1,5 @@
+{
+	"title": "Contracts",
+	"icon": "FileText",
+	"pages": ["querying", "by-key", "interfaces", "commands"]
+}

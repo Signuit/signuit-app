@@ -1,226 +1,217 @@
 ---
 title: Hooks
-description: React hooks for querying contracts and submitting ledger commands.
+description: Full reference for every hook on the nexus instance — query, mutation, streaming, and identity hooks.
 icon: Webhook
 ---
 
-All hooks must be used inside a `<NexusProvider>`.
+All hooks live directly on your `nexus` instance returned by `createNexusClient`. You import the instance, not the hooks individually. They must be called within `nexus.NexusProvider`.
 
-## useContracts
+<Callout type="info">
+  **If you have `nexusTypes` registered, you should never call these hooks with a generic type parameter or a templateId string.** Use `nexus.types.CollateralHolding.useContracts()` instead of `nexus.useContracts<CollateralHoldingPayload>({ templateId: '...' })`. The hooks documented below are the underlying low-level layer — they exist for cases where you don't have Daml codegen or are building a generic plugin. See [Typed Namespaces](/docs/react/typed-namespaces).
+</Callout>
 
-Fetches active contracts with TanStack Query.
+---
+
+## Query hooks
+
+### useContracts
+
+Fetches the active contracts for a Daml template. Results are cached by TanStack Query, refetched in the background when stale, and invalidated automatically after related mutations.
 
 ```tsx
-import { useContracts } from '@nexus-framework/react';
-
-const { data, isLoading, error } = useContracts<IouPayload>({
-  templateId: 'my-package:Iou:Iou',
-  parties: ['Alice::abc'],      // optional
-  filter: { currency: 'USD' }, // optional
-  fetchAll: false,              // default — first page only
-  staleTime: 5_000,             // override query staleTime
+const { data, isLoading, error, isFetching } = nexus.useContracts<PayloadType>({
+  templateId: 'package:Module:Template',
+  parties: [partyId],    // Optional. Defaults to the party from your auth plugin.
+  fetchAll: false,        // Optional. If true, follows all pagination cursors automatically.
+  staleTime: 5_000,       // Optional. Milliseconds before a background refetch is triggered.
+  enabled: true,          // Optional. Set to false to pause the query.
 });
 
-// data?.contracts: ActiveContract<IouPayload>[]
-// data?.nextPageToken?: string
+// data.contracts:    ActiveContract<PayloadType>[]
+// data.nextPageToken: string | undefined — undefined means you're on the last page
 ```
 
 ### useContractsSuspense
 
-Suspense variant — throws a promise while loading. Wrap in `<Suspense>`.
+The Suspense variant. Throws a Promise while loading — wrap the component in `<Suspense>`. Inside the component, `data` is always defined and the loading state is never `undefined`.
 
 ```tsx
-const { data } = useContractsSuspense<IouPayload>({
-  templateId: 'my-package:Iou:Iou',
-});
-```
+function ContractList() {
+  // data is guaranteed to be defined here — Suspense handles the loading state
+  const { data } = nexus.useContractsSuspense<PayloadType>({ templateId: '...' });
+  return <>{data.contracts.map(...)}</>;
+}
 
----
-
-## useCreateContract
-
-Mutation hook for creating a new Daml contract.
-Automatically invalidates the matching template cache on success.
-
-```tsx
-import { useCreateContract } from '@nexus-framework/react';
-
-const { mutate, isPending } = useCreateContract({
-  onSuccess: (result) => console.log('txn:', result.transactionId),
-  onError: (err) => console.error(err),
-});
-
-mutate({
-  templateId: 'my-package:Iou:Iou',
-  createArguments: { owner: 'Alice::abc', amount: '100', currency: 'USD' },
-  actAs: ['Alice::abc'],
-});
-```
-
-### CreateContractVariables
-
-```ts
-interface CreateContractVariables<T = Record<string, unknown>> {
-  templateId: string | TemplateId;
-  createArguments: T;
-  actAs: string[];
-  readAs?: string[];
-  workflowId?: string;
+export function ContractListPage() {
+  return (
+    <Suspense fallback={<p>Loading contracts…</p>}>
+      <ContractList />
+    </Suspense>
+  );
 }
 ```
 
----
+### useInterface
 
-## useExerciseChoice
-
-Mutation hook for exercising a choice on an existing contract.
+Queries contracts across multiple template types through a shared Daml interface. Each result includes the decoded `interfaceView` alongside the underlying contract.
 
 ```tsx
-import { useExerciseChoice } from '@nexus-framework/react';
-
-const { mutate } = useExerciseChoice({
-  invalidateTemplates: ['my-package:Iou:Iou'],
+const { data } = nexus.useInterface<InterfaceViewType>({
+  interfaceId: 'package:Module:IMyInterface',
+  parties: [partyId],
 });
 
-mutate({
-  templateId: 'my-package:Iou:Iou',
-  contractId: 'abc123',
-  choice: 'Transfer',
-  choiceArgument: { newOwner: 'Bob::xyz' },
-  actAs: ['Alice::abc'],
-});
+// data.contracts[n].interfaceView — typed as InterfaceViewType
+// data.contracts[n].contractId, templateId — underlying contract info
 ```
 
----
+### usePartyId
 
-## useLedgerMutation
-
-Generic hook for custom multi-command batches.
+Resolves a Canton `userId` to a `partyId` via the participant's identity API. The result is cached for 5 minutes.
 
 ```tsx
-import { useLedgerMutation } from '@nexus-framework/react';
-
-const { mutate } = useLedgerMutation({
-  mutationFn: async (nexus, vars: { amount: string }) =>
-    nexus.ledger.commands.createContract(
-      'my-package:Iou:Iou',
-      { amount: vars.amount, ... },
-      ['Alice::abc'],
-    ),
-  invalidateTemplates: ['my-package:Iou:Iou'],
-});
+const { data: partyId } = nexus.usePartyId('alice');
+// "Alice::122059a10c..."
 ```
 
----
+### useLedgerEnd
 
-## useLedgerEnd
+Returns the current ledger offset. Refreshes every 2 seconds. Useful for polling-based sync or time-based logic.
 
 ```tsx
-import { useLedgerEnd } from '@nexus-framework/react';
-
-const { data } = useLedgerEnd();
-// data.offset — current ledger offset
+const { data } = nexus.useLedgerEnd();
+// data.offset — current ledger offset string
 ```
 
-## useSynchronizers
+### useSynchronizers
+
+Lists the Canton synchronizers connected to this participant. Refreshes every 30 seconds.
 
 ```tsx
-import { useSynchronizers } from '@nexus-framework/react';
-
-const { data } = useSynchronizers();
+const { data } = nexus.useSynchronizers();
 // data.synchronizers: SynchronizerInfo[]
 ```
 
-## usePartyId
+---
 
-Resolves a userId to a Canton Party ID.
+## Mutation hooks
+
+### useCreateContract
+
+Creates a Daml contract and automatically invalidates the TanStack Query cache for the affected template. Any `useContracts` call for that template will refetch in the background.
 
 ```tsx
-import { usePartyId } from '@nexus-framework/react';
+const { mutate, isPending, error, isSuccess } = nexus.useCreateContract({
+  onSuccess: (result) => console.log('Created in tx:', result.transactionId),
+  onError: (err) => console.error('Failed:', err.message),
+  invalidateTemplates: ['package:Module:Template'], // Optional extra templates to invalidate
+});
 
-const { data: partyId } = usePartyId('alice');
-// partyId → "Alice::122059a10c..."
+mutate({
+  templateId: 'package:Module:Template',
+  createArguments: { owner: partyId, amount: '100' },
+  actAs: [partyId],
+});
+```
+
+### useExerciseChoice
+
+Exercises a Daml choice and invalidates the cache. Returns `SubmitResult` — transaction ID, offset, timestamp. Use `useExerciseAndGetResult` if you need the typed Daml return value.
+
+```tsx
+const { mutate, isPending } = nexus.useExerciseChoice({
+  invalidateTemplates: ['package:Module:Template'],
+});
+
+mutate({
+  templateId: 'package:Module:Template',
+  contractId: contract.contractId,
+  choice: 'Archive',
+  choiceArgument: {},
+  actAs: [partyId],
+});
+```
+
+### useExerciseAndGetResult
+
+Exercises a choice and returns the typed Daml return value extracted from the transaction tree. This calls `POST /v2/commands/submit-and-wait-for-transaction` and parses the `exerciseResult` field.
+
+```tsx
+interface ApproveSuggestionResult {
+  allocationCid: string;
+}
+
+const { mutate, data } = nexus.useExerciseAndGetResult<
+  {},                        // choice argument type
+  ApproveSuggestionResult    // Daml return value type
+>({
+  invalidateTemplates: [
+    'nexus-example-0.0.1:CollateralRouter:RoutingSuggestion',
+    'nexus-example-0.0.1:CollateralRouter:AllocationRecord',
+  ],
+  onSuccess: (result) => {
+    // result.result is typed as ApproveSuggestionResult
+    console.log('Created AllocationRecord:', result.result.allocationCid);
+  },
+});
+
+mutate({
+  templateId: 'nexus-example-0.0.1:CollateralRouter:RoutingSuggestion',
+  contractId: suggestionId,
+  choice: 'ApproveSuggestion',
+  choiceArgument: {},
+  actAs: [institutionPartyId], // The institution is the sole controller — operator is not included
+});
+```
+
+### useLedgerMutation
+
+An escape hatch for complex operations that don't fit into a single create or exercise. The mutation function receives the full `NexusClient` and can compose any sequence of ledger operations into a single atomic transaction.
+
+```tsx
+const { mutate } = nexus.useLedgerMutation({
+  mutationFn: async (client, vars: { oldId: string; newAmount: string }) => {
+    // Archive the old contract and create a replacement in one transaction
+    await client.ledger.commands.exerciseChoice('...', vars.oldId, 'Archive', {}, [partyId]);
+    return client.ledger.commands.createContract('...', { amount: vars.newAmount }, [partyId]);
+  },
+  invalidateTemplates: ['...'],
+  onSuccess: (result) => console.log('Done:', result.transactionId),
+});
+
+mutate({ oldId: contractId, newAmount: '200' });
+```
 
 ---
 
-## SignUIT example: MarginCall workflow
+## SignUIT example — approving a routing suggestion
 
-This pattern shows how PrimeBank issues a `MarginCall` and VantageCapital responds with an `AllocationRecord` — all through Nexus Framework hooks.
+This is the critical decision point in SignUIT's workflow. The institution approves a `RoutingSuggestion`, which atomically archives it and creates an `AllocationRecord`. The operator is never part of `actAs` — this is enforced by the Daml controller declaration.
 
-```tsx title="MarginCallList.tsx"
-"use client";
-
+```tsx title="components/ApproveButton.tsx"
 import { nexus } from '@/lib/nexus-client';
 
-interface MarginCallPayload {
-  counterparty: string;   // PrimeBank party
-  institution: string;    // VantageCapital party
-  operator: string;       // SignUIT party
-  callAmount: string;     // Daml Numeric
-  currency: string;
-  dueDate: string;        // ISO 8601
-  status: string;         // "Pending" | "Fulfilled"
-}
-
-interface AllocationRecordPayload {
-  institution: string;
-  operator: string;
-  marginCallCid: string;  // contractId of the resolved MarginCall
-  allocatedAssets: { assetType: string; quantity: string }[];
-  approvedAt: string;
-}
-
-export function MarginCallManager() {
-  const institutionParty = process.env.NEXT_PUBLIC_INSTITUTION_PARTY_ID!;
-
-  // Query pending margin calls visible to the institution
-  const { data: callsData } = nexus.useContracts<MarginCallPayload>({
-    templateId: 'nexus-example-0.0.1:CollateralRouter:MarginCall',
-    parties: [institutionParty],
-  });
-
-  // Mutation: approve allocation — institution is sole decision-maker
-  const { mutate: approveAllocation, isPending } = nexus.useCreateContract({
-    onSuccess: () => console.log('AllocationRecord created'),
-  });
-
-  const pendingCalls = callsData?.contracts.filter(
-    (c) => c.payload.status === 'Pending'
-  ) ?? [];
-
-  function handleApprove(callContractId: string, callAmount: string) {
-    approveAllocation({
-      templateId: 'nexus-example-0.0.1:CollateralRouter:AllocationRecord',
-      createArguments: {
-        institution: institutionParty,
-        marginCallCid: callContractId,
-        allocatedAssets: [{ assetType: 'UST_10Y', quantity: callAmount }],
-        approvedAt: new Date().toISOString(),
-      },
-      actAs: [institutionParty], // institution signs alone — no operator co-sig
-    });
-  }
+export function ApproveButton({ contractId, institutionPartyId }: Props) {
+  // With nexusTypes registered — the right way. No templateId, no generic.
+  const { mutate, isPending } = nexus.types.RoutingSuggestion.useExercise('ApproveSuggestion');
 
   return (
-    <ul>
-      {pendingCalls.map((c) => (
-        <li key={c.contractId}>
-          <strong>{c.payload.callAmount} {c.payload.currency}</strong>
-          {' '}due {c.payload.dueDate}
-          <button
-            onClick={() => handleApprove(c.contractId, c.payload.callAmount)}
-            disabled={isPending}
-          >
-            Approve Allocation
-          </button>
-        </li>
-      ))}
-    </ul>
+    <button
+      disabled={isPending}
+      onClick={() =>
+        mutate({
+          contractId,
+          choiceArgument: {},
+          actAs: [institutionPartyId], // Only the institution. Never include the operator here.
+        })
+      }
+    >
+      {isPending ? 'Approving…' : 'Approve Routing'}
+    </button>
   );
 }
 ```
 
 <Callout type="info">
-  `actAs: [institutionParty]` — the institution signs the `AllocationRecord` alone. This enforces the ownership model: operator observes, institution decides.
+  `actAs: [institutionPartyId]` is not an application-level decision. The Daml `ApproveSuggestion` choice declares `controller institution` — Canton will reject any submission that includes a party other than the institution in `actAs` for this choice.
 </Callout>
-```

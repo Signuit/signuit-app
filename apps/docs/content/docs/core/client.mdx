@@ -1,92 +1,224 @@
 ---
-title: createNexusClient
-description: The main factory function for creating a fully configured Nexus client.
+title: createNexus
+description: The core factory function that creates a Canton Ledger client with plugin-based auth, contract queries, and command submission.
 icon: Settings
 ---
 
-`createNexusClient` is the entry point for all Canton Ledger interactions.
+`createNexus` is the entry point for all Canton Ledger interactions in `@nexus-framework/core`. It assembles a fully configured `NexusClient` from a plugins array — auth strategy, transport settings, and optional package discovery are all plugins.
 
-```ts
-import { createNexusClient } from '@nexus-framework/core';
+For React apps, use [`createNexusClient`](/docs/react/setup) from `@nexus-framework/react` instead — it wraps `createNexus` and adds hooks.
 
-const nexus = createNexusClient(config: NexusConfig): NexusClient
+## Basic usage
+
+```ts title="lib/nexus.ts"
+import { createNexus, sandboxAuth } from '@nexus-framework/core';
+
+export const nexus = createNexus({
+  ledgerApiUrl: 'http://localhost:7575',
+  plugins: [
+    sandboxAuth({
+      secret: process.env.SANDBOX_SECRET ?? 'secret',
+      userId: 'alice',
+      partyId: 'Alice::122059a10c67ef1bb38e4e7ff3fd9c827e2e6cbbfd68bb5cd8fa4c0c56fecdf0734b',
+    }),
+  ],
+});
 ```
 
 ## NexusConfig
 
 ```ts
 interface NexusConfig {
-  /** Canton JSON Ledger API base URL */
+  /** Canton JSON Ledger API v2 base URL */
   ledgerApiUrl: string;
-  auth: AuthConfig;           // see Auth page
-  /** Request timeout in ms. Default: 30000 */
+
+  /** Plugin array — at minimum one auth plugin is required */
+  plugins: NexusPlugin[];
+
+  /** HTTP request timeout in ms. Default: 30_000 */
   timeoutMs?: number;
 }
 ```
 
-## NexusClient
+## NexusClient namespaces
 
-The returned object exposes three namespaces:
+The returned client exposes three namespaces plus a raw HTTP client:
 
 ```ts
 interface NexusClient {
-  /** Raw Canton HTTP client — for custom requests */
+  /** Raw CantonClient — for custom HTTP requests not covered by the high-level API */
   http: CantonClient;
 
+  /** Auth utilities */
   auth: {
-    jwt: JwtManager;          // token generation & refresh
-    partyId: PartyIdResolver; // userId → Canton Party ID
-    session: SessionManager;  // HttpOnly cookie sessions
+    /** JWT token management — generation, caching, auto-refresh */
+    jwt: JwtManager;
+    /** Resolves Canton userId → partyId via /v2/users/{id}/rights */
+    partyId: PartyIdResolver;
   };
 
+  /** Ledger operations */
   ledger: {
-    contracts: ContractQuery;     // fetch active contracts
-    commands: CommandSubmitter;   // create / exercise
-    identity: LedgerIdentity;     // ledger end, synchronizers
+    /** Fetch active contracts (ACS queries) */
+    contracts: ContractQuery;
+    /** Create contracts, exercise choices, batch submissions */
+    commands: CommandSubmitter;
+    /** Ledger end, synchronizer info */
+    identity: LedgerIdentity;
   };
 
+  /** Get the current auth token (resolves from whichever auth plugin is active) */
   getToken(): Promise<string>;
 }
 ```
 
-## Examples
+## Plugin-based auth
 
-### Sandbox (development)
+Auth strategy is a plugin — swap without changing any other code:
+
+<Tabs items={["Sandbox (dev)", "JWT", "OIDC (prod)"]}>
+  <Tab value="Sandbox (dev)">
+  ```ts
+  import { createNexus, sandboxAuth } from '@nexus-framework/core';
+
+  const nexus = createNexus({
+    ledgerApiUrl: 'http://localhost:7575',
+    plugins: [
+      sandboxAuth({
+        secret: 'secret',          // must match Canton --auth-secret
+        userId: 'alice',
+        partyId: 'Alice::122059a10c...',
+      }),
+    ],
+  });
+  ```
+  </Tab>
+  <Tab value="JWT">
+  ```ts
+  import { createNexus, jwtAuth } from '@nexus-framework/core';
+
+  const nexus = createNexus({
+    ledgerApiUrl: 'https://ledger.example.com',
+    plugins: [
+      jwtAuth({
+        token: process.env.CANTON_JWT_TOKEN!,
+        refreshToken: async () => fetchNewToken(),
+      }),
+    ],
+  });
+  ```
+  </Tab>
+  <Tab value="OIDC (prod)">
+  ```ts
+  import { createNexus, oidcAuth } from '@nexus-framework/core';
+
+  const nexus = createNexus({
+    ledgerApiUrl: 'https://ledger.example.com',
+    plugins: [
+      oidcAuth({
+        tokenEndpoint: 'https://auth.example.com/oauth/token',
+        clientId: process.env.OIDC_CLIENT_ID!,
+        clientSecret: process.env.OIDC_CLIENT_SECRET!,
+      }),
+    ],
+  });
+  ```
+  </Tab>
+</Tabs>
+
+## ledger.contracts
+
+Fetch active contracts from the Canton ACS:
 
 ```ts
-const nexus = createNexusClient({
-  ledgerApiUrl: 'http://localhost:7575',
-  auth: {
-    type: 'sandbox',
-    secret: 'secret',
-    userId: 'alice',
-    partyId: 'Alice::122059a10c...',
-  },
+// First page
+const page = await nexus.ledger.contracts.fetchActiveContracts<{ owner: string; amount: string }>({
+  templateId: 'my-package:Iou:Iou',
+  parties: ['Alice::122059a10c...'],
+  pageSize: 50,
 });
+
+// page.contracts: ActiveContract<{ owner: string; amount: string }>[]
+// page.nextPageToken: string | undefined  — undefined means last page
+
+// All pages (paginates automatically)
+const all = await nexus.ledger.contracts.fetchAllActiveContracts({
+  templateId: 'my-package:Iou:Iou',
+});
+
+// Single contract by ID
+const contract = await nexus.ledger.contracts.fetchContractById(
+  'my-package:Iou:Iou',
+  'contract-abc123...',
+);
+
+// By payload predicate (equivalent of Daml fetchByKey)
+const byKey = await nexus.ledger.contracts.fetchContractByKey(
+  'my-package:Iou:Iou',
+  (p) => p.owner === partyId && p.currency === 'USD',
+);
 ```
 
-### Static JWT
+## ledger.commands
+
+Submit transactions to the ledger:
 
 ```ts
-const nexus = createNexusClient({
-  ledgerApiUrl: 'https://ledger.example.com',
-  auth: {
-    type: 'jwt',
-    token: process.env.CANTON_TOKEN,
-  },
-});
+// Create a contract
+const result = await nexus.ledger.commands.createContract(
+  'my-package:Iou:Iou',
+  { owner: 'Alice::122059a10c...', amount: '100', currency: 'USD' },
+  ['Alice::122059a10c...'], // actAs
+);
+// result.transactionId, result.offset, result.completedAt
+
+// Exercise a choice (no return value needed)
+await nexus.ledger.commands.exerciseChoice(
+  'my-package:Iou:Iou',
+  contractId,
+  'Archive',
+  {},
+  ['Alice::122059a10c...'],
+);
+
+// Exercise and get the typed Daml return value
+const exercised = await nexus.ledger.commands.exerciseAndGetResult<
+  { newOwner: string },   // choice argument type
+  { newContractId: string } // Daml return value type
+>(
+  'my-package:Iou:Iou',
+  contractId,
+  'Transfer',
+  { newOwner: 'Bob::xyz...' },
+  ['Alice::122059a10c...'],
+);
+// exercised.result.newContractId
 ```
 
-### OIDC (production)
+## ledger.identity
 
 ```ts
-const nexus = createNexusClient({
-  ledgerApiUrl: 'https://ledger.example.com',
-  auth: {
-    type: 'oidc',
-    tokenEndpoint: 'https://auth.example.com/token',
-    clientId: 'my-app',
-    clientSecret: process.env.OIDC_SECRET,
-  },
-});
+const end = await nexus.ledger.identity.getLedgerEnd();
+// end.offset — current ledger offset
+
+const syncs = await nexus.ledger.identity.getConnectedSynchronizers();
+// syncs: SynchronizerInfo[]
+
+const connected = await nexus.ledger.identity.isConnected();
+// boolean
 ```
+
+## getToken
+
+Returns the current bearer token from whichever auth plugin is configured:
+
+```ts
+const token = await nexus.getToken();
+// Use in custom fetch calls, WebSocket subprotocols, etc.
+```
+
+## SignUIT example
+
+SignUIT's server-side client is created via `createNexusServer()` (a higher-level wrapper around `createNexus`). See [Core: Server](/docs/core/server) for how SignUIT wires the full server instance including auth handler, session management, and DAR upload.
+
+For the browser client, SignUIT uses `createNexusClient` from `@nexus-framework/react` with `authPlugin()` for session-based auth — see [React: Setup](/docs/react/setup).

@@ -1,21 +1,31 @@
 ---
 title: Fetch by Key
-description: Find a contract by its Daml contract key using a payload predicate.
+description: Find a contract by a payload predicate — the client-side equivalent of Daml's fetchByKey.
 icon: Fingerprint
 ---
 
-`fetchContractByKey` finds the first contract whose payload satisfies a predicate function. This is the equivalent of Daml's `fetchByKey` operation on the client side.
+<Callout type="info">
+  If `nexusTypes` is registered, use `nexus.types.X.fetchByKey(predicate)` — no templateId string, no generic. See [Typed Namespaces](/docs/react/typed-namespaces).
+</Callout>
+
+`fetchContractByKey` finds the first contract in the ACS whose payload satisfies a predicate function. It is the client-side equivalent of Daml's `fetchByKey` — useful when you need to look up a contract by a business key rather than a `contractId`.
+
+---
 
 ## Usage
 
 ```ts
-interface IouPayload {
+// With nexusTypes — preferred
+const policy = await nexus.types.CollateralPolicy.fetchByKey(
+  (p) => p.institution === institutionPartyId,
+);
+
+// Without nexusTypes — manual generic + templateId
+const contract = await nexus.ledger.contracts.fetchContractByKey<{
   owner: string;
   amount: string;
   currency: string;
-}
-
-const contract = await nexus.ledger.contracts.fetchContractByKey<IouPayload>(
+}>(
   'my-package:Iou:Iou',
   (payload) => payload.owner === 'Alice::122059a10c...' && payload.currency === 'USD',
 );
@@ -23,10 +33,10 @@ const contract = await nexus.ledger.contracts.fetchContractByKey<IouPayload>(
 if (contract) {
   console.log(contract.contractId);
   console.log(contract.payload.amount);
-} else {
-  console.log('No matching contract found');
 }
 ```
+
+---
 
 ## Signature
 
@@ -41,51 +51,60 @@ fetchContractByKey<T>(
 | Parameter | Description |
 |-----------|-------------|
 | `templateId` | Daml template ID in `"packageId:Module:Entity"` format |
-| `keyPredicate` | Function that returns `true` for the desired contract |
-| `parties` | Party IDs to query as (optional) |
+| `keyPredicate` | Function that returns `true` for the target contract |
+| `parties` | Party IDs to query as — optional, defaults to auth token party |
+
+---
 
 ## How it works
 
-`fetchContractByKey` calls `fetchAllActiveContracts` internally and applies the predicate using `Array.find`. It returns the **first** match.
+`fetchContractByKey` calls `fetchAllActiveContracts` internally and applies the predicate with `Array.find`. It returns the **first match**.
 
-For templates with unique keys enforced by Daml, the predicate will match exactly one contract. For non-unique cases, use `fetchAllActiveContracts` with your own filter logic.
+For Daml templates that enforce unique keys (via `key` and `maintainer` declarations), there will always be at most one result. For non-unique cases, use `fetchAllActiveContracts` with your own filter.
+
+---
 
 ## Common patterns
 
-### Single-field key
+### Single-field lookup
 
 ```ts
-// Find IOU by owner
-const iou = await nexus.ledger.contracts.fetchContractByKey<IouPayload>(
-  'my-package:Iou:Iou',
-  (p) => p.owner === partyId,
+// With nexusTypes
+const holding = await nexus.types.CollateralHolding.fetchByKey(
+  (p) => p.institution === institutionPartyId,
+);
+
+// Without nexusTypes
+const holding = await nexus.ledger.contracts.fetchContractByKey<HoldingPayload>(
+  'nexus-example-0.0.1:CollateralRouter:CollateralHolding',
+  (p) => p.institution === institutionPartyId,
 );
 ```
 
 ### Compound key
 
 ```ts
-// Find by owner + currency combination
-const iou = await nexus.ledger.contracts.fetchContractByKey<IouPayload>(
-  'my-package:Iou:Iou',
-  (p) => p.owner === partyId && p.currency === 'USD',
+const holding = await nexus.types.CollateralHolding.fetchByKey(
+  (p) => p.institution === institutionPartyId && p.assetId === 'UST_10Y',
 );
 ```
 
-### With parties
+### Scoped to specific parties
 
 ```ts
-const iou = await nexus.ledger.contracts.fetchContractByKey<IouPayload>(
-  'my-package:Iou:Iou',
-  (p) => p.owner === alicePartyId,
-  [alicePartyId, bobPartyId],  // query as both parties
+const holding = await nexus.ledger.contracts.fetchContractByKey<HoldingPayload>(
+  'nexus-example-0.0.1:CollateralRouter:CollateralHolding',
+  (p) => p.institution === institutionPartyId,
+  [institutionPartyId, operatorPartyId], // query as both parties
 );
 ```
 
-## Performance note
+---
 
-`fetchContractByKey` fetches **all** contracts for the template before applying the predicate. If your template has thousands of active contracts, consider:
+## Performance
 
-- Adding a payload-level `filter` in `fetchAllActiveContracts` to reduce data transfer
-- Using `fetchActiveInterfaces` if your Daml model uses interfaces with view fields as keys
-- Streaming with `useStreamContracts` and maintaining a local map by key
+`fetchContractByKey` fetches **all** contracts for the template before applying the predicate. For templates with large ACS sizes:
+
+- Add a payload-level `filter` option to `fetchAllActiveContracts` to reduce data transfer before the predicate runs
+- Use PQS with a `where` clause for index-backed lookups — see [Advanced: PQS](/docs/advanced/pqs)
+- Use `fetchActiveInterfaces` if your Daml model exposes key fields through an interface view

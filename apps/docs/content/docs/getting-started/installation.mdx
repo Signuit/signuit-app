@@ -1,61 +1,142 @@
 ---
 title: Installation
-description: Add Nexus Framework to your project.
+description: Add Nexus Framework to your project and connect to a Canton Ledger.
 icon: Package
 ---
 
 ## Requirements
 
-- **Bun** ≥ 1.1 (or Node.js ≥ 20)
+- **Bun** ≥ 1.1
 - **TypeScript** ≥ 5 with `strict: true`
-- **React** ≥ 18 (19 recommended) — only for `@nexus-framework/react`
-- Canton JSON Ledger API v2 endpoint
+- **React** ≥ 19 — only required for `@nexus-framework/react`
+- A Canton JSON Ledger API v2 endpoint (local sandbox or remote participant)
+
+---
 
 ## Install
 
 <Tabs items={["Core only", "Core + React"]}>
   <Tab value="Core only">
+
+  Use this for server-side scripts, background workers, or CLI tools — no React required:
+
   ```bash
   bun add @nexus-framework/core
   ```
+
   </Tab>
   <Tab value="Core + React">
+
+  Full setup for a React app with TanStack Query hooks and real-time streaming:
+
   ```bash
   bun add @nexus-framework/core @nexus-framework/react @tanstack/react-query
   ```
+
   </Tab>
 </Tabs>
 
-## Canton Sandbox (local development)
+---
 
-Start a Canton Sandbox with Docker:
+## Start a local Canton Sandbox
+
+The fastest way to get a Canton endpoint running locally is Docker. No key management, no OAuth — the sandbox uses HMAC256 tokens which `sandboxAuth()` generates automatically.
 
 ```bash
 docker run -p 7575:7575 digitalasset/canton-sandbox:latest
-# JSON Ledger API → http://localhost:7575
-# OpenAPI schema  → http://localhost:7575/docs/openapi
 ```
 
-Sandbox accepts **HMAC256 tokens** via `sandboxAuth()` — no RS256 key management needed in development.
+Once it's up:
+
+```bash
+# JSON Ledger API
+curl http://localhost:7575/v2/state/active-contracts -s | head -c 200
+
+# Get a party ID you can use in your config
+curl http://localhost:7575/v2/admin/parties | jq '.parties[0].partyId'
+# "Alice::122059a10c67ef1bb38e4e7ff3fd9c827e2e6cbbfd68bb5cd8fa4c0c56fecdf0734b"
+```
+
+---
 
 ## TypeScript config
+
+Nexus Framework is ESM-native. Make sure your `tsconfig.json` uses the modern module settings:
 
 ```json title="tsconfig.json"
 {
   "compilerOptions": {
     "strict": true,
     "moduleResolution": "bundler",
-    "module": "Preserve"
+    "module": "Preserve",
+    "target": "ES2022"
   }
 }
 ```
 
-## Next.js config
+---
 
-`transpilePackages` is required in `next.config.ts`:
+## Framework config
 
-```ts title="next.config.ts"
-const nextConfig = {
-  transpilePackages: ['@nexus-framework/core', '@nexus-framework/react'],
-};
+<Tabs items={["TanStack Start", "Next.js"]}>
+  <Tab value="TanStack Start">
+
+  No extra config needed. The packages are ESM-native and work with Vite out of the box. This is the setup SignUIT uses:
+
+  ```ts title="vite.config.ts"
+  import { defineConfig } from 'vite';
+  import react from '@vitejs/plugin-react';
+  import { tanstackStart } from '@tanstack/react-start/plugin/vite';
+
+  export default defineConfig({
+    plugins: [tanstackStart(), react()],
+  });
+  ```
+
+  </Tab>
+  <Tab value="Next.js">
+
+  Next.js uses CJS by default, so you need `transpilePackages`:
+
+  ```ts title="next.config.ts"
+  const nextConfig = {
+    transpilePackages: ['@nexus-framework/core', '@nexus-framework/react'],
+  };
+
+  export default nextConfig;
+  ```
+
+  </Tab>
+</Tabs>
+
+---
+
+## Environment variables
+
+Bun loads `.env` automatically — no `dotenv` package needed.
+
+```bash title=".env"
+# Canton Ledger API endpoint
+CANTON_API_URL=http://localhost:7575
+
+# Sandbox HMAC256 secret — must match Canton's --auth-secret flag
+SANDBOX_SECRET=secret
+
+# Session encryption key — generate once with:
+# bun -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+SESSION_ENCRYPTION_KEY=
+
+# Public Canton URL exposed to the browser (only for direct sandbox mode)
+VITE_CANTON_API_URL=http://localhost:7575
 ```
+
+---
+
+## What's next
+
+<Cards>
+  <Card title="Quick Start" href="/docs/getting-started/quick-start" description="Wire up the server, register your Daml types, and make your first typed contract query in minutes." />
+  <Card title="React Setup" href="/docs/react/setup" description="createNexusClient with authPlugin, tanstackQueryPlugin, and nexusTypes." />
+  <Card title="Core Server" href="/docs/core/server" description="createNexusServer, createAuthHandler, and sandbox party provisioning." />
+  <Card title="SignUIT Architecture" href="/docs/signuit/overview" description="See how Nexus Framework powers a production multi-party Canton application." />
+</Cards>
