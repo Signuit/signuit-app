@@ -1,47 +1,10 @@
-import { Field, FieldError, FieldGroup, FieldLabel } from "@nexus/ui/components/field";
-import { Input } from "@nexus/ui/components/input";
-import { useForm } from "@tanstack/react-form";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
-import z from "zod";
-
-import { authClient } from "@/lib/auth-client";
+import { Link } from "@tanstack/react-router";
+import { Building2, Landmark, Settings, ShieldCheck } from "lucide-react";
 
 export function SignupForm() {
-	const navigate = useNavigate();
-
-	const form = useForm({
-		defaultValues: {
-			name: "",
-			email: "",
-			password: "",
-		},
-		onSubmit: async ({ value }) => {
-			await authClient.signUp.email(
-				{ email: value.email, password: value.password, name: value.name },
-				{
-					onSuccess: () => {
-						toast.success("Account created");
-						navigate({ to: "/dashboard" });
-					},
-					onError: (error) => {
-						toast.error(error.error.message || "Registration failed");
-					},
-				},
-			);
-		},
-		validators: {
-			onSubmit: z.object({
-				name: z.string().min(2, "Name must be at least 2 characters"),
-				email: z.string().min(1, "Email is required").email("Enter a valid email"),
-				password: z.string().min(8, "Password must be at least 8 characters"),
-			}),
-		},
-	});
-
 	return (
 		<div className="w-full max-w-[480px] px-6 flex flex-col items-center">
-			{/* SignUIT Logo */}
+			{/* Logo */}
 			<div className="mb-8">
 				<img
 					src="/assets/logo_white.png"
@@ -55,134 +18,62 @@ export function SignupForm() {
 				/>
 			</div>
 
-			{/* Title */}
-			<h1 className="text-foreground text-[28px] font-bold tracking-tight text-center mb-2">
-				Create an account
-			</h1>
+			{/* Lock icon */}
+			<div className="mb-6 flex items-center justify-center size-14 rounded-2xl bg-muted/20 border border-border/40">
+				<ShieldCheck className="size-7 text-muted-foreground/60" />
+			</div>
 
-			{/* Subtitle */}
-			<p className="text-muted-foreground text-[15px] text-center mb-8">
-				Already have an account?{" "}
-				<Link
-					to="/login"
-					className="text-primary hover:underline underline-offset-[3px] text-[15px] transition-colors cursor-pointer font-medium"
-				>
-					Sign in
-				</Link>
+			{/* Title */}
+			<h1 className="text-[26px] font-bold tracking-tight text-center mb-2">Private Beta</h1>
+			<p className="text-muted-foreground text-[15px] text-center mb-8 max-w-[340px] leading-relaxed">
+				SignUIT is currently invitation-only. Public registration is not yet available.
 			</p>
 
-			{/* Form */}
-			<form
-				className="w-full"
-				onSubmit={(e) => {
-					e.preventDefault();
-					form.handleSubmit();
-				}}
+			{/* Demo roles info */}
+			<div className="w-full rounded-xl border border-border/40 bg-muted/5 p-5 mb-8">
+				<p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-4">
+					Available demo roles
+				</p>
+				<div className="flex flex-col gap-3">
+					{[
+						{
+							icon: Building2,
+							label: "Vantage Capital",
+							role: "Institution",
+							color: "text-blue-400",
+						},
+						{ icon: Landmark, label: "Prime Bank", role: "Counterparty", color: "text-amber-400" },
+						{
+							icon: Settings,
+							label: "SignUIT Operator",
+							role: "Operator",
+							color: "text-emerald-400",
+						},
+					].map(({ icon: Icon, label, role, color }) => (
+						<div key={role} className="flex items-center gap-3">
+							<Icon className={`size-4 ${color}`} />
+							<span className="text-sm font-medium">{label}</span>
+							<span className="text-xs text-muted-foreground/50 ml-auto">{role}</span>
+						</div>
+					))}
+				</div>
+			</div>
+
+			<Link
+				to="/login"
+				className="w-full flex items-center justify-center h-12 bg-foreground text-background rounded-xl text-sm font-semibold hover:opacity-90 active:scale-[0.99] transition-all"
 			>
-				<FieldGroup className="gap-5">
-					{/* Name */}
-					<form.Field name="name">
-						{(field) => (
-							<Field>
-								<FieldLabel htmlFor={field.name} className="text-foreground text-sm font-medium">
-									Full Name
-								</FieldLabel>
-								<Input
-									id={field.name}
-									type="text"
-									placeholder="John Doe"
-									value={field.state.value}
-									onChange={(e) => field.handleChange(e.target.value)}
-									onBlur={() => field.handleBlur()}
-									className="h-12 rounded-xl bg-muted/50 border-input text-foreground placeholder:text-muted-foreground/50 focus-visible:border-primary focus-visible:ring-primary/10 text-[15px] px-4"
-								/>
-								<FieldError
-									errors={field.state.meta.errors
-										.filter(Boolean)
-										.map((e) => ({ message: String(e) }))}
-								/>
-							</Field>
-						)}
-					</form.Field>
+				Access Demo →
+			</Link>
 
-					{/* Email */}
-					<form.Field name="email">
-						{(field) => (
-							<Field>
-								<FieldLabel htmlFor={field.name} className="text-foreground text-sm font-medium">
-									Email
-								</FieldLabel>
-								<Input
-									id={field.name}
-									type="email"
-									placeholder="m@example.com"
-									value={field.state.value}
-									onChange={(e) => field.handleChange(e.target.value)}
-									onBlur={() => field.handleBlur()}
-									className="h-12 rounded-xl bg-muted/50 border-input text-foreground placeholder:text-muted-foreground/50 focus-visible:border-primary focus-visible:ring-primary/10 text-[15px] px-4"
-								/>
-								<FieldError
-									errors={field.state.meta.errors
-										.filter(Boolean)
-										.map((e) => ({ message: String(e) }))}
-								/>
-							</Field>
-						)}
-					</form.Field>
-
-					{/* Password */}
-					<form.Field name="password">
-						{(field) => (
-							<Field>
-								<FieldLabel htmlFor={field.name} className="text-foreground text-sm font-medium">
-									Password
-								</FieldLabel>
-								<Input
-									id={field.name}
-									type="password"
-									placeholder="••••••••"
-									value={field.state.value}
-									onChange={(e) => field.handleChange(e.target.value)}
-									onBlur={() => field.handleBlur()}
-									className="h-12 rounded-xl bg-muted/50 border-input text-foreground placeholder:text-muted-foreground/50 focus-visible:border-primary focus-visible:ring-primary/10 text-[15px] px-4"
-								/>
-								<FieldError
-									errors={field.state.meta.errors
-										.filter(Boolean)
-										.map((e) => ({ message: String(e) }))}
-								/>
-							</Field>
-						)}
-					</form.Field>
-
-					{/* Submit */}
-					<form.Subscribe
-						selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
-					>
-						{({ canSubmit, isSubmitting }) => (
-							<button
-								type="submit"
-								disabled={!canSubmit}
-								className="w-full py-3.5 mt-2 bg-primary text-primary-foreground rounded-xl text-[15px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer shadow-sm shadow-primary/20"
-							>
-								{isSubmitting ? "Creating account..." : "Create account"}
-							</button>
-						)}
-					</form.Subscribe>
-				</FieldGroup>
-			</form>
-
-			{/* Footer */}
-			<p className="text-muted-foreground text-xs mt-10 text-center leading-relaxed max-w-[320px]">
-				By continuing, you agree to our{" "}
-				<button type="button" className="text-foreground hover:underline underline-offset-2">
-					Terms
-				</button>{" "}
-				and{" "}
-				<button type="button" className="text-foreground hover:underline underline-offset-2">
-					Privacy Policy
-				</button>
-				.
+			<p className="text-muted-foreground/50 text-xs mt-6 text-center">
+				Interested in early access?{" "}
+				<a
+					href="mailto:ali@signuit.com"
+					className="text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+				>
+					Contact us
+				</a>
 			</p>
 		</div>
 	);

@@ -15,8 +15,7 @@ function Home() {
 				</div>
 
 				<h1 className="text-4xl font-bold tracking-tight sm:text-5xl max-w-2xl">
-					Build Canton dApps without the{" "}
-					<span className="text-fd-primary">Integration Tax</span>
+					Build Canton dApps without the <span className="text-fd-primary">Integration Tax</span>
 				</h1>
 
 				<p className="text-fd-muted-foreground max-w-xl text-lg">
@@ -77,9 +76,7 @@ function Home() {
 								Real-world example
 							</span>
 						</div>
-						<h2 className="text-xl font-bold mb-2">
-							SignUIT — Collateral Routing on Canton
-						</h2>
+						<h2 className="text-xl font-bold mb-2">SignUIT — Collateral Routing on Canton</h2>
 						<p className="text-sm text-fd-muted-foreground leading-relaxed mb-6">
 							SignUIT uses Nexus Framework to power its institutional collateral routing engine.
 							VantageCapital queries <code className="text-fd-primary">CollateralHolding</code>{" "}
