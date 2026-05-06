@@ -79,7 +79,7 @@ export function LandingHero() {
 						Launch SignUIT
 					</a>
 
-					<StarBorder as="a" href="https://docs.canton.network" className="rounded-2xl">
+					<StarBorder as="a" href="https://docs.signuit.com" className="rounded-2xl">
 						Read Docs
 					</StarBorder>
 				</div>

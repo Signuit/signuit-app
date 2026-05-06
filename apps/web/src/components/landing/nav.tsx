@@ -29,7 +29,7 @@ export function LandingNav() {
 						Solutions
 					</a>
 					<a
-						href="https://docs.canton.network"
+						href="https://docs.signuit.com"
 						className="text-sm font-medium text-slate-400 transition-colors hover:text-white"
 					>
 						Docs

@@ -30,8 +30,8 @@ export function LandingFooter() {
 								},
 								{
 									icon: <BookOpenText size={18} />,
-									label: "Docs",
-									onClick: open("https://docs.canton.network"),
+								label: "Docs",
+								onClick: open("https://docs.signuit.com"),
 								},
 								{
 									icon: <MessageCircle size={18} />,
@@ -64,9 +64,9 @@ export function LandingFooter() {
 					</div>
 					<div className="space-y-2 text-sm text-slate-400">
 						<p className="font-medium text-slate-200">Resources</p>
-						<a href="https://docs.canton.network" className="block hover:text-slate-100">
-							Canton Docs
-						</a>
+					<a href="https://docs.signuit.com" className="block hover:text-slate-100">
+						Docs
+					</a>
 						<a href="/login" className="block hover:text-slate-100">
 							Sign In
 						</a>
