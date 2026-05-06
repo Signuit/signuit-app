@@ -126,6 +126,12 @@ jobs:
             OWNER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
             docker pull ghcr.io/${OWNER}/signuit-web:${GIT_COMMIT_HASH}
 
+            # Rebuild canton-sandbox so DAR is always in sync with Daml source.
+            # The Dockerfile now runs `daml build` + `daml codegen js` at build time,
+            # and the entrypoint uploads the DAR on first start.
+            docker compose build canton-sandbox
+            docker compose up -d canton-sandbox
+
             WEB_IMAGE=ghcr.io/${OWNER}/signuit-web:${GIT_COMMIT_HASH} \
               docker compose up -d --no-build web
 

@@ -25,8 +25,8 @@ const encryptionKey =
 
 /**
  * Automatically upload the nexus-example DAR to the Canton sandbox if it is
- * missing. Called once at server startup so every `pnpm dev` restart works
- * without manual intervention.
+ * missing. Uses Canton HTTP API directly — no daml CLI required.
+ * Works both in local dev and in production Docker containers.
  */
 async function ensureDarUploaded() {
 	try {
@@ -36,32 +36,58 @@ async function ensureDarUploaded() {
 		const { packageIds = [] } = (await res.json()) as { packageIds?: string[] };
 		if (packageIds.includes(NEXUS_PACKAGE_ID)) return; // Already uploaded
 
-		// 2. Locate DAR file relative to this source file
-		const darPath = new URL(
-			"../../../../sandbox/.daml/dist/nexus-example-0.0.1.dar",
-			import.meta.url,
-		).pathname;
+		// 2. Locate DAR — check multiple candidate paths
+		const candidates = [
+			// Local dev: source tree layout
+			new URL("../../../../sandbox/.daml/dist/nexus-example-0.0.1.dar", import.meta.url).pathname,
+			// Production Docker: shared volume from canton-sandbox container
+			"/dar/nexus-example-0.0.1.dar",
+			// Production Docker: bind-mounted workspace
+			"/workspace/.daml/dist/nexus-example-0.0.1.dar",
+		];
 
-		if (!(await Bun.file(darPath).exists())) {
-			console.warn("[Nexus] DAR not found at", darPath, "— run `daml build` in sandbox/");
+		let darPath: string | null = null;
+		for (const candidate of candidates) {
+			if (await Bun.file(candidate).exists()) {
+				darPath = candidate;
+				break;
+			}
+		}
+
+		if (!darPath) {
+			console.warn("[Nexus] DAR not found in any candidate path — run `daml build` in sandbox/");
+			console.warn("[Nexus] Searched:", candidates);
 			return;
 		}
 
-		// 3. Find daml binary
-		const damlBin = (await Bun.file(`${process.env.HOME}/.daml/bin/daml`).exists())
-			? `${process.env.HOME}/.daml/bin/daml`
-			: "daml";
+		// 3. Upload via Canton HTTP API (no daml CLI needed)
+		console.log("[Nexus] Uploading nexus-example DAR via HTTP...");
+		const darBytes = await Bun.file(darPath).arrayBuffer();
 
-		// 4. Upload with up to 3 retries
-		console.log("[Nexus] Uploading nexus-example DAR to Canton sandbox...");
 		for (let attempt = 1; attempt <= 3; attempt++) {
 			try {
-				await Bun.$`${damlBin} ledger upload-dar --host localhost --port 6865 ${darPath}`.quiet();
-				console.log(`[Nexus] DAR uploaded successfully (attempt ${attempt})`);
-				return;
-			} catch {
+				const uploadRes = await fetch(`${CANTON_API_URL}/v2/packages`, {
+					method: "POST",
+					headers: { "Content-Type": "application/octet-stream" },
+					body: darBytes,
+				});
+
+				if (uploadRes.ok) {
+					console.log(`[Nexus] DAR uploaded successfully (attempt ${attempt})`);
+					return;
+				}
+
+				const body = await uploadRes.text();
+				// KNOWN_PACKAGE_VERSION means it's already there — treat as success
+				if (body.includes("KNOWN_PACKAGE_VERSION")) {
+					console.log("[Nexus] DAR already registered on ledger.");
+					return;
+				}
+
+				throw new Error(`HTTP ${uploadRes.status}: ${body}`);
+			} catch (err) {
 				if (attempt < 3) {
-					console.warn(`[Nexus] DAR upload attempt ${attempt} failed, retrying in 3s...`);
+					console.warn(`[Nexus] DAR upload attempt ${attempt} failed, retrying in 3s...`, err);
 					await Bun.sleep(3000);
 				}
 			}
