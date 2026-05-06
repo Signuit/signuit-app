@@ -2,46 +2,54 @@
 
 ###############################################################################
 # SignUIT Web App — Production Dockerfile
-# Multi-stage build for pnpm monorepo + TanStack Start (Nitro output)
 ###############################################################################
 
 ARG NODE_VERSION=20
+
+###############################################################################
+# Base — shared tooling
+###############################################################################
 FROM node:${NODE_VERSION}-slim AS base
-
-# Install pnpm
-RUN npm install -g pnpm@9
-
+RUN npm install -g pnpm@10.5.2
 WORKDIR /app
 
 ###############################################################################
-# Stage 1: Build
+# Builder — Full build inside Docker (ensures Linux native bindings)
 ###############################################################################
 FROM base AS builder
 
-# Copy entire monorepo (needed for workspace resolution)
+# Copy manifests for caching
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/ ./packages/
+COPY framework/ ./framework/
+COPY sandbox/daml.js/ ./sandbox/daml.js/
+
+# Install dependencies
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
+
+# Copy full source
 COPY . .
 
-# Install all deps including devDeps for build
-RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --ignore-scripts
-
-# Build the web app — outputs to apps/web/.output/
-RUN pnpm --filter=@nexus/web build
+# Build the web app
+# Nitro/Vite will build specifically for this Linux target
+RUN NODE_OPTIONS="--max-old-space-size=8192" pnpm --filter=@nexus/web build
 
 ###############################################################################
-# Stage 2: Production runtime — minimal image
+# Runner — production image (minimal)
 ###############################################################################
 FROM node:${NODE_VERSION}-slim AS runner
 
-# curl for healthchecks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 --ingroup nodejs appuser
+RUN addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 --ingroup nodejs appuser
 
-# Copy only the built Nitro output (self-contained bundle)
+# Copy ONLY the built output from builder stage
 COPY --from=builder --chown=appuser:nodejs /app/apps/web/.output ./apps/web/.output
 
 USER appuser
