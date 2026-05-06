@@ -15,7 +15,16 @@ export default defineConfig({
 	plugins: [
 		tsconfigPaths({ ignoreConfigErrors: true }),
 		tailwindcss(),
-		tanstackStart(),
+		tanstackStart({
+			prerender: {
+				enabled: true,
+				crawlLinks: true,
+			},
+			sitemap: {
+				enabled: true,
+				host: "https://signuit.com",
+			},
+		}),
 		nitro(),
 		viteReact(),
 	],
