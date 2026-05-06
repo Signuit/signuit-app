@@ -34,7 +34,10 @@
 			"msw",
 			"sharp",
 			"libsql",
-			"@libsql/client"
+			"@libsql/client",
+			"lightningcss",
+			"@tailwindcss/oxide",
+			"rollup"
 		]
 	},
 	"workspaces": {
