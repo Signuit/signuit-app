@@ -7,6 +7,12 @@
 	"assets": {
 		"directory": "dist/client"
 	},
+	"routes": [
+		{
+			"pattern": "docs.signuit.com/*",
+			"custom_domain": true
+		}
+	],
 	"observability": {
 		"enabled": true
 	}
