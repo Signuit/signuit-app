@@ -11,6 +11,15 @@ const damlPackages = [
 	"@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0",
 ];
 
+// Native binary packages — bundle'a alınamaz, runtime'da node_modules'dan yüklenmeli
+const nativePackages = [
+	"libsql",
+	"@libsql/client",
+	"@libsql/linux-x64-gnu",
+	"@libsql/darwin-arm64",
+	"@libsql/darwin-x64",
+];
+
 export default defineConfig({
 	plugins: [
 		tsconfigPaths({ ignoreConfigErrors: true }),
@@ -41,7 +50,7 @@ export default defineConfig({
 		},
 	},
 	ssr: {
-		external: damlPackages,
+		external: [...damlPackages, ...nativePackages],
 		noExternal: true,
 	},
 });

@@ -53,6 +53,12 @@ RUN addgroup --system --gid 1001 nodejs \
 # Copy ONLY the built output from builder stage
 COPY --from=builder --chown=appuser:nodejs /app/apps/web/.output ./apps/web/.output
 
+# libsql native binary — ssr.external olduğu için .output/ içinde değil
+# node_modules'dan dinamik require ile yükleniyor
+COPY --from=builder --chown=appuser:nodejs /app/node_modules/.pnpm/libsql@0.3.19/node_modules/libsql ./node_modules/libsql
+COPY --from=builder --chown=appuser:nodejs /app/node_modules/.pnpm/@libsql+client@0.14.0/node_modules/@libsql/client ./node_modules/@libsql/client
+COPY --from=builder --chown=appuser:nodejs /app/node_modules/.pnpm/@libsql+core@0.14.0/node_modules/@libsql/core ./node_modules/@libsql/core
+
 USER appuser
 
 EXPOSE 3000
