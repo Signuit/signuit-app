@@ -1,0 +1,13 @@
+"$schema" = "node_modules/wrangler/config-schema.json"
+name = "signuit-docs"
+compatibility_date = "2026-05-06"
+compatibility_flags = ["nodejs_compat"]
+main = "@tanstack/react-start/server-entry"
+workers_dev = false
+
+[observability]
+enabled = true
+
+[[routes]]
+pattern = "docs.signuit.com"
+custom_domain = true

@@ -4,7 +4,11 @@ description: Connect to Canton Sandbox and build your first dApp in under 10 min
 icon: Zap
 ---
 
-This guide walks you through creating a full Nexus client, querying the Canton ledger, submitting commands, and wiring everything up in a Next.js App Router project. By the end you'll have a live Iou contract list with create and archive.
+This guide walks you through creating a full Nexus client, querying the Canton ledger, submitting commands, and wiring everything up in a React project. By the end you'll have a live contract list with create and archive.
+
+<Callout type="info">
+  **SignUIT context:** The examples below use a generic `Iou` template. The same patterns power [SignUIT](https://signuit.com) — just swap `templateId` for `nexus-example-0.0.1:CollateralRouter:CollateralHolding` and the payload type for your own Daml template shape. A full SignUIT walkthrough is in [Contracts: Querying](/docs/contracts/querying) and [React: Hooks](/docs/react/hooks).
+</Callout>
 
 ## Before you start
 
@@ -341,7 +345,7 @@ curl http://localhost:7575/v2/admin/parties | jq '.parties[0].partyId'
 
 <Cards>
   <Card title="Authentication plugins" href="/docs/authentication/sandbox" description="Swap sandboxAuth for jwtAuth or oidcAuth in production." />
-  <Card title="Contract queries" href="/docs/contracts/querying" description="Pagination, fetchByKey, Daml interface views." />
+  <Card title="Contract queries" href="/docs/contracts/querying" description="Pagination, fetchByKey, Daml interface views — with SignUIT examples." />
   <Card title="Real-time streaming" href="/docs/react/streaming" description="Add streamingPlugin() for live WebSocket contract updates." />
-  <Card title="Server Actions" href="/docs/react/server" description="withLedgerAction for typed Server Actions in Next.js." />
+  <Card title="SignUIT hooks guide" href="/docs/react/hooks" description="See how MarginCall and AllocationRecord are handled in production." />
 </Cards>

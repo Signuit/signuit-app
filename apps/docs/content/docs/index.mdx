@@ -1,10 +1,14 @@
 ---
 title: Introduction
-description: A modular, plugin-based SDK for building Canton Ledger dApps with React and Next.js.
+description: A modular, plugin-based SDK for building Canton Ledger dApps with React and TanStack Query. Powering SignUIT — institutional collateral routing on Canton Network.
 icon: BookOpen
 ---
 
 **Nexus Framework** is a modular SDK that bridges the Canton JSON Ledger API v2 with the modern React ecosystem. Inspired by [better-auth](https://better-auth.com), every capability is a **plugin** — auth strategies, query hooks, and real-time streaming are all opt-in and composable.
+
+<Callout type="info">
+  Nexus Framework powers **[SignUIT](https://signuit.com)** — a policy-based collateral routing engine running on Canton Network. The examples throughout this documentation use SignUIT's real Daml templates (`CollateralHolding`, `MarginCall`, `AllocationRecord`) alongside generic examples so you can see how the framework works in a production context.
+</Callout>
 
 ## Packages
 
@@ -16,7 +20,7 @@ icon: BookOpen
 ## Architecture
 
 ```
-Your App (Next.js / React)
+Your App (React / Next.js / TanStack Start)
        │
        ▼
 createNexusClient({ plugins: [sandboxAuth(), tanstackQueryPlugin(), streamingPlugin()] })
@@ -37,5 +41,51 @@ Canton JSON Ledger API v2
 | **Choice return values** | `exerciseAndGetResult<TResult>()` — typed Daml return values |
 | **TanStack Query** | `tanstackQueryPlugin()` adds `useContracts`, `useInterface`, `useExerciseAndGetResult` and more |
 | **Real-time streaming** | `streamingPlugin()` adds `useStreamContracts` — live WebSocket ACS updates |
-| **SSR prefetch** | `prefetchContracts` + `HydrationBoundary` for Next.js App Router |
+| **SSR prefetch** | `prefetchContracts` + `HydrationBoundary` for Next.js and TanStack Start |
 | **Type-safe** | Zod-validated API responses, full TypeScript inference |
+
+## How SignUIT uses Nexus Framework
+
+[SignUIT](https://signuit.com) is a multi-party collateral routing application where:
+
+- **VantageCapital** (institution) owns `CollateralHolding` contracts and approves routing decisions
+- **PrimeBank** (counterparty) issues `MarginCall` commands
+- **SignUIT** (operator) observes all contracts but never gates institution-owned approvals
+
+```ts title="apps/web/src/lib/nexus-client.ts"
+import { createNexusClient, sandboxAuth, tanstackQueryPlugin, streamingPlugin } from '@nexus-framework/react';
+
+export const nexus = createNexusClient({
+  baseUrl: process.env.CANTON_API_URL,
+  plugins: [
+    sandboxAuth({ secret: process.env.SANDBOX_SECRET, userId: 'vantage', partyId: process.env.PARTY_ID }),
+    tanstackQueryPlugin(),
+    streamingPlugin(),
+  ],
+});
+```
+
+From there, querying the institution's active holdings is a single hook call:
+
+```tsx title="CollateralDashboard.tsx"
+import { nexus } from '@/lib/nexus-client';
+import type { CollateralHolding } from '@daml.js/nexus-example-0.0.1/lib/CollateralRouter';
+
+export function CollateralDashboard() {
+  const { data } = nexus.useContracts<CollateralHolding>({
+    templateId: 'nexus-example-0.0.1:CollateralRouter:CollateralHolding',
+  });
+
+  return (
+    <ul>
+      {data?.contracts.map((c) => (
+        <li key={c.contractId}>
+          {c.payload.assetType} — {c.payload.quantity} units
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+See [Contracts: Querying](/docs/contracts/querying) and [React: Hooks](/docs/react/hooks) for full API reference with SignUIT examples.

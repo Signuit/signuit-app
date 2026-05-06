@@ -213,3 +213,74 @@ export function IouList() {
 ```
 
 For real-time updates without polling, see [Streaming Plugin](/docs/react/streaming).
+
+---
+
+## SignUIT example: CollateralHolding dashboard
+
+The following is a production pattern from [SignUIT](https://signuit.com). VantageCapital queries their active collateral holdings scoped to their own party, then renders a summary table.
+
+```tsx title="apps/web/src/routes/_app/dashboard/collateral.tsx"
+"use client";
+
+import { nexus } from '@/lib/nexus-client';
+
+// Daml payload shape for CollateralRouter:CollateralHolding
+interface CollateralHoldingPayload {
+  institution: string;      // Canton partyId of VantageCapital
+  operator: string;         // Canton partyId of SignUIT
+  assetType: string;        // e.g. "UST_10Y", "AAPL_EQUITY"
+  quantity: string;         // Daml Numeric stored as string
+  currency: string;         // ISO currency code
+  custodian: string;        // where the asset is held
+  eligibleForMargin: boolean;
+}
+
+export function CollateralHoldingTable() {
+  const partyId = process.env.NEXT_PUBLIC_INSTITUTION_PARTY_ID!;
+
+  const { data, isLoading, error } = nexus.useContracts<CollateralHoldingPayload>({
+    templateId: 'nexus-example-0.0.1:CollateralRouter:CollateralHolding',
+    parties: [partyId],
+    staleTime: 10_000,
+  });
+
+  if (isLoading) return <p>Loading holdings…</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  const holdings = data?.contracts ?? [];
+  const eligible = holdings.filter((c) => c.payload.eligibleForMargin);
+
+  return (
+    <div>
+      <p>{eligible.length} of {holdings.length} holdings eligible for margin</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Asset</th>
+            <th>Quantity</th>
+            <th>Currency</th>
+            <th>Custodian</th>
+            <th>Eligible</th>
+          </tr>
+        </thead>
+        <tbody>
+          {holdings.map((c) => (
+            <tr key={c.contractId}>
+              <td>{c.payload.assetType}</td>
+              <td>{c.payload.quantity}</td>
+              <td>{c.payload.currency}</td>
+              <td><code>{c.payload.custodian.slice(0, 16)}…</code></td>
+              <td>{c.payload.eligibleForMargin ? 'Yes' : 'No'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+```
+
+<Callout>
+  Note how `parties: [partyId]` scopes the query to VantageCapital's view only. The operator (SignUIT) is an observer but never drives the query on behalf of the institution.
+</Callout>

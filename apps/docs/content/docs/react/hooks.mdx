@@ -140,4 +140,87 @@ import { usePartyId } from '@nexus-framework/react';
 
 const { data: partyId } = usePartyId('alice');
 // partyId → "Alice::122059a10c..."
+
+---
+
+## SignUIT example: MarginCall workflow
+
+This pattern shows how PrimeBank issues a `MarginCall` and VantageCapital responds with an `AllocationRecord` — all through Nexus Framework hooks.
+
+```tsx title="MarginCallList.tsx"
+"use client";
+
+import { nexus } from '@/lib/nexus-client';
+
+interface MarginCallPayload {
+  counterparty: string;   // PrimeBank party
+  institution: string;    // VantageCapital party
+  operator: string;       // SignUIT party
+  callAmount: string;     // Daml Numeric
+  currency: string;
+  dueDate: string;        // ISO 8601
+  status: string;         // "Pending" | "Fulfilled"
+}
+
+interface AllocationRecordPayload {
+  institution: string;
+  operator: string;
+  marginCallCid: string;  // contractId of the resolved MarginCall
+  allocatedAssets: { assetType: string; quantity: string }[];
+  approvedAt: string;
+}
+
+export function MarginCallManager() {
+  const institutionParty = process.env.NEXT_PUBLIC_INSTITUTION_PARTY_ID!;
+
+  // Query pending margin calls visible to the institution
+  const { data: callsData } = nexus.useContracts<MarginCallPayload>({
+    templateId: 'nexus-example-0.0.1:CollateralRouter:MarginCall',
+    parties: [institutionParty],
+  });
+
+  // Mutation: approve allocation — institution is sole decision-maker
+  const { mutate: approveAllocation, isPending } = nexus.useCreateContract({
+    onSuccess: () => console.log('AllocationRecord created'),
+  });
+
+  const pendingCalls = callsData?.contracts.filter(
+    (c) => c.payload.status === 'Pending'
+  ) ?? [];
+
+  function handleApprove(callContractId: string, callAmount: string) {
+    approveAllocation({
+      templateId: 'nexus-example-0.0.1:CollateralRouter:AllocationRecord',
+      createArguments: {
+        institution: institutionParty,
+        marginCallCid: callContractId,
+        allocatedAssets: [{ assetType: 'UST_10Y', quantity: callAmount }],
+        approvedAt: new Date().toISOString(),
+      },
+      actAs: [institutionParty], // institution signs alone — no operator co-sig
+    });
+  }
+
+  return (
+    <ul>
+      {pendingCalls.map((c) => (
+        <li key={c.contractId}>
+          <strong>{c.payload.callAmount} {c.payload.currency}</strong>
+          {' '}due {c.payload.dueDate}
+          <button
+            onClick={() => handleApprove(c.contractId, c.payload.callAmount)}
+            disabled={isPending}
+          >
+            Approve Allocation
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+<Callout type="info">
+  `actAs: [institutionParty]` — the institution signs the `AllocationRecord` alone. This enforces the ownership model: operator observes, institution decides.
+</Callout>
 ```
