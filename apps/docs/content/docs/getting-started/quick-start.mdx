@@ -4,78 +4,86 @@ description: Wire up the server, register your Daml types, and make your first t
 icon: Zap
 ---
 
-This guide walks through a complete Nexus Framework setup from scratch. By the end you'll have a working server, a typed browser client, and a live contract query — with no templateId strings and no generic type parameters anywhere in your components.
+This guide covers the complete setup from scratch. By the end you'll have a working server, a typed browser client, and live contract queries — with no templateId strings and no generic type parameters anywhere in your components.
 
 ## Install
 
-```bash
-bun add @nexus-framework/core @nexus-framework/react @tanstack/react-query
-```
+<Tabs items={["bun", "npm", "pnpm", "yarn"]}>
+  <Tab value="bun">
+  ```bash
+  bun add @nexus-framework/core @nexus-framework/react @tanstack/react-query
+  ```
+  </Tab>
+  <Tab value="npm">
+  ```bash
+  npm install @nexus-framework/core @nexus-framework/react @tanstack/react-query
+  ```
+  </Tab>
+  <Tab value="pnpm">
+  ```bash
+  pnpm add @nexus-framework/core @nexus-framework/react @tanstack/react-query
+  ```
+  </Tab>
+  <Tab value="yarn">
+  ```bash
+  yarn add @nexus-framework/core @nexus-framework/react @tanstack/react-query
+  ```
+  </Tab>
+</Tabs>
 
 ---
 
 ## Step 1 — Wire up the server
 
-The browser client never talks to Canton directly. All requests go through two server endpoints you mount:
+The browser client never talks to Canton directly. You need two server-side routes:
 
-- **`/api/nexus-auth`** — handles login, logout, session reads, and token refresh
-- **`/api/ledger`** — proxies authenticated requests from the browser to Canton
+- **`/api/nexus-auth`** — login, logout, session, refresh
+- **`/api/ledger`** — authenticated Canton proxy
 
-Create your server module:
+Create a single server module that wires both:
 
 ```ts title="lib/nexus-server.ts"
-import { createNexusServer, createAuthHandler, SessionManager } from '@nexus-framework/core/server';
+import { createNexusServer, createAuthHandler, SessionManager } from '@nexus-framework/core/server'; // [!code highlight]
 
-// Encrypts session cookies with AES-GCM.
-// Generate the key once: bun -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 export const sessionManager = new SessionManager({
-  encryptionKey: process.env.SESSION_ENCRYPTION_KEY,
-  ttlMs: 2 * 60 * 60 * 1000, // 2 hours
+  encryptionKey: process.env.SESSION_ENCRYPTION_KEY, // [!code highlight]
+  ttlMs: 2 * 60 * 60 * 1000,
   secure: process.env.NODE_ENV === 'production',
 });
 
-// Creates the Canton HTTP client, session layer, and party resolver in one call.
-export const nexus = await createNexusServer({
+export const nexus = await createNexusServer({ // [!code highlight]
   auth: {
     secret: process.env.SANDBOX_SECRET ?? 'secret',
-    // Resolves per-request userId from the session cookie.
-    // This is what makes each request scoped to the right Canton party.
-    getUserId: (ctx) => ctx.session?.userId,
+    getUserId: (ctx) => ctx.session?.userId, // [!code highlight]
   },
   session: sessionManager,
   ledgerApiUrl: process.env.CANTON_API_URL ?? 'http://localhost:7575',
 });
 
-// Creates POST /login, POST /logout, GET /session, GET /refresh handlers in one call.
-// sandboxProvision: true automatically allocates a Canton party on first login.
-export const authHandler = createAuthHandler({
+export const authHandler = createAuthHandler({ // [!code highlight]
   nexusServer: nexus,
   session: sessionManager,
-  sandboxProvision: true,
+  sandboxProvision: true, // auto-allocates a Canton party on first login // [!code highlight]
 });
 ```
 
-Mount both handlers in your router:
+`getUserId` is what makes each request scoped to the right Canton party — it reads the logged-in user's ID from the session cookie and the framework resolves their party ID automatically.
+
+Now mount the two routes:
 
 <Tabs items={["TanStack Start", "Next.js"]}>
   <Tab value="TanStack Start">
   ```ts title="src/routes/api/nexus-auth.$.ts"
-  import { createServerFileRoute } from '@tanstack/react-start/server';
   import { authHandler } from '@/lib/nexus-server';
-
   export const ServerRoute = createServerFileRoute('/api/nexus-auth/$').methods({
     GET: ({ request }) => authHandler(request),
     POST: ({ request }) => authHandler(request),
   });
   ```
-
   ```ts title="src/routes/api/ledger.$.ts"
-  import { createServerFileRoute } from '@tanstack/react-start/server';
   import { createTanStackLedgerContext } from '@nexus-framework/react/server';
   import { nexus } from '@/lib/nexus-server';
-
   const handle = createTanStackLedgerContext(nexus);
-
   export const ServerRoute = createServerFileRoute('/api/ledger/$').methods({
     GET: ({ request }) => handle(request),
     POST: ({ request }) => handle(request),
@@ -88,7 +96,6 @@ Mount both handlers in your router:
   export const GET = (req: Request) => authHandler(req);
   export const POST = (req: Request) => authHandler(req);
   ```
-
   ```ts title="app/api/ledger/[...path]/route.ts"
   import { createLedgerRouteHandler } from '@nexus-framework/react/server';
   import { nexus } from '@/lib/nexus-server';
@@ -103,10 +110,10 @@ Mount both handlers in your router:
 
 ## Step 2 — Register your Daml types once
 
-This is the most important step. You import your Daml generated types, put them in a single object, and pass that object to the client. After this, you never write a templateId string or a generic type parameter again — anywhere in your app.
+This is the step that eliminates every templateId string and generic type parameter in your app. You import the Daml codegen objects and put them in a plain object:
 
 ```ts title="lib/nexus-types.ts"
-import {
+import { // [!code highlight]
   CollateralHolding,
   MarginCall,
   RoutingSuggestion,
@@ -114,10 +121,9 @@ import {
   CollateralPolicy,
   JoinRequest,
   ServiceAgreement,
-} from '@daml.js/nexus-example-0.0.1/lib/CollateralRouter';
+} from '@daml.js/nexus-example-0.0.1/lib/CollateralRouter'; // [!code highlight]
 
-// This object is the plugin — pass it directly to createNexusClient below.
-export const nexusTypes = {
+export const nexusTypes = { // [!code highlight]
   CollateralHolding,
   MarginCall,
   RoutingSuggestion,
@@ -128,7 +134,7 @@ export const nexusTypes = {
 };
 ```
 
-When you add a new Daml template, you add one line here. That's the only place you ever touch to register a new template.
+When you add a new Daml template, you add one line here. That's the only place you ever touch.
 
 ---
 
@@ -141,33 +147,21 @@ import { nexusTypes } from './nexus-types';
 export const nexus = createNexusClient({
   baseUrl: '/api/ledger',
   plugins: [
-    // Reads the session cookie and attaches the Canton token to every request.
-    // The token never lives in the browser bundle.
-    authPlugin({ basePath: '/api/nexus-auth' }),
-
-    // Adds useContracts, useCreateContract, useExerciseChoice, and all other hooks.
-    tanstackQueryPlugin(),
-
-    // Unlocks nexus.types.CollateralHolding.useContracts() and all typed namespaces.
-    nexusTypes,
+    authPlugin({ basePath: '/api/nexus-auth' }), // reads session cookie, token never in bundle // [!code highlight]
+    tanstackQueryPlugin(), // adds useContracts, useCreateContract, etc. // [!code highlight]
   ],
+  types: nexusTypes, // unlocks nexus.types.CollateralHolding.useContracts() // [!code highlight]
 });
 ```
 
-Add the provider to your app root:
+Then wrap your app root with the provider. Because `nexus.NexusProvider` is bound to this exact client instance, there's no risk of context mismatch:
 
 <Tabs items={["TanStack Start", "Next.js"]}>
   <Tab value="TanStack Start">
   ```tsx title="src/routes/__root.tsx"
-  import { createRootRoute, Outlet } from '@tanstack/react-router';
   import { nexus } from '@/lib/nexus-client';
-
   export const Route = createRootRoute({
-    component: () => (
-      <nexus.NexusProvider>
-        <Outlet />
-      </nexus.NexusProvider>
-    ),
+    component: () => <nexus.NexusProvider><Outlet /></nexus.NexusProvider>,
   });
   ```
   </Tab>
@@ -175,7 +169,6 @@ Add the provider to your app root:
   ```tsx title="components/providers.tsx"
   'use client';
   import { nexus } from '@/lib/nexus-client';
-
   export function Providers({ children }: { children: React.ReactNode }) {
     return <nexus.NexusProvider>{children}</nexus.NexusProvider>;
   }
@@ -187,37 +180,29 @@ Add the provider to your app root:
 
 ## Step 4 — Query the ledger
 
-Every component in your app can now read Canton contracts with a single hook call. The payload type comes from your Daml codegen — TypeScript knows exactly what fields exist, and will error at compile time if a field is missing or renamed.
+Every component can now read Canton contracts in one line. The payload type comes from your Daml codegen — `c.payload.assetId`, `c.payload.callAmount` are all fully typed. TypeScript errors at compile time if a field is missing or renamed.
 
 ```tsx title="components/Dashboard.tsx"
 import { nexus } from '@/lib/nexus-client';
 
 export function Dashboard() {
-  const { data: holdings, isLoading } = nexus.types.CollateralHolding.useContracts();
-  const { data: calls } = nexus.types.MarginCall.useContracts();
+  const { data: holdings, isLoading } = nexus.types.CollateralHolding.useContracts(); // [!code highlight]
+  const { data: calls }               = nexus.types.MarginCall.useContracts(); // [!code highlight]
 
   if (isLoading) return <p>Loading…</p>;
 
   return (
     <div>
-      <section>
-        <h2>Holdings ({holdings?.contracts.length ?? 0})</h2>
-        {holdings?.contracts.map((c) => (
-          // c.payload is fully typed from Daml codegen — no casting needed
-          <div key={c.contractId}>
-            {c.payload.assetId} — {c.payload.quantity} {c.payload.currency}
-          </div>
-        ))}
-      </section>
-
-      <section>
-        <h2>Pending Margin Calls ({calls?.contracts.length ?? 0})</h2>
-        {calls?.contracts.map((c) => (
-          <div key={c.contractId}>
-            {c.payload.callAmount} {c.payload.currency} due {c.payload.dueDate}
-          </div>
-        ))}
-      </section>
+      {holdings?.contracts.map((c) => (
+        <div key={c.contractId}>
+          {c.payload.assetId} — {c.payload.quantity} {c.payload.currency}
+        </div>
+      ))}
+      {calls?.contracts.map((c) => (
+        <div key={c.contractId}>
+          {c.payload.callAmount} {c.payload.currency} due {c.payload.dueDate}
+        </div>
+      ))}
     </div>
   );
 }
@@ -227,31 +212,31 @@ export function Dashboard() {
 
 ## Step 5 — Write to the ledger
 
-Mutations follow the same pattern. The choice argument type and the Daml return value type are both inferred:
+Mutations follow the same pattern. The choice name and argument type are inferred:
 
 ```tsx title="components/ApproveButton.tsx"
 import { nexus } from '@/lib/nexus-client';
 
 export function ApproveButton({ contractId, partyId }: Props) {
-  const { mutate, isPending } = nexus.types.RoutingSuggestion.useExercise('ApproveSuggestion');
+  const { mutate, isPending } = nexus.types.RoutingSuggestion.useExercise('ApproveSuggestion'); // [!code highlight]
 
   return (
-    <button
-      disabled={isPending}
-      onClick={() => mutate({ contractId, choiceArgument: {}, actAs: [partyId] })}
-    >
+    <button disabled={isPending} onClick={() =>
+      mutate({ contractId, choiceArgument: {}, actAs: [partyId] })
+    }>
       {isPending ? 'Approving…' : 'Approve'}
     </button>
   );
 }
 ```
 
-When the mutation succeeds, the caches for `RoutingSuggestion` and `AllocationRecord` are automatically invalidated and refetched. You do not need to call `invalidateQueries` anywhere.
+When this succeeds, the caches for `RoutingSuggestion` and `AllocationRecord` are automatically invalidated. No `invalidateQueries` call needed.
 
 <Callout type="info">
-  **Environment setup:** Add `SESSION_ENCRYPTION_KEY` to your `.env`. Generate the value with:
-  `bun -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
-
+  Generate `SESSION_ENCRYPTION_KEY` once and add it to `.env`:
+  ```bash
+  bun -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  ```
   Bun loads `.env` automatically — no dotenv package needed.
 </Callout>
 
@@ -261,7 +246,7 @@ When the mutation succeeds, the caches for `RoutingSuggestion` and `AllocationRe
 
 <Cards>
   <Card title="Typed Namespaces" href="/docs/react/typed-namespaces" description="Everything nexus.types gives you — all hooks, mutations, and fetching patterns." />
-  <Card title="Collateral Workflow" href="/docs/signuit/collateral-workflow" description="Full end-to-end workflow with every SignUIT template — from onboarding to AllocationRecord." />
-  <Card title="Session & Auth" href="/docs/advanced/session" description="Deep dive into createAuthHandler, session cookies, and party provisioning." />
+  <Card title="Collateral Workflow" href="/docs/signuit/collateral-workflow" description="Full end-to-end workflow with every SignUIT template." />
+  <Card title="Session & Auth" href="/docs/advanced/session" description="createAuthHandler, session cookies, and party provisioning in detail." />
   <Card title="Real-time Streaming" href="/docs/react/streaming" description="Live contract updates via WebSocket with useStreamContracts." />
 </Cards>

@@ -6,33 +6,58 @@ icon: Package
 
 ## Requirements
 
-- **Bun** ≥ 1.1
-- **TypeScript** ≥ 5 with `strict: true`
-- **React** ≥ 19 — only required for `@nexus-framework/react`
-- A Canton JSON Ledger API v2 endpoint (local sandbox or remote participant)
+- **Bun** ≥ 1.1 · TypeScript ≥ 5 · React ≥ 19 (only for `@nexus-framework/react`)
+- A Canton JSON Ledger API v2 endpoint — local sandbox or remote participant
 
 ---
 
 ## Install
 
-<Tabs items={["Core only", "Core + React"]}>
-  <Tab value="Core only">
-
-  Use this for server-side scripts, background workers, or CLI tools — no React required:
-
-  ```bash
-  bun add @nexus-framework/core
-  ```
-
-  </Tab>
-  <Tab value="Core + React">
-
-  Full setup for a React app with TanStack Query hooks and real-time streaming:
-
+<Tabs items={["bun", "npm", "pnpm", "yarn"]}>
+  <Tab value="bun">
   ```bash
   bun add @nexus-framework/core @nexus-framework/react @tanstack/react-query
   ```
+  </Tab>
+  <Tab value="npm">
+  ```bash
+  npm install @nexus-framework/core @nexus-framework/react @tanstack/react-query
+  ```
+  </Tab>
+  <Tab value="pnpm">
+  ```bash
+  pnpm add @nexus-framework/core @nexus-framework/react @tanstack/react-query
+  ```
+  </Tab>
+  <Tab value="yarn">
+  ```bash
+  yarn add @nexus-framework/core @nexus-framework/react @tanstack/react-query
+  ```
+  </Tab>
+</Tabs>
 
+Need only the server-side client without React? Install core alone:
+
+<Tabs items={["bun", "npm", "pnpm", "yarn"]}>
+  <Tab value="bun">
+  ```bash
+  bun add @nexus-framework/core
+  ```
+  </Tab>
+  <Tab value="npm">
+  ```bash
+  npm install @nexus-framework/core
+  ```
+  </Tab>
+  <Tab value="pnpm">
+  ```bash
+  pnpm add @nexus-framework/core
+  ```
+  </Tab>
+  <Tab value="yarn">
+  ```bash
+  yarn add @nexus-framework/core
+  ```
   </Tab>
 </Tabs>
 
@@ -40,19 +65,16 @@ icon: Package
 
 ## Start a local Canton Sandbox
 
-The fastest way to get a Canton endpoint running locally is Docker. No key management, no OAuth — the sandbox uses HMAC256 tokens which `sandboxAuth()` generates automatically.
+The sandbox is the fastest way to get a Canton endpoint running locally — no key infrastructure, no OAuth. It accepts HMAC256 tokens that `sandboxAuth()` generates automatically.
 
 ```bash
 docker run -p 7575:7575 digitalasset/canton-sandbox:latest
+# JSON Ledger API → http://localhost:7575
 ```
 
-Once it's up:
+Once it's up, grab a party ID for your config:
 
 ```bash
-# JSON Ledger API
-curl http://localhost:7575/v2/state/active-contracts -s | head -c 200
-
-# Get a party ID you can use in your config
 curl http://localhost:7575/v2/admin/parties | jq '.parties[0].partyId'
 # "Alice::122059a10c67ef1bb38e4e7ff3fd9c827e2e6cbbfd68bb5cd8fa4c0c56fecdf0734b"
 ```
@@ -61,18 +83,20 @@ curl http://localhost:7575/v2/admin/parties | jq '.parties[0].partyId'
 
 ## TypeScript config
 
-Nexus Framework is ESM-native. Make sure your `tsconfig.json` uses the modern module settings:
+Nexus Framework is ESM-native. Use the modern module settings:
 
 ```json title="tsconfig.json"
 {
   "compilerOptions": {
-    "strict": true,
-    "moduleResolution": "bundler",
+    "strict": true, // [!code highlight]
+    "moduleResolution": "bundler", // [!code highlight]
     "module": "Preserve",
     "target": "ES2022"
   }
 }
 ```
+
+`strict: true` is required — the typed namespace system relies on TypeScript's strict inference to catch Daml field mismatches at compile time.
 
 ---
 
@@ -81,12 +105,12 @@ Nexus Framework is ESM-native. Make sure your `tsconfig.json` uses the modern mo
 <Tabs items={["TanStack Start", "Next.js"]}>
   <Tab value="TanStack Start">
 
-  No extra config needed. The packages are ESM-native and work with Vite out of the box. This is the setup SignUIT uses:
+  No extra config needed — the packages are ESM-native and work with Vite out of the box. This is the setup SignUIT uses:
 
   ```ts title="vite.config.ts"
-  import { defineConfig } from 'vite';
+  import { tanstackStart } from '@tanstack/react-start/plugin/vite'; // [!code highlight]
   import react from '@vitejs/plugin-react';
-  import { tanstackStart } from '@tanstack/react-start/plugin/vite';
+  import { defineConfig } from 'vite';
 
   export default defineConfig({
     plugins: [tanstackStart(), react()],
@@ -96,11 +120,11 @@ Nexus Framework is ESM-native. Make sure your `tsconfig.json` uses the modern mo
   </Tab>
   <Tab value="Next.js">
 
-  Next.js uses CJS by default, so you need `transpilePackages`:
+  Next.js uses CJS by default, so you need `transpilePackages` to handle the ESM packages:
 
   ```ts title="next.config.ts"
   const nextConfig = {
-    transpilePackages: ['@nexus-framework/core', '@nexus-framework/react'],
+    transpilePackages: ['@nexus-framework/core', '@nexus-framework/react'], // [!code highlight]
   };
 
   export default nextConfig;
@@ -113,22 +137,21 @@ Nexus Framework is ESM-native. Make sure your `tsconfig.json` uses the modern mo
 
 ## Environment variables
 
-Bun loads `.env` automatically — no `dotenv` package needed.
-
 ```bash title=".env"
-# Canton Ledger API endpoint
+# Canton Ledger API
 CANTON_API_URL=http://localhost:7575
 
 # Sandbox HMAC256 secret — must match Canton's --auth-secret flag
 SANDBOX_SECRET=secret
 
-# Session encryption key — generate once with:
+# Session cookie encryption — generate once:
 # bun -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-SESSION_ENCRYPTION_KEY=
-
-# Public Canton URL exposed to the browser (only for direct sandbox mode)
-VITE_CANTON_API_URL=http://localhost:7575
+SESSION_ENCRYPTION_KEY= # [!code highlight]
 ```
+
+`SESSION_ENCRYPTION_KEY` is required for production session cookies. Leave it empty in dev and Nexus will fall back to base64 (not safe for production).
+
+Bun loads `.env` automatically — no dotenv package needed.
 
 ---
 

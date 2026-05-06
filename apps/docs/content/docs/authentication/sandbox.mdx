@@ -1,94 +1,108 @@
 ---
 title: Sandbox Auth
-description: HMAC256-signed JWT tokens for Canton Sandbox development environments.
+description: HMAC256-signed JWT tokens for Canton Sandbox — the fastest way to get started in development.
 icon: FlaskConical
 ---
 
-The sandbox auth plugin generates signed JWT tokens accepted by Canton Sandbox's built-in authenticator. It's the fastest way to get started in development — no key infrastructure, no OAuth setup, no token endpoint to configure.
+`sandboxAuth` generates signed JWT tokens that Canton Sandbox's built-in authenticator accepts. No key infrastructure, no OAuth setup, no token endpoint — you give it a secret and a party ID and it handles everything else automatically.
 
 <Callout type="warn">
-  Use `sandboxAuth` only in development. For production, use [`jwtAuth`](/docs/authentication/jwt) or [`oidcAuth`](/docs/authentication/oidc).
+  `sandboxAuth` is for development only. The HMAC secret goes directly into your app bundle. For production, use [`jwtAuth`](/docs/authentication/jwt) or [`oidcAuth`](/docs/authentication/oidc).
 </Callout>
 
-## Installation
+---
 
-<Steps>
-  <Step>
+## Install
 
-  ### Add to your server client
-
-  ```ts title="lib/nexus.ts"
-  import { createNexus, sandboxAuth } from '@nexus-framework/core'; // [!code highlight]
-
-  export const nexus = createNexus({
-    ledgerApiUrl: 'http://localhost:7575',
-    plugins: [
-      sandboxAuth({ // [!code highlight]
-        secret: 'secret',               // must match Canton's --auth-secret
-        userId: 'alice',
-        partyId: 'Alice::122059a10c...',
-      }), // [!code highlight]
-    ],
-  });
-  ```
-
-  </Step>
-  <Step>
-
-  ### Add to your React client
-
-  For Next.js and other React frameworks, use `createNexusClient` from `@nexus-framework/react`:
-
-  ```ts title="lib/nexus-client.ts"
-  "use client";
-
-  import { createNexusClient, sandboxAuth, tanstackQueryPlugin } from '@nexus-framework/react'; // [!code highlight]
-
-  export const nexus = createNexusClient({
-    baseUrl: process.env.NEXT_PUBLIC_CANTON_API_URL ?? 'http://localhost:7575',
-    plugins: [
-      sandboxAuth({ // [!code highlight]
-        secret: process.env.NEXT_PUBLIC_SANDBOX_SECRET ?? 'secret',
-        userId: process.env.NEXT_PUBLIC_SANDBOX_USER_ID ?? 'alice',
-        partyId: process.env.NEXT_PUBLIC_SANDBOX_PARTY_ID ?? 'Alice::...',
-      }), // [!code highlight]
-      tanstackQueryPlugin(),
-    ],
-  });
-  ```
-
-  </Step>
-  <Step>
-
-  ### Get your partyId
-
-  Query the Canton Sandbox admin API to find your partyId:
-
+<Tabs items={["bun", "npm", "pnpm", "yarn"]}>
+  <Tab value="bun">
   ```bash
-  curl http://localhost:7575/v2/admin/parties | jq '.parties[] | select(.isLocal) | .partyId'
+  bun add @nexus-framework/core
   ```
-
-  Or start Canton Sandbox with a deterministic party:
-
+  </Tab>
+  <Tab value="npm">
   ```bash
-  docker run -p 7575:7575 \
-    -e CANTON_SANDBOX_USER=alice \
-    digitalasset/canton-sandbox:latest
+  npm install @nexus-framework/core
   ```
+  </Tab>
+  <Tab value="pnpm">
+  ```bash
+  pnpm add @nexus-framework/core
+  ```
+  </Tab>
+  <Tab value="yarn">
+  ```bash
+  yarn add @nexus-framework/core
+  ```
+  </Tab>
+</Tabs>
 
-  </Step>
-</Steps>
+---
 
-## Usage
+## Server-side usage
 
-Once configured, all ledger calls automatically attach a fresh signed token:
+Use `createNexus` from `@nexus-framework/core` for scripts, background workers, and server-side code:
 
-```ts
-// Token is generated and attached automatically — no manual getToken() call needed
-const { contracts } = await nexus.ledger.contracts.fetchActiveContracts({
-  templateId: 'my-package:Iou:Iou',
+```ts title="lib/nexus.ts"
+import { createNexus, sandboxAuth } from '@nexus-framework/core';
+
+export const nexus = createNexus({
+  ledgerApiUrl: 'http://localhost:7575',
+  plugins: [
+    sandboxAuth({ // [!code highlight]
+      secret: process.env.SANDBOX_SECRET ?? 'secret', // must match Canton's --auth-secret // [!code highlight]
+      userId: 'alice',
+      partyId: 'Alice::122059a10c...',
+    }),
+  ],
 });
 ```
+
+All `nexus.ledger.*` calls will automatically attach a fresh signed token — no manual `getToken()` needed.
+
+---
+
+## React client usage
+
+For a React app, use `createNexusClient` from `@nexus-framework/react`. In production you would use `authPlugin` instead, but for local sandbox development `sandboxAuth` is simpler:
+
+```ts title="lib/nexus-client.ts"
+import { createNexusClient, sandboxAuth, tanstackQueryPlugin } from '@nexus-framework/react';
+import { nexusTypes } from './nexus-types';
+
+export const nexus = createNexusClient({
+  baseUrl: 'http://localhost:7575', // direct to Canton — no server proxy needed // [!code highlight]
+  plugins: [
+    sandboxAuth({ // [!code highlight]
+      secret: process.env.VITE_SANDBOX_SECRET ?? 'secret',
+      userId: process.env.VITE_SANDBOX_USER_ID ?? 'alice',
+      partyId: process.env.VITE_SANDBOX_PARTY_ID ?? 'Alice::...',
+    }),
+    tanstackQueryPlugin(),
+  ],
+  types: nexusTypes,
+});
+```
+
+---
+
+## Get your partyId
+
+Query the Canton Sandbox admin API:
+
+```bash
+curl http://localhost:7575/v2/admin/parties | jq '.parties[] | select(.isLocal) | .partyId'
+```
+
+Or start the sandbox with a deterministic party hint:
+
+```bash
+docker run -p 7575:7575 \
+  -e CANTON_SANDBOX_USER=alice \
+  digitalasset/canton-sandbox:latest
+```
+
+---
 
 ## Options
 
@@ -105,31 +119,33 @@ const { contracts } = await nexus.ledger.contracts.fetchActiveContracts({
       required: true,
     },
     partyId: {
-      description: "Canton partyId (e.g. `\"Alice::122059a10c...\"`). Added to `actAs` and `readAs` claims.",
+      description: "Canton partyId (e.g. `\"Alice::122059a10c...\"`). Added to `actAs` and `readAs` JWT claims.",
       type: "string",
       required: true,
     },
     expiresInSec: {
-      description: "Token lifetime in seconds.",
+      description: "Token lifetime in seconds. When set, tokens are cached until 60 seconds before expiry.",
       type: "number",
       default: "86400",
     },
   }}
 />
 
-## How tokens are generated
+---
 
-`sandboxAuth` generates a fresh HMAC256-signed JWT on each request. The payload follows the Canton Sandbox JWT format:
+## Token format
+
+Each token is an HMAC256-signed JWT with this payload:
 
 ```json
 {
   "sub": "alice",
   "aud": "https://daml.com/ledger-api",
   "scope": "daml_ledger_api",
-  "actAs": ["Alice::122059a10c..."],
-  "readAs": ["Alice::122059a10c..."],
+  "actAs": ["Alice::122059a10c..."], // [!code highlight]
+  "readAs": ["Alice::122059a10c..."], // [!code highlight]
   "exp": 1735689600
 }
 ```
 
-Tokens are not cached by default — a new token is generated per request. For high-throughput scenarios, add a `expiresInSec` value and the `JwtManager` caches until the last 60 seconds before expiry.
+The `actAs` and `readAs` claims are what Canton uses to scope the request to the right party. Without them, Canton rejects the request.

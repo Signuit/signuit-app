@@ -19,8 +19,8 @@ export const nexus = createNexusClient({
   plugins: [
     authPlugin({ basePath: '/api/nexus-auth' }),
     tanstackQueryPlugin(), // [!code highlight]
-    nexusTypes,
   ],
+  types: nexusTypes,
 });
 ```
 

@@ -102,8 +102,8 @@ export const nexus = createNexusClient({
   plugins: [
     authPlugin({ basePath: '/api/nexus-auth' }),
     tanstackQueryPlugin(),
-    nexusTypes, // All 8 CollateralRouter templates registered once
   ],
+  types: nexusTypes, // All 8 CollateralRouter templates registered once // [!code highlight]
 });
 ```
 

@@ -1,0 +1,256 @@
+---
+title: oRPC Integration
+description: How SignUIT wires oRPC procedures to the Canton ledger — type-safe from Zod schema to React hook, with no templateId strings anywhere.
+icon: Webhook
+---
+
+SignUIT uses [oRPC](https://orpc.unnoq.com) as the API layer between the React frontend and the Canton ledger. Every procedure is end-to-end typed: the input is validated with Zod, the ledger context carries fully typed Daml contract access, and the React client gets inferred `queryOptions` and `mutationOptions` with zero manual type annotations.
+
+---
+
+## The type flow
+
+```
+Daml codegen  →  nexusTypes  →  createNexusServer({ types })
+                                        ↓
+                         ledgerProcedure injects context.ledger
+                                        ↓
+          context.ledger.CollateralHolding.create({ ... })  ← typed from Daml
+          context.ledger.RoutingSuggestion.findMany({ ... })
+                                        ↓
+                     appRouter = { collateral: collateralRouter }
+                                        ↓
+                  orpc = createTanstackQueryUtils(client)
+                                        ↓
+   orpc.collateral.listHoldings.queryOptions({ input: { limit: 100 } })  ← typed
+   orpc.collateral.approveSuggestion.mutationOptions({ ... })
+```
+
+Two type systems work together:
+
+| Layer | What it types | How |
+|-------|--------------|-----|
+| **Zod schemas** | Procedure inputs (API boundary) | `.input(CreateHoldingSchema)` |
+| **nexusTypes** | Daml contract payloads on the ledger | `createNexusServer({ types: nexusTypes })` |
+
+---
+
+## 1. Register Daml types on the server
+
+`nexusTypes` is passed to `createNexusServer` — this is what makes `context.ledger.X.*` typed:
+
+```ts title="lib/nexus-types.ts"
+import * as DamlPackage from '@daml.js/nexus-example-0.0.1';
+
+const { CollateralRouter } = DamlPackage;
+
+export const nexusTypes = { // [!code highlight]
+  JoinRequest:             CollateralRouter.JoinRequest,
+  ServiceAgreement:        CollateralRouter.ServiceAgreement,
+  CollateralPolicy:        CollateralRouter.CollateralPolicy,
+  CollateralHolding:       CollateralRouter.CollateralHolding,
+  MarginCall:              CollateralRouter.MarginCall,
+  RoutingSuggestion:       CollateralRouter.RoutingSuggestion,
+  AllocationRecord:        CollateralRouter.AllocationRecord,
+  CollateralAssetMetadata: CollateralRouter.CollateralAssetMetadata,
+} as const;
+
+export type NexusTypes = typeof nexusTypes;
+```
+
+---
+
+## 2. The ledger procedure
+
+`ledgerProcedure` is a reusable oRPC middleware that injects three things into every procedure's context: the typed ledger API, the current user's party ID, and the operator party ID.
+
+```ts title="lib/procedures.ts"
+import { o } from '@nexus/api';
+import { nexus, sessionManager } from './nexus-server';
+
+export const ledgerProcedure = o.use(async ({ context, next }) => {
+  const ledger = await nexus.forRequest(context.req); // [!code highlight]
+  const session = await sessionManager.requireSession(context.req);
+  const operatorPartyId = await resolveOperatorPartyId();
+
+  return next({
+    context: {
+      ledger,            // ConstructNexusApi<NexusTypes> — fully typed // [!code highlight]
+      partyId: session.partyId,        // institution's Canton party ID // [!code highlight]
+      operatorPartyId,                 // SignUIT's Canton party ID // [!code highlight]
+    },
+  });
+});
+```
+
+`ledger` is typed as `ConstructNexusApi<NexusTypes>` — every method on it corresponds to a registered Daml template with the correct payload shape.
+
+---
+
+## 3. Writing procedures
+
+Every procedure in `collateral-router.ts` uses `ledgerProcedure`. The ledger calls use the Daml template names directly — no templateId strings, no generics:
+
+```ts title="lib/collateral-router.ts"
+import { CreateHoldingSchema, GenerateSuggestionSchema } from '@nexus/api/schemas/collateral';
+import { ledgerProcedure } from './procedures';
+
+export const collateralRouter = {
+
+  // Create a CollateralHolding contract — payload fields are typed from Daml codegen
+  createHolding: ledgerProcedure
+    .input(CreateHoldingSchema) // [!code highlight]
+    .handler(({ input, context }) => {
+      return context.ledger.CollateralHolding.create({ // [!code highlight]
+        operator:    context.operatorPartyId,
+        institution: context.partyId,
+        holdingId:   input.holdingId, // typed from CreateHoldingSchema
+        asset:       input.asset,
+        amount:      input.amount.toString(),
+        yield:       input.yield.toString(),
+        haircut:     input.haircut.toString(),
+        expiry:      input.expiry ?? null,
+      });
+    }),
+
+  // Exercise ApproveSuggestion — choice arguments typed from Daml codegen
+  approveSuggestion: ledgerProcedure
+    .input(ApproveSuggestionSchema)
+    .handler(({ input, context }) => {
+      return context.ledger.RoutingSuggestion.exercise( // [!code highlight]
+        input.suggestionCid,
+        'ApproveSuggestion',
+        { approvedBy: context.partyId },
+      );
+    }),
+
+  // Query holdings — return type is inferred from the ledger API
+  listHoldings: ledgerProcedure
+    .input(CollateralQuerySchema)
+    .handler(({ input, context }) => {
+      return context.ledger.CollateralHolding.findMany({ // [!code highlight]
+        limit: input.limit,
+      });
+    }),
+};
+```
+
+The input type comes from Zod. The payload type of the returned contracts comes from the Daml codegen via `nexusTypes`. Neither requires a manual type annotation.
+
+---
+
+## 4. Compose the router
+
+```ts title="lib/api.ts"
+import { baseAppRouter } from '@nexus/api';
+import { collateralRouter } from './collateral-router';
+
+export const appRouter = { // [!code highlight]
+  ...baseAppRouter,
+  auth: { getSession: baseAppRouter.getSession },
+  collateral: collateralRouter,
+};
+
+export type AppRouter = typeof appRouter; // [!code highlight]
+```
+
+---
+
+## 5. Client setup
+
+The client is isomorphic — on the server it calls the router directly in-process (no HTTP), on the browser it uses an HTTP link. The type is `RouterClient<AppRouter>` in both cases:
+
+```ts title="utils/orpc.ts"
+import { createIsomorphicFn } from '@tanstack/react-start';
+import { createTanstackQueryUtils } from '@orpc/tanstack-query';
+import { appRouter } from '@/lib/api';
+
+const getORPCClient = createIsomorphicFn()
+  .server(() => createRouterClient(appRouter, { // [!code highlight]
+    context: async () => createContext({ req: getRequest() }),
+  }))
+  .client((): RouterClient<typeof appRouter> => { // [!code highlight]
+    const link = new RPCLink({ url: `${window.location.origin}/api/rpc`, fetch: ... });
+    return createORPCClient(link);
+  });
+
+export const client: RouterClient<typeof appRouter> = getORPCClient();
+export const orpc = createTanstackQueryUtils(client); // [!code highlight]
+```
+
+`orpc` is typed as `TanstackQueryUtils<RouterClient<AppRouter>>` — every property on it mirrors the router shape with `queryOptions` and `mutationOptions` methods.
+
+---
+
+## 6. Using in components
+
+React hooks consume `orpc.*` directly. Input types are inferred from the procedure's Zod schema, output types from the handler's return type — no manual annotations needed anywhere:
+
+```ts title="hooks/use-collateral-api.ts"
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { orpc } from '@/utils/orpc';
+
+export function useHoldings() {
+  return useQuery(
+    orpc.collateral.listHoldings.queryOptions({ // [!code highlight]
+      input: { limit: 100 }, // typed as CollateralQuerySchema // [!code highlight]
+      staleTime: 30_000,
+    }),
+  );
+  // data type: CollateralHolding[] — payload fields from Daml codegen
+}
+
+export function useApproveSuggestion() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    orpc.collateral.approveSuggestion.mutationOptions({ // [!code highlight]
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: orpc.collateral.listSuggestions.key() });
+        queryClient.invalidateQueries({ queryKey: orpc.collateral.listAllocations.key() });
+      },
+    }),
+  );
+  // mutate({ suggestionCid: '...' }) — typed as ApproveSuggestionSchema
+}
+```
+
+<Callout type="info">
+  `orpc.collateral.listHoldings.key()` returns the exact TanStack Query key used by `queryOptions`. Using `.key()` for invalidation means the key is always in sync with the query — no hardcoded key arrays, no stale cache misses.
+</Callout>
+
+---
+
+## HTTP handler
+
+The oRPC HTTP handler is mounted at `/api/rpc`:
+
+```ts title="src/routes/api/rpc/$.ts"
+import { createServerFileRoute } from '@tanstack/react-start/server';
+import { RPCHandler } from '@orpc/server/fetch';
+import { appRouter } from '@/lib/api';
+import { createContext } from '@nexus/api/context';
+
+const handler = new RPCHandler(appRouter);
+
+export const ServerRoute = createServerFileRoute('/api/rpc/$').methods({
+  GET:    ({ request }) => handler.handle(request, { context: () => createContext({ req: request }) }),
+  POST:   ({ request }) => handler.handle(request, { context: () => createContext({ req: request }) }),
+  PUT:    ({ request }) => handler.handle(request, { context: () => createContext({ req: request }) }),
+  DELETE: ({ request }) => handler.handle(request, { context: () => createContext({ req: request }) }),
+});
+```
+
+---
+
+## Summary
+
+| File | What it does |
+|------|-------------|
+| `lib/nexus-types.ts` | Registers Daml codegen objects once |
+| `lib/nexus-server.ts` | `createNexusServer({ types: nexusTypes })` — types the ledger API |
+| `lib/procedures.ts` | `ledgerProcedure` — injects typed `context.ledger`, `partyId`, `operatorPartyId` |
+| `lib/collateral-router.ts` | 13 procedures using `context.ledger.X.create/findMany/exercise` — no templateId strings |
+| `lib/api.ts` | Composes `appRouter`, exports `AppRouter` type |
+| `utils/orpc.ts` | `orpc = createTanstackQueryUtils(client)` — typed query/mutation utilities |
+| `hooks/use-collateral-api.ts` | 13 React hooks using `orpc.*` — no manual type annotations |

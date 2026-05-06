@@ -8,80 +8,59 @@ icon: BookOpen
 
 ---
 
-## The problem it solves
+## The core idea
 
-Building a Canton dApp means dealing with three recurring headaches before you can write a single line of product code:
-
-**Auth is complicated.** Should you use Sandbox HMAC256, JWT, or OIDC? How do you refresh tokens automatically? How do you resolve a userId to a Canton partyId? Each of these has a different answer depending on your environment, and they all need wiring.
-
-**Types disappear at the boundary.** Every time you query a contract, you have to manually write a generic type parameter and copy-paste a templateId string. If the Daml template changes, nothing tells you — runtime errors only.
-
-**The browser-to-Canton bridge is non-trivial.** Canton tokens should never live in the browser. You need a server proxy, a session layer, and a way to scope requests to the right party per user.
-
-Nexus Framework solves all three — once, at setup time.
-
----
-
-## How it works
-
-You register your Daml generated types once:
+You register your Daml codegen types **once**:
 
 ```ts title="lib/nexus-types.ts"
-import { CollateralHolding, MarginCall, RoutingSuggestion } from '@daml.js/your-package/lib/Module';
-
-export const nexusTypes = { CollateralHolding, MarginCall, RoutingSuggestion };
+export const nexusTypes = { CollateralHolding, MarginCall, RoutingSuggestion, AllocationRecord, ... };
 ```
 
-Pass them to the client:
+Pass that object to both the server and the browser client:
 
-```ts title="lib/nexus-client.ts"
-export const nexus = createNexusClient({
-  baseUrl: '/api/ledger',
-  plugins: [authPlugin(), tanstackQueryPlugin(), nexusTypes],
-});
+```ts
+// Server
+createNexusServer({ types: nexusTypes });     // context.ledger.CollateralHolding.findMany()
+
+// Browser
+createNexusClient({ types: nexusTypes });     // nexus.types.CollateralHolding.useContracts()
 ```
 
-And from that point on, every contract query across your entire app is one line — fully typed, no strings, no generics:
-
-```tsx
-const { data } = nexus.types.CollateralHolding.useContracts();
-const { mutate } = nexus.types.RoutingSuggestion.useExercise('ApproveSuggestion');
-```
-
-If a Daml template field gets renamed, TypeScript catches it at compile time. Before it reaches production.
+From that point, every ledger interaction in your entire codebase — server procedures, React hooks, one-off fetches — is fully typed from your Daml codegen. No `<IouPayload>` generics. No `'package:Module:Template'` strings. If a Daml field is renamed, TypeScript shows a compile error at every affected call site.
 
 ---
 
 ## Packages
 
 <Cards>
-  <Card title="@nexus-framework/core" href="/docs/core/client" description="Canton HTTP client, auth plugins (sandbox, JWT, OIDC), contract queries, command submission, session management." />
-  <Card title="@nexus-framework/react" href="/docs/react/setup" description="createNexusClient, tanstackQueryPlugin, streamingPlugin, typed namespaces, SSR prefetch, server adapters." />
+  <Card title="@nexus-framework/core" href="/docs/core/client" description="Canton HTTP client, auth plugins, contract queries, command submission, session management." />
+  <Card title="@nexus-framework/react" href="/docs/react/setup" description="createNexusClient, tanstackQueryPlugin, typed namespaces, streaming, server adapters." />
 </Cards>
 
 ---
 
 ## What you get
 
-| Feature | What it means in practice |
-|---------|--------------------------|
-| **Plugin-based auth** | One line to switch from sandbox to JWT to OIDC. Token refresh is automatic. |
-| **Typed namespaces** | Register your Daml codegen once. Every query, mutation, and fetch is fully typed forever. |
-| **Auto cache invalidation** | After a mutation, every affected `useContracts` refetches automatically. No manual `invalidateQueries`. |
-| **Real-time streaming** | `useStreamContracts` opens a WebSocket and keeps your UI in sync with zero polling delay. |
-| **Session management** | AES-GCM encrypted HttpOnly cookies. Auth endpoints created in one call. |
-| **SSR prefetch** | Populate the TanStack Query cache on the server. Client components render without a loading state. |
-| **PQS support** | Read directly from PostgreSQL via Canton's Participant Query Store — up to 50× faster than ACS polling for dashboards. |
+| Feature | What it means |
+|---------|---------------|
+| **Single type source** | `nexusTypes` registered once — typed on server and browser, always in sync with Daml |
+| **No templateId strings** | `context.ledger.X.findMany()` on server, `nexus.types.X.useContracts()` in React |
+| **Plugin-based auth** | `sandboxAuth()`, `jwtAuth()`, `oidcAuth()` — swap auth strategy in one line |
+| **Auto cache invalidation** | After a mutation, every affected `useContracts` refetches automatically |
+| **Session management** | AES-GCM encrypted HttpOnly cookies, auth endpoints in one call |
+| **Real-time streaming** | `useStreamContracts` — WebSocket ACS updates, zero polling latency |
+| **SSR prefetch** | Populate TanStack Query cache server-side, client renders without a loading state |
+| **PQS support** | Read from PostgreSQL via Canton's Participant Query Store — up to 50× faster for dashboards |
 
 ---
 
 ## Built on SignUIT
 
-[SignUIT](https://signuit.com) is a three-party collateral routing application — VantageCapital (institution), PrimeBank (counterparty), and SignUIT (operator). Every ownership rule is enforced at the Daml level. Nexus Framework is what makes the React layer connect to that ledger cleanly.
-
-The SignUIT section of these docs walks through the real architecture and full workflow end to end:
+[SignUIT](https://signuit.com) is a three-party collateral routing application — VantageCapital (institution), PrimeBank (counterparty), SignUIT (operator). Every ownership rule is enforced at the Daml level. Nexus Framework is what connects that ledger to a clean, fully typed React and oRPC stack.
 
 <Cards>
-  <Card title="SignUIT Overview" href="/docs/signuit/overview" description="Multi-party ownership model, the operator-as-infrastructure principle, and how each layer maps to Nexus Framework." />
-  <Card title="Collateral Workflow" href="/docs/signuit/collateral-workflow" description="Step-by-step from JoinRequest to AllocationRecord — every template, every party, every hook." />
+  <Card title="SignUIT Overview" href="/docs/signuit/overview" description="Multi-party ownership model and how each layer maps to Nexus Framework." />
+  <Card title="oRPC Integration" href="/docs/signuit/orpc" description="How nexusTypes flows from Daml codegen through oRPC procedures to React hooks — end to end." />
+  <Card title="Collateral Workflow" href="/docs/signuit/collateral-workflow" description="Step-by-step from JoinRequest to AllocationRecord — every template, every hook." />
+  <Card title="Typed Namespaces" href="/docs/react/typed-namespaces" description="Server and browser usage — the same types, one registration." />
 </Cards>

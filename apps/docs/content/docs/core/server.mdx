@@ -14,12 +14,16 @@ icon: Server
 
 ```ts
 import { createNexusServer } from '@nexus-framework/core/server';
+import { nexusTypes } from './nexus-types';
 
 const nexus = await createNexusServer({
   auth: sandboxAuthOptions,
   session: sessionManager,
+  types: nexusTypes, // [!code highlight]
 });
 ```
+
+Passing `types` is what unlocks the fully typed ledger API. Without it, `nexus.forRequest(req)` returns a generic client. With it, every key in `nexusTypes` becomes a typed namespace with `create`, `findMany`, `findById`, and `exercise` — payload shapes inferred from your Daml codegen, no generics needed.
 
 ### Options
 
@@ -35,6 +39,10 @@ const nexus = await createNexusServer({
       type: "SessionManager",
       required: true,
     },
+    types: {
+      description: "Your Daml codegen type registry. Enables `context.ledger.X.create()`, `context.ledger.X.findMany()` etc. with full payload type inference. See [Typed Namespaces](/docs/react/typed-namespaces).",
+      type: "Record<string, DamlTemplate>",
+    },
     ledgerApiUrl: {
       description: "Canton JSON Ledger API URL. Defaults to `process.env.CANTON_API_URL ?? 'http://127.0.0.1:7575'`.",
       type: "string",
@@ -49,15 +57,22 @@ const nexus = await createNexusServer({
 ### Return value
 
 ```ts
-interface NexusServer {
-  /** The raw NexusClient — same as createNexus() output */
+interface NexusServer<TTypes> {
+  /** The raw NexusClient — for admin operations, token generation etc. */
   client: NexusClient;
 
-  /** Create a client scoped to a specific party (e.g. from session) */
-  forParty(partyId: string, token: string): NexusClient;
+  /**
+   * Create a typed ledger API scoped to a specific party.
+   * Returns ConstructNexusApi<TTypes> — typed from your nexusTypes registry.
+   */
+  forParty(partyId: string, token?: string): ConstructNexusApi<TTypes>;
 
-  /** Create a client scoped to the requesting user (reads session cookie) */
-  forRequest(request: Request): Promise<NexusClient>;
+  /**
+   * Create a typed ledger API scoped to the requesting user.
+   * Reads the session cookie, resolves partyId, returns typed ledger proxy.
+   */
+  forRequest(request: Request): Promise<ConstructNexusApi<TTypes>>;
+}
 }
 ```
 

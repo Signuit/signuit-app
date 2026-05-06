@@ -1,43 +1,74 @@
 ---
-title: NexusProvider
-description: The React context provider returned by createNexusClient — wraps your app with TanStack QueryClientProvider and the Nexus client instance.
+title: QueryClientProvider
+description: tanstackQueryPlugin uses your existing QueryClientProvider — no separate NexusProvider needed.
 icon: Layers
 ---
 
-`NexusProvider` is **not a standalone component you import** — it is a property on the `nexus` instance returned by `createNexusClient()`. This design (inspired by [better-auth](https://better-auth.com)) means the provider is always bound to the exact client instance that created it, with no mismatched context.
+`tanstackQueryPlugin()` does not create its own provider. It calls `useQueryClient()` internally, which means it reads from whatever `QueryClientProvider` is already in your component tree. You are responsible for mounting one.
 
-```ts
-// 1. Create the client
-const nexus = createNexusClient({ baseUrl: '...', plugins: [...] });
+This is intentional — it means Nexus Framework integrates into your existing TanStack Query setup without adding a second React context layer.
 
-// 2. Use the bound provider — it knows about this nexus instance
-<nexus.NexusProvider>
-  {children}
-</nexus.NexusProvider>
+---
 
-// 3. Hooks also come from the same instance — zero context lookup
-nexus.useContracts(...)
-nexus.useCreateContract(...)
-```
+## Mount QueryClientProvider
 
-## Usage
+<Tabs items={["TanStack Start", "Next.js"]}>
+  <Tab value="TanStack Start">
 
-<Tabs items={["Next.js", "TanStack Start"]}>
+  In TanStack Start, pass a `Wrap` function to `createTanStackRouter`. This is exactly how SignUIT does it:
+
+  ```tsx title="src/router.tsx"
+  import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+  import { createRouter as createTanStackRouter } from '@tanstack/react-router';
+  import { routeTree } from './routeTree.gen';
+
+  export const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5_000, // [!code highlight]
+        retry: 2,
+      },
+      mutations: {
+        retry: 0, // Never retry a failed ledger command — side effects may have occurred // [!code highlight]
+      },
+    },
+  });
+
+  export const getRouter = () =>
+    createTanStackRouter({
+      routeTree,
+      context: { queryClient },
+      Wrap: ({ children }) => ( // [!code highlight]
+        <QueryClientProvider client={queryClient}> // [!code highlight]
+          {children} // [!code highlight]
+        </QueryClientProvider> // [!code highlight]
+      ),
+    });
+  ```
+
+  `nexus.*` hooks work anywhere inside this tree — no additional wrapping needed.
+
+  </Tab>
   <Tab value="Next.js">
 
-  Create a Client Component wrapper (required because `NexusProvider` uses React hooks):
+  Create the `QueryClient` at module level (outside the component) and pass it to `QueryClientProvider` in a `'use client'` component:
 
   ```tsx title="components/providers.tsx"
   'use client';
+  import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-  import { nexus } from '@/lib/nexus-client';
-  import type { ReactNode } from 'react';
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { staleTime: 5_000, retry: 2 }, // [!code highlight]
+      mutations: { retry: 0 }, // [!code highlight]
+    },
+  });
 
-  export function Providers({ children }: { children: ReactNode }) {
+  export function Providers({ children }: { children: React.ReactNode }) {
     return (
-      <nexus.NexusProvider>
+      <QueryClientProvider client={queryClient}> // [!code highlight]
         {children}
-      </nexus.NexusProvider>
+      </QueryClientProvider>
     );
   }
   ```
@@ -47,144 +78,56 @@ nexus.useCreateContract(...)
 
   export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-      <html lang="en">
-        <body>
-          <Providers>{children}</Providers>
-        </body>
-      </html>
+      <html><body>
+        <Providers>{children}</Providers>
+      </body></html>
     );
   }
   ```
 
   </Tab>
-  <Tab value="TanStack Start">
-
-  In TanStack Start, wrap inside `__root.tsx`:
-
-  ```tsx title="src/routes/__root.tsx"
-  import { createRootRoute, Outlet } from '@tanstack/react-router';
-  import { nexus } from '@/lib/nexus-client';
-
-  export const Route = createRootRoute({
-    component: () => (
-      <nexus.NexusProvider>
-        <Outlet />
-      </nexus.NexusProvider>
-    ),
-  });
-  ```
-
-  </Tab>
 </Tabs>
 
-## Props
+---
 
-<TypeTable
-  type={{
-    children: {
-      description: "React children. Any component in this tree can use `nexus.*` hooks.",
-      type: "ReactNode",
-      required: true,
-    },
-    queryClient: {
-      description: "Custom TanStack `QueryClient`. When not provided, a Canton-tuned default is created automatically.",
-      type: "QueryClient",
-    },
-  }}
-/>
+## Why staleTime matters
 
-## Custom QueryClient
+Canton ledger finality typically takes 3–10 seconds. Without `staleTime`, TanStack Query refetches on every component mount — which means multiple rapid fetches before a transaction is even committed. Setting `staleTime: 5_000` means the cache is served immediately on mount and only a background refetch runs once the data is 5 seconds old.
 
-Pass a `QueryClient` to control caching behavior globally. Create it **outside** the component (module-level) to prevent re-creation on every render:
+---
 
-```tsx title="components/providers.tsx"
-'use client';
+## Why mutations.retry: 0
 
-import { QueryClient } from '@tanstack/react-query';
-import { nexus } from '@/lib/nexus-client';
+Ledger commands are not idempotent by default. If a `createContract` call succeeds on the Canton side but the response is lost in transit, retrying will submit the command twice. Set `retry: 0` for mutations and handle errors explicitly.
 
-// Canton finality is typically 3–10 seconds — staleTime of 5s is a good default
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5_000,
-      retry: 2,
-      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10_000),
-      refetchOnWindowFocus: true,
-    },
-    mutations: {
-      retry: 0, // don't retry failed ledger commands
-    },
+---
+
+## Sharing the QueryClient with context
+
+If you need to access `queryClient` in server functions or route loaders, pass it through the router context:
+
+```tsx title="src/router.tsx"
+export interface RouterAppContext {
+  queryClient: QueryClient;
+}
+
+export const getRouter = () =>
+  createTanStackRouter({
+    routeTree,
+    context: { queryClient }, // [!code highlight]
+    Wrap: ({ children }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    ),
+  });
+```
+
+Then access it in loaders:
+
+```tsx title="src/routes/dashboard/index.tsx"
+export const Route = createFileRoute('/dashboard/')({
+  loader: async ({ context }) => {
+    const { queryClient } = context;
+    await queryClient.prefetchQuery(/* ... */);
   },
 });
-
-export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <nexus.NexusProvider queryClient={queryClient}>
-      {children}
-    </nexus.NexusProvider>
-  );
-}
 ```
-
-## Multiple parties
-
-Each `createNexusClient()` call produces its own isolated `NexusProvider` with its own TanStack Query cache. Use this for multi-party UIs (e.g. a demo showing both institution and counterparty views simultaneously):
-
-```ts title="lib/clients.ts"
-'use client';
-
-import { createNexusClient, authPlugin, tanstackQueryPlugin } from '@nexus-framework/react';
-
-// VantageCapital (institution) view
-export const institutionNexus = createNexusClient({
-  baseUrl: '/api/ledger',
-  plugins: [
-    authPlugin({ basePath: '/api/nexus-auth/institution' }),
-    tanstackQueryPlugin(),
-  ],
-});
-
-// PrimeBank (counterparty) view
-export const counterpartyNexus = createNexusClient({
-  baseUrl: '/api/ledger',
-  plugins: [
-    authPlugin({ basePath: '/api/nexus-auth/counterparty' }),
-    tanstackQueryPlugin(),
-  ],
-});
-```
-
-```tsx
-<institutionNexus.NexusProvider>
-  <counterpartyNexus.NexusProvider>
-    {children}
-  </counterpartyNexus.NexusProvider>
-</institutionNexus.NexusProvider>
-```
-
-Each provider is scoped to its own session — `institutionNexus.useContracts()` only sees VantageCapital's contracts, `counterpartyNexus.useContracts()` only sees PrimeBank's.
-
-## SignUIT setup
-
-In SignUIT, `NexusProvider` wraps the entire app in the TanStack Start root route. The `nexus` client uses `authPlugin()` pointing at `/api/nexus-auth`, which in turn routes to `createAuthHandler()` on the server:
-
-```tsx title="apps/web/src/routes/__root.tsx"
-import { nexus } from '@/lib/nexus-client';
-
-// nexus-client.ts:
-// export const nexus = createNexusClient({
-//   baseUrl: '/api/ledger',
-//   plugins: [authPlugin({ basePath: '/api/nexus-auth' }), tanstackQueryPlugin(), nexusTypes],
-// });
-
-export const Route = createRootRoute({
-  component: () => (
-    <nexus.NexusProvider>
-      <Outlet />
-    </nexus.NexusProvider>
-  ),
-});
-```
-
-See [React: Setup](/docs/react/setup) for the full `nexus-client.ts` setup and [Core: Server](/docs/core/server) for the server-side auth wiring.
