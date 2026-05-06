@@ -66,17 +66,19 @@ function RouteComponent() {
 		}
 	};
 
+	const p = (val: unknown) => parseFloat((val as string | undefined) || "0");
+
 	const totalValue =
-		holdings?.reduce((sum: number, h) => sum + parseFloat(h.payload.amount), 0) || 0;
+		holdings?.reduce((sum, h) => sum + p(h.payload.amount), 0) || 0;
 
 	const maxYield =
 		holdings && holdings.length > 0
-			? Math.max(...holdings.map((h) => parseFloat(h.payload.yield))) * 100
+			? Math.max(...holdings.map((h) => p(h.payload.yield))) * 100
 			: null;
 
 	const avgLtv =
 		holdings && holdings.length > 0
-			? (holdings.reduce((sum, h) => sum + (1 - parseFloat(h.payload.haircut)), 0) /
+			? (holdings.reduce((sum, h) => sum + (1 - p(h.payload.haircut)), 0) /
 					holdings.length) *
 				100
 			: null;
@@ -202,7 +204,12 @@ function RouteComponent() {
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{holdings?.map((h) => (
+								{holdings?.map((h) => {
+									const asset = h.payload.asset as string | undefined;
+									const amount = p(h.payload.amount);
+									const yieldVal = p(h.payload.yield);
+									const haircut = p(h.payload.haircut);
+									return (
 									<TableRow
 										key={h.contractId}
 										className="border-muted/30 group hover:bg-muted/10 transition-colors"
@@ -210,30 +217,27 @@ function RouteComponent() {
 										<TableCell className="pl-6">
 											<div className="flex items-center gap-3">
 												<div className="size-7 rounded bg-muted flex items-center justify-center font-bold text-[9px] text-muted-foreground">
-													{h.payload.asset}
+													{asset}
 												</div>
-												<span className="font-semibold text-sm">{h.payload.asset}</span>
+												<span className="font-semibold text-sm">{asset}</span>
 											</div>
 										</TableCell>
 										<TableCell className="font-semibold text-sm">
-											$
-											{parseFloat(h.payload.amount).toLocaleString(undefined, {
-												minimumFractionDigits: 0,
-											})}
+											${amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}
 										</TableCell>
 										<TableCell>
 											<Badge
 												variant="secondary"
-												className="bg-green-500/5 text-green-700 dark:text-green-400 border-transparent font-medium text-[10px] py-0 px-1.5"
+												className="bg-primary/5 text-primary border-transparent font-medium text-[10px] py-0 px-1.5"
 											>
-												{(parseFloat(h.payload.yield) * 100).toFixed(2)}%
+												{(yieldVal * 100).toFixed(2)}%
 											</Badge>
 										</TableCell>
 										<TableCell className="text-xs font-medium text-muted-foreground">
-											{(parseFloat(h.payload.haircut) * 100).toFixed(1)}%
+											{(haircut * 100).toFixed(1)}%
 										</TableCell>
 										<TableCell className="text-xs font-semibold">
-											{((1 - parseFloat(h.payload.haircut)) * 100).toFixed(0)}%
+											{((1 - haircut) * 100).toFixed(0)}%
 										</TableCell>
 										{role !== "operator" && (
 											<TableCell className="pr-6 text-right">
@@ -249,7 +253,8 @@ function RouteComponent() {
 											</TableCell>
 										)}
 									</TableRow>
-								))}
+									);
+								})}
 								{holdings?.length === 0 && (
 									<TableRow>
 										<TableCell

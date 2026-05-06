@@ -3,6 +3,7 @@ import {
 	ApproveSuggestionSchema,
 	CollateralQuerySchema,
 	CreateHoldingSchema,
+	CreateMarginCallSchema,
 	CreatePolicySchema,
 	GenerateSuggestionSchema,
 	RejectSuggestionSchema,
@@ -168,19 +169,21 @@ export const collateralRouter = {
 			}
 
 			// 6. Create RoutingSuggestion contract on Canton
+			// All Decimal fields are rounded to 6dp — Daml Numeric(10) accepts up to 10dp
+			// but JavaScript float arithmetic can produce 15+ significant digits.
+			const round6 = (n: number) => parseFloat(n.toFixed(6));
 			return context.ledger.RoutingSuggestion.create({
 				routeId: `ROUTE-${Date.now()}`,
 				institution: context.partyId,
 				operator: context.operatorPartyId,
 				counterparty: counterpartyPartyId,
 				marginCallId: input.marginCallId,
-				amountRequired: input.amountRequired.toString(),
+				amountRequired: round6(input.amountRequired).toString(),
 				suggestedAssets: ctdResult.selectedAssets.map((a) => a.symbol),
-				suggestedAmounts: ctdResult.selectedAssets.map((a) => a.amount.toString()),
-				estimatedOpportunityCost: ctdResult.totalOpportunityCost.toString(),
-				opportunityCostBps: (
-					(ctdResult.totalOpportunityCost / input.amountRequired) *
-					10000
+				suggestedAmounts: ctdResult.selectedAssets.map((a) => round6(a.amount).toString()),
+				estimatedOpportunityCost: round6(ctdResult.totalOpportunityCost).toString(),
+				opportunityCostBps: round6(
+					(ctdResult.totalOpportunityCost / input.amountRequired) * 10000,
 				).toString(),
 				alternativeOptions: [],
 				expiryWarnings: [],
@@ -212,6 +215,51 @@ export const collateralRouter = {
 
 	listAllocations: ledgerProcedure.input(CollateralQuerySchema).handler(({ input, context }) => {
 		return context.ledger.AllocationRecord.findMany({
+			limit: input.limit,
+		});
+	}),
+
+	// ─── Margin Calls (Counterparty) ────────────────────────────────────────
+
+	createMarginCall: ledgerProcedure
+		.input(CreateMarginCallSchema)
+		.handler(async ({ input, context }) => {
+			const cantonUrl = process.env.CANTON_API_URL ?? "http://127.0.0.1:7575";
+
+			// Resolve operator and institution parties from Canton
+			const operatorPartyId = context.operatorPartyId;
+			let institutionPartyId = context.partyId; // fallback
+
+			try {
+				const res = await fetch(`${cantonUrl}/v2/parties`);
+				if (res.ok) {
+					const data = (await res.json()) as { partyDetails?: { party: string }[] };
+					const parties = data.partyDetails ?? [];
+					const institution = parties.find((p) => p.party.split("::")[0] === input.institutionName);
+					if (institution) institutionPartyId = institution.party;
+				}
+			} catch {
+				// Non-fatal — use fallback
+			}
+
+			const now = new Date();
+			const dueBy = new Date(now.getTime() + (input.dueInHours ?? 2) * 60 * 60 * 1000);
+
+			return context.ledger.MarginCall.create({
+				callId: `MC-${Date.now()}`,
+				operator: operatorPartyId,
+				institution: institutionPartyId,
+				counterparty: context.partyId,
+				amountRequired: input.amountRequired.toString(),
+				currency: input.currency,
+				dueBy: dueBy.toISOString(),
+				status: "RoutePending",
+				createdAt: now.toISOString(),
+			});
+		}),
+
+	listMarginCalls: ledgerProcedure.input(CollateralQuerySchema).handler(({ input, context }) => {
+		return context.ledger.MarginCall.findMany({
 			limit: input.limit,
 		});
 	}),
@@ -273,13 +321,15 @@ export const collateralRouter = {
 			expiry: null,
 		});
 
-		// 4. Create USDC holding ($25M @ 0% yield, 0% haircut)
+		// 4. Create USDC holding ($5M @ 0% yield — intentionally small so CTD
+		// must combine multiple assets, producing a non-zero opportunity cost
+		// and a more interesting routing result in the demo.
 		await ledger.CollateralHolding.create({
 			operator: operatorPartyId,
 			holdingId: "HOLD-USDC-001",
 			institution: partyId,
 			asset: "USDC",
-			amount: "25000000.0",
+			amount: "5000000.0",
 			yield: "0.0",
 			haircut: "0.0",
 			expiry: null,

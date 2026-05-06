@@ -17,6 +17,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
+	AlertTriangleIcon,
 	FileTextIcon,
 	LayoutDashboardIcon,
 	SettingsIcon,
@@ -83,9 +84,9 @@ function getNavItemsForRole(role: string) {
 		return [
 			...baseItems,
 			{
-				to: "/dashboard/suggestions" as const,
+				to: "/dashboard/margin-calls" as const,
 				label: "Margin Calls",
-				icon: <FileTextIcon />,
+				icon: <AlertTriangleIcon />,
 				activeOptions: { exact: true },
 			},
 			{

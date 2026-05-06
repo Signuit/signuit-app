@@ -34,6 +34,7 @@ import { Route as ApiNexusAuthSplatRouteImport } from './routes/api/nexus-auth/$
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppDashboardSuggestionsRouteImport } from './routes/_app/dashboard/suggestions'
 import { Route as AppDashboardPolicyRouteImport } from './routes/_app/dashboard/policy'
+import { Route as AppDashboardMarginCallsRouteImport } from './routes/_app/dashboard/margin-calls'
 import { Route as AppDashboardHoldingsRouteImport } from './routes/_app/dashboard/holdings'
 import { Route as AppDashboardGenerateRouteImport } from './routes/_app/dashboard/generate'
 import { Route as AppDashboardComponents_libRouteImport } from './routes/_app/dashboard/components_lib'
@@ -166,6 +167,11 @@ const AppDashboardPolicyRoute = AppDashboardPolicyRouteImport.update({
   path: '/dashboard/policy',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppDashboardMarginCallsRoute = AppDashboardMarginCallsRouteImport.update({
+  id: '/dashboard/margin-calls',
+  path: '/dashboard/margin-calls',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppDashboardHoldingsRoute = AppDashboardHoldingsRouteImport.update({
   id: '/dashboard/holdings',
   path: '/dashboard/holdings',
@@ -228,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/dashboard/generate': typeof AppDashboardGenerateRoute
   '/dashboard/holdings': typeof AppDashboardHoldingsRoute
+  '/dashboard/margin-calls': typeof AppDashboardMarginCallsRoute
   '/dashboard/policy': typeof AppDashboardPolicyRoute
   '/dashboard/suggestions': typeof AppDashboardSuggestionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -260,6 +267,7 @@ export interface FileRoutesByTo {
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/dashboard/generate': typeof AppDashboardGenerateRoute
   '/dashboard/holdings': typeof AppDashboardHoldingsRoute
+  '/dashboard/margin-calls': typeof AppDashboardMarginCallsRoute
   '/dashboard/policy': typeof AppDashboardPolicyRoute
   '/dashboard/suggestions': typeof AppDashboardSuggestionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -295,6 +303,7 @@ export interface FileRoutesById {
   '/_app/dashboard/components_lib': typeof AppDashboardComponents_libRoute
   '/_app/dashboard/generate': typeof AppDashboardGenerateRoute
   '/_app/dashboard/holdings': typeof AppDashboardHoldingsRoute
+  '/_app/dashboard/margin-calls': typeof AppDashboardMarginCallsRoute
   '/_app/dashboard/policy': typeof AppDashboardPolicyRoute
   '/_app/dashboard/suggestions': typeof AppDashboardSuggestionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -330,6 +339,7 @@ export interface FileRouteTypes {
     | '/dashboard/components_lib'
     | '/dashboard/generate'
     | '/dashboard/holdings'
+    | '/dashboard/margin-calls'
     | '/dashboard/policy'
     | '/dashboard/suggestions'
     | '/api/auth/$'
@@ -362,6 +372,7 @@ export interface FileRouteTypes {
     | '/dashboard/components_lib'
     | '/dashboard/generate'
     | '/dashboard/holdings'
+    | '/dashboard/margin-calls'
     | '/dashboard/policy'
     | '/dashboard/suggestions'
     | '/api/auth/$'
@@ -396,6 +407,7 @@ export interface FileRouteTypes {
     | '/_app/dashboard/components_lib'
     | '/_app/dashboard/generate'
     | '/_app/dashboard/holdings'
+    | '/_app/dashboard/margin-calls'
     | '/_app/dashboard/policy'
     | '/_app/dashboard/suggestions'
     | '/api/auth/$'
@@ -602,6 +614,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardPolicyRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/dashboard/margin-calls': {
+      id: '/_app/dashboard/margin-calls'
+      path: '/dashboard/margin-calls'
+      fullPath: '/dashboard/margin-calls'
+      preLoaderRoute: typeof AppDashboardMarginCallsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/dashboard/holdings': {
       id: '/_app/dashboard/holdings'
       path: '/dashboard/holdings'
@@ -659,6 +678,7 @@ interface AppRouteRouteChildren {
   AppDashboardComponents_libRoute: typeof AppDashboardComponents_libRoute
   AppDashboardGenerateRoute: typeof AppDashboardGenerateRoute
   AppDashboardHoldingsRoute: typeof AppDashboardHoldingsRoute
+  AppDashboardMarginCallsRoute: typeof AppDashboardMarginCallsRoute
   AppDashboardPolicyRoute: typeof AppDashboardPolicyRoute
   AppDashboardSuggestionsRoute: typeof AppDashboardSuggestionsRoute
   AppDashboardIndexRoute: typeof AppDashboardIndexRoute
@@ -672,6 +692,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppDashboardComponents_libRoute: AppDashboardComponents_libRoute,
   AppDashboardGenerateRoute: AppDashboardGenerateRoute,
   AppDashboardHoldingsRoute: AppDashboardHoldingsRoute,
+  AppDashboardMarginCallsRoute: AppDashboardMarginCallsRoute,
   AppDashboardPolicyRoute: AppDashboardPolicyRoute,
   AppDashboardSuggestionsRoute: AppDashboardSuggestionsRoute,
   AppDashboardIndexRoute: AppDashboardIndexRoute,

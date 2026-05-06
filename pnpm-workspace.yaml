@@ -5,6 +5,8 @@ packages:
   - 'sandbox'
   - 'sandbox/daml.js/*'
 
+inject-workspace-packages: true
+
 catalogs:
   default:
     better-auth: ^1.5.6
@@ -16,8 +18,8 @@ catalogs:
     dotenv: ^16.4.5
     typescript: ^5.7.3
     turbo: ^2.8.21
-    "@libsql/client": ^0.14.0
-    libsql: ^0.3.8
+    "@libsql/client": 0.15.15
+    libsql: 0.5.22
     "@orpc/client": ^1.13.13
     "@orpc/openapi": ^1.13.13
     "@orpc/server": ^1.13.13

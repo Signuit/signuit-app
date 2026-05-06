@@ -1,0 +1,85 @@
+services:
+  # ─── Reverse Proxy + SSL ──────────────────────────────────────────────────
+  traefik:
+    image: traefik:v2.11
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - signuit-network
+    restart: unless-stopped
+
+  # ─── Canton Sandbox (Daml Ledger) ────────────────────────────────────────
+  canton-sandbox:
+    build:
+      context: ./sandbox
+      dockerfile: Dockerfile
+    volumes:
+      - canton-data:/data
+      - ./sandbox:/workspace:rw
+    networks:
+      - signuit-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "7575"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  # ─── Web Application ──────────────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: ${DATABASE_URL}
+      TURSO_AUTH_TOKEN: ${TURSO_AUTH_TOKEN}
+      CANTON_API_URL: http://canton-sandbox:7575
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: https://${DOMAIN}
+      CORS_ORIGIN: https://${DOMAIN}
+      SESSION_SECRET: ${SESSION_SECRET}
+      SANDBOX_SECRET: ${SANDBOX_SECRET}
+      OPERATOR_PARTY_ID: SignUIT
+    depends_on:
+      canton-sandbox:
+        condition: service_healthy
+    networks:
+      - signuit-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.signuit.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.signuit.entrypoints=websecure"
+      - "traefik.http.routers.signuit.tls.certresolver=letsencrypt"
+      - "traefik.http.services.signuit.loadbalancer.server.port=3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  signuit-network:
+    driver: bridge
+
+volumes:
+  canton-data:
+  letsencrypt:

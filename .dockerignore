@@ -1,0 +1,51 @@
+# Dependencies — never needed in Docker (pnpm install içeride çalışır)
+node_modules
+**/node_modules
+
+# Build artifacts — Docker içinde yeniden build edilir
+**/.output
+apps/web/.output
+
+# Turbo cache
+.turbo
+**/.turbo
+
+# Git
+.git
+.gitignore
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Test artifacts
+coverage
+**/*.test.ts
+**/*.spec.ts
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode
+.idea
+*.swp
+
+# Daml build artifacts (large, not needed for web)
+sandbox/.daml
+sandbox/daml.js/node_modules
+
+# Docs
+docs
+
+# Other app dirs we don't need for web build
+apps/native
+apps/extension
+apps/docs
+apps/example

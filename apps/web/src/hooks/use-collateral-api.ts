@@ -121,6 +121,28 @@ export function useAuditTrail() {
 	);
 }
 
+// ─── Margin Calls (Counterparty) ────────────────────────────────
+
+export function useMarginCalls() {
+	return useQuery(
+		orpc.collateral.listMarginCalls.queryOptions({
+			input: { limit: 100 },
+			refetchInterval: 5000,
+		}),
+	);
+}
+
+export function useCreateMarginCall() {
+	const queryClient = useQueryClient();
+	return useMutation(
+		orpc.collateral.createMarginCall.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({ queryKey: orpc.collateral.listMarginCalls.key() });
+			},
+		}),
+	);
+}
+
 // ─── Demo Setup ─────────────────────────────────────────────────
 
 export function useSeedDemoData() {

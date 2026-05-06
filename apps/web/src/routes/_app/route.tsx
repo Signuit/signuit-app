@@ -1,6 +1,6 @@
 import { SidebarInset, SidebarProvider } from "@nexus/ui/components/sidebar";
-import { SiteHeader } from "@nexus/ui/components/site-header";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { AppHeader } from "@/components/app-header";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ensureSession } from "@/functions/ensure-session";
 
@@ -24,7 +24,7 @@ function AppLayout() {
 		>
 			<AppSidebar variant="inset" />
 			<SidebarInset>
-				<SiteHeader />
+				<AppHeader />
 				<div className="flex flex-1 flex-col">
 					<div className="@container/main flex flex-1 flex-col p-8">
 						<Outlet />
