@@ -19,6 +19,7 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 
 RUN pnpm --filter=@nexus/web build
 
+# pnpm deploy: sadece production node_modules üretir (source veya .output değil)
 RUN pnpm deploy --filter=@nexus/web --prod --legacy /prod/web
 
 ################################################################################
@@ -33,8 +34,10 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 --ingroup nodejs appuser
 
-# .output (Nitro bundle) + node_modules (Daml external deps için)
-COPY --from=builder --chown=appuser:nodejs /prod/web/.output ./apps/web/.output
+# Nitro bundle (.output) — builder stage'den doğrudan al
+COPY --from=builder --chown=appuser:nodejs /app/apps/web/.output ./apps/web/.output
+
+# pnpm deploy çıktısı: Daml gibi external dep'ler için production node_modules
 COPY --from=builder --chown=appuser:nodejs /prod/web/node_modules ./apps/web/node_modules
 
 USER appuser
