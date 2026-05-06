@@ -121,9 +121,10 @@ jobs:
             NODE_ENV=production
             EOF
 
-            docker pull ghcr.io/${GITHUB_REPOSITORY_OWNER}/signuit-web:${GIT_COMMIT_HASH}
+            OWNER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+            docker pull ghcr.io/${OWNER}/signuit-web:${GIT_COMMIT_HASH}
 
-            WEB_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER}/signuit-web:${GIT_COMMIT_HASH} \
+            WEB_IMAGE=ghcr.io/${OWNER}/signuit-web:${GIT_COMMIT_HASH} \
               docker compose up -d --no-build web
 
             echo "✅ Production deploy tamamlandı: https://${DOMAIN}"
