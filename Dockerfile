@@ -25,9 +25,10 @@ COPY packages/ ./packages/
 COPY framework/ ./framework/
 COPY sandbox/daml.js/ ./sandbox/daml.js/
 
-# Install dependencies
+# Install dependencies + rebuild native binaries for Linux
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile
+    pnpm install --frozen-lockfile && \
+    pnpm rebuild lightningcss esbuild 2>/dev/null || true
 
 # Copy full source
 COPY . .
