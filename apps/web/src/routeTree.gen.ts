@@ -15,12 +15,19 @@ import { Route as PresentationsRouteRouteImport } from './routes/presentations/r
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PresentationsIndexRouteImport } from './routes/presentations/index'
+import { Route as PitchIndexRouteImport } from './routes/pitch/index'
+import { Route as JudgingIndexRouteImport } from './routes/judging/index'
 import { Route as PresentationsValuePropRouteImport } from './routes/presentations/value-prop'
 import { Route as PresentationsPitchRouteImport } from './routes/presentations/pitch'
 import { Route as PresentationsMvpRouteImport } from './routes/presentations/mvp'
 import { Route as PresentationsMetricsRouteImport } from './routes/presentations/metrics'
 import { Route as PresentationsIcpRouteImport } from './routes/presentations/icp'
 import { Route as PresentationsGtmRouteImport } from './routes/presentations/gtm'
+import { Route as JudgingValueRouteImport } from './routes/judging/value'
+import { Route as JudgingMvpRouteImport } from './routes/judging/mvp'
+import { Route as JudgingMetricsRouteImport } from './routes/judging/metrics'
+import { Route as JudgingIcpRouteImport } from './routes/judging/icp'
+import { Route as JudgingGtmRouteImport } from './routes/judging/gtm'
 import { Route as AppDashboardIndexRouteImport } from './routes/_app/dashboard/index'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiNexusAuthSplatRouteImport } from './routes/api/nexus-auth/$'
@@ -65,6 +72,16 @@ const PresentationsIndexRoute = PresentationsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PresentationsRouteRoute,
 } as any)
+const PitchIndexRoute = PitchIndexRouteImport.update({
+  id: '/pitch/',
+  path: '/pitch/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JudgingIndexRoute = JudgingIndexRouteImport.update({
+  id: '/judging/',
+  path: '/judging/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PresentationsValuePropRoute = PresentationsValuePropRouteImport.update({
   id: '/value-prop',
   path: '/value-prop',
@@ -94,6 +111,31 @@ const PresentationsGtmRoute = PresentationsGtmRouteImport.update({
   id: '/gtm',
   path: '/gtm',
   getParentRoute: () => PresentationsRouteRoute,
+} as any)
+const JudgingValueRoute = JudgingValueRouteImport.update({
+  id: '/judging/value',
+  path: '/judging/value',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JudgingMvpRoute = JudgingMvpRouteImport.update({
+  id: '/judging/mvp',
+  path: '/judging/mvp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JudgingMetricsRoute = JudgingMetricsRouteImport.update({
+  id: '/judging/metrics',
+  path: '/judging/metrics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JudgingIcpRoute = JudgingIcpRouteImport.update({
+  id: '/judging/icp',
+  path: '/judging/icp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JudgingGtmRoute = JudgingGtmRouteImport.update({
+  id: '/judging/gtm',
+  path: '/judging/gtm',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppDashboardIndexRoute = AppDashboardIndexRouteImport.update({
   id: '/dashboard/',
@@ -174,12 +216,19 @@ export interface FileRoutesByFullPath {
   '/presentations': typeof PresentationsRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/judging/gtm': typeof JudgingGtmRoute
+  '/judging/icp': typeof JudgingIcpRoute
+  '/judging/metrics': typeof JudgingMetricsRoute
+  '/judging/mvp': typeof JudgingMvpRoute
+  '/judging/value': typeof JudgingValueRoute
   '/presentations/gtm': typeof PresentationsGtmRoute
   '/presentations/icp': typeof PresentationsIcpRoute
   '/presentations/metrics': typeof PresentationsMetricsRoute
   '/presentations/mvp': typeof PresentationsMvpRoute
   '/presentations/pitch': typeof PresentationsPitchRoute
   '/presentations/value-prop': typeof PresentationsValuePropRoute
+  '/judging/': typeof JudgingIndexRoute
+  '/pitch/': typeof PitchIndexRoute
   '/presentations/': typeof PresentationsIndexRoute
   '/dashboard/audit': typeof AppDashboardAuditRoute
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
@@ -200,12 +249,19 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/judging/gtm': typeof JudgingGtmRoute
+  '/judging/icp': typeof JudgingIcpRoute
+  '/judging/metrics': typeof JudgingMetricsRoute
+  '/judging/mvp': typeof JudgingMvpRoute
+  '/judging/value': typeof JudgingValueRoute
   '/presentations/gtm': typeof PresentationsGtmRoute
   '/presentations/icp': typeof PresentationsIcpRoute
   '/presentations/metrics': typeof PresentationsMetricsRoute
   '/presentations/mvp': typeof PresentationsMvpRoute
   '/presentations/pitch': typeof PresentationsPitchRoute
   '/presentations/value-prop': typeof PresentationsValuePropRoute
+  '/judging': typeof JudgingIndexRoute
+  '/pitch': typeof PitchIndexRoute
   '/presentations': typeof PresentationsIndexRoute
   '/dashboard/audit': typeof AppDashboardAuditRoute
   '/dashboard/components_lib': typeof AppDashboardComponents_libRoute
@@ -229,12 +285,19 @@ export interface FileRoutesById {
   '/presentations': typeof PresentationsRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/judging/gtm': typeof JudgingGtmRoute
+  '/judging/icp': typeof JudgingIcpRoute
+  '/judging/metrics': typeof JudgingMetricsRoute
+  '/judging/mvp': typeof JudgingMvpRoute
+  '/judging/value': typeof JudgingValueRoute
   '/presentations/gtm': typeof PresentationsGtmRoute
   '/presentations/icp': typeof PresentationsIcpRoute
   '/presentations/metrics': typeof PresentationsMetricsRoute
   '/presentations/mvp': typeof PresentationsMvpRoute
   '/presentations/pitch': typeof PresentationsPitchRoute
   '/presentations/value-prop': typeof PresentationsValuePropRoute
+  '/judging/': typeof JudgingIndexRoute
+  '/pitch/': typeof PitchIndexRoute
   '/presentations/': typeof PresentationsIndexRoute
   '/_app/dashboard/audit': typeof AppDashboardAuditRoute
   '/_app/dashboard/components_lib': typeof AppDashboardComponents_libRoute
@@ -258,12 +321,19 @@ export interface FileRouteTypes {
     | '/presentations'
     | '/login'
     | '/signup'
+    | '/judging/gtm'
+    | '/judging/icp'
+    | '/judging/metrics'
+    | '/judging/mvp'
+    | '/judging/value'
     | '/presentations/gtm'
     | '/presentations/icp'
     | '/presentations/metrics'
     | '/presentations/mvp'
     | '/presentations/pitch'
     | '/presentations/value-prop'
+    | '/judging/'
+    | '/pitch/'
     | '/presentations/'
     | '/dashboard/audit'
     | '/dashboard/components_lib'
@@ -284,12 +354,19 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/judging/gtm'
+    | '/judging/icp'
+    | '/judging/metrics'
+    | '/judging/mvp'
+    | '/judging/value'
     | '/presentations/gtm'
     | '/presentations/icp'
     | '/presentations/metrics'
     | '/presentations/mvp'
     | '/presentations/pitch'
     | '/presentations/value-prop'
+    | '/judging'
+    | '/pitch'
     | '/presentations'
     | '/dashboard/audit'
     | '/dashboard/components_lib'
@@ -312,12 +389,19 @@ export interface FileRouteTypes {
     | '/presentations'
     | '/login'
     | '/signup'
+    | '/judging/gtm'
+    | '/judging/icp'
+    | '/judging/metrics'
+    | '/judging/mvp'
+    | '/judging/value'
     | '/presentations/gtm'
     | '/presentations/icp'
     | '/presentations/metrics'
     | '/presentations/mvp'
     | '/presentations/pitch'
     | '/presentations/value-prop'
+    | '/judging/'
+    | '/pitch/'
     | '/presentations/'
     | '/_app/dashboard/audit'
     | '/_app/dashboard/components_lib'
@@ -341,6 +425,13 @@ export interface RootRouteChildren {
   PresentationsRouteRoute: typeof PresentationsRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  JudgingGtmRoute: typeof JudgingGtmRoute
+  JudgingIcpRoute: typeof JudgingIcpRoute
+  JudgingMetricsRoute: typeof JudgingMetricsRoute
+  JudgingMvpRoute: typeof JudgingMvpRoute
+  JudgingValueRoute: typeof JudgingValueRoute
+  JudgingIndexRoute: typeof JudgingIndexRoute
+  PitchIndexRoute: typeof PitchIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiNexusAuthSplatRoute: typeof ApiNexusAuthSplatRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
@@ -390,6 +481,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PresentationsIndexRouteImport
       parentRoute: typeof PresentationsRouteRoute
     }
+    '/pitch/': {
+      id: '/pitch/'
+      path: '/pitch'
+      fullPath: '/pitch/'
+      preLoaderRoute: typeof PitchIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/judging/': {
+      id: '/judging/'
+      path: '/judging'
+      fullPath: '/judging/'
+      preLoaderRoute: typeof JudgingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/presentations/value-prop': {
       id: '/presentations/value-prop'
       path: '/value-prop'
@@ -431,6 +536,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/presentations/gtm'
       preLoaderRoute: typeof PresentationsGtmRouteImport
       parentRoute: typeof PresentationsRouteRoute
+    }
+    '/judging/value': {
+      id: '/judging/value'
+      path: '/judging/value'
+      fullPath: '/judging/value'
+      preLoaderRoute: typeof JudgingValueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/judging/mvp': {
+      id: '/judging/mvp'
+      path: '/judging/mvp'
+      fullPath: '/judging/mvp'
+      preLoaderRoute: typeof JudgingMvpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/judging/metrics': {
+      id: '/judging/metrics'
+      path: '/judging/metrics'
+      fullPath: '/judging/metrics'
+      preLoaderRoute: typeof JudgingMetricsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/judging/icp': {
+      id: '/judging/icp'
+      path: '/judging/icp'
+      fullPath: '/judging/icp'
+      preLoaderRoute: typeof JudgingIcpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/judging/gtm': {
+      id: '/judging/gtm'
+      path: '/judging/gtm'
+      fullPath: '/judging/gtm'
+      preLoaderRoute: typeof JudgingGtmRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/dashboard/': {
       id: '/_app/dashboard/'
@@ -594,6 +734,13 @@ const rootRouteChildren: RootRouteChildren = {
   PresentationsRouteRoute: PresentationsRouteRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  JudgingGtmRoute: JudgingGtmRoute,
+  JudgingIcpRoute: JudgingIcpRoute,
+  JudgingMetricsRoute: JudgingMetricsRoute,
+  JudgingMvpRoute: JudgingMvpRoute,
+  JudgingValueRoute: JudgingValueRoute,
+  JudgingIndexRoute: JudgingIndexRoute,
+  PitchIndexRoute: PitchIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiNexusAuthSplatRoute: ApiNexusAuthSplatRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
