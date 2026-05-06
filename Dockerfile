@@ -22,7 +22,7 @@ RUN pnpm --filter=@nexus/web build
 RUN pnpm deploy --filter=@nexus/web --prod --legacy /prod/web
 
 ################################################################################
-# Stage 2: Runner — sadece .output, node_modules yok
+# Stage 2: Runner
 ################################################################################
 FROM node:${NODE_VERSION}-slim AS runner
 
@@ -33,7 +33,9 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 --ingroup nodejs appuser
 
-COPY --from=builder --chown=appuser:nodejs /app/apps/web/.output ./apps/web/.output
+# .output (Nitro bundle) + node_modules (Daml external deps için)
+COPY --from=builder --chown=appuser:nodejs /prod/web/.output ./apps/web/.output
+COPY --from=builder --chown=appuser:nodejs /prod/web/node_modules ./apps/web/node_modules
 
 USER appuser
 
