@@ -11,15 +11,6 @@ const damlPackages = [
 	"@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0",
 ];
 
-// Native binary packages — bundle'a alınamaz, runtime'da node_modules'dan yüklenmeli
-const nativePackages = [
-	"libsql",
-	"@libsql/client",
-	"@libsql/linux-x64-gnu",
-	"@libsql/darwin-arm64",
-	"@libsql/darwin-x64",
-];
-
 export default defineConfig({
 	plugins: [
 		tsconfigPaths({ ignoreConfigErrors: true }),
@@ -34,7 +25,6 @@ export default defineConfig({
 		strictPort: true,
 	},
 	optimizeDeps: {
-		include: damlPackages,
 		exclude: [
 			"@tanstack/react-start",
 			"@tanstack/react-router",
@@ -42,15 +32,7 @@ export default defineConfig({
 			"@tanstack/react-start-server",
 		],
 	},
-	build: {
-		commonjsOptions: {
-			include: [/node_modules/],
-			requireReturnsDefault: "auto",
-			transformMixedEsModules: true,
-		},
-	},
 	ssr: {
-		external: [...damlPackages, ...nativePackages],
-		noExternal: true,
+		noExternal: damlPackages,
 	},
 });

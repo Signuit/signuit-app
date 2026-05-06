@@ -1,7 +1,3 @@
-# SignUIT — Production Docker Compose
-# Deploy: docker compose up -d
-# Server: 38.49.213.142 | Domain: signuit.com
-
 services:
   # ─── Reverse Proxy + SSL ──────────────────────────────────────────────────
   traefik:
@@ -32,8 +28,8 @@ services:
       context: ./sandbox
       dockerfile: Dockerfile
     volumes:
-      - canton-data:/data          # H2 persistent ledger storage
-      - ./sandbox:/workspace:ro    # DAR file + canton.conf
+      - canton-data:/data
+      - ./sandbox:/workspace:rw
     networks:
       - signuit-network
     restart: unless-stopped
@@ -42,10 +38,9 @@ services:
       interval: 15s
       timeout: 5s
       retries: 10
-      start_period: 60s
-    # NOT exposed to host — only the web app connects internally
+      start_period: 90s
 
-  # ─── Web Application (TanStack Start SSR) ───────────────────────────────
+  # ─── Web Application ──────────────────────────────────────────────────────
   web:
     build:
       context: .
@@ -53,20 +48,15 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
-      # Canton — internal Docker network
+      DATABASE_URL: ${DATABASE_URL}
+      TURSO_AUTH_TOKEN: ${TURSO_AUTH_TOKEN}
       CANTON_API_URL: http://canton-sandbox:7575
-      # Database — persistent Docker volume
-      DATABASE_URL: file:/data/signuit.db
-      # Auth
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: https://${DOMAIN}
       CORS_ORIGIN: https://${DOMAIN}
-      # Nexus session
       SESSION_SECRET: ${SESSION_SECRET}
       SANDBOX_SECRET: ${SANDBOX_SECRET}
       OPERATOR_PARTY_ID: SignUIT
-    volumes:
-      - db-data:/data              # SQLite persistent storage
     depends_on:
       canton-sandbox:
         condition: service_healthy
@@ -91,6 +81,5 @@ networks:
     driver: bridge
 
 volumes:
-  canton-data:    # Daml ledger — H2 file, persists across restarts
-  db-data:        # SQLite auth DB — users, sessions
-  letsencrypt:    # Let's Encrypt certificates
+  canton-data:
+  letsencrypt:

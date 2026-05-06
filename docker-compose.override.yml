@@ -1,21 +1,9 @@
-# Local test override — docker compose up -d otomatik yükler
-# Traefik'i bypass eder, web'i doğrudan 3000'den açar
-# Production'da bu dosya kullanılmaz
-
+# Local test override — production'da kullanılmaz
 services:
-  # Traefik'i local'de devre dışı bırak
   traefik:
     profiles: ["production-only"]
 
-  # Web'i doğrudan portta aç
-  # build.args ile Docker içinde pnpm install + build yapılır
-  # (macOS'ta build edilmiş .output/ Linux native binding içermez)
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        BUILD_IN_DOCKER: "1"
     ports:
       - "3000:3000"
     environment:
@@ -24,10 +12,7 @@ services:
     labels:
       - "traefik.enable=false"
 
-  # Canton portlarını local'de erişilebilir yap
   canton-sandbox:
     ports:
       - "6865:6865"
       - "7575:7575"
-    volumes:
-      - ./sandbox:/workspace:rw
