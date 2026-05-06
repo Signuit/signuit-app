@@ -1,7 +1,14 @@
 import { Badge } from "@nexus/ui/components/badge";
 import { Card, CardContent } from "@nexus/ui/components/card";
 import { createFileRoute } from "@tanstack/react-router";
-import { CreditCardIcon, GlobeIcon, LayersIcon, RocketIcon, TrendingUpIcon, WalletIcon } from "lucide-react";
+import {
+	CreditCardIcon,
+	GlobeIcon,
+	LayersIcon,
+	RocketIcon,
+	TrendingUpIcon,
+	WalletIcon,
+} from "lucide-react";
 import { Bullet, JudgingCard, JudgingLayout, JudgingSection, Stat } from "./-layout";
 
 export const Route = createFileRoute("/judging/gtm")({
@@ -19,14 +26,29 @@ function GtmPage() {
 			<JudgingSection title="Business Model">
 				<JudgingCard>
 					<p className="text-lg leading-relaxed mb-6 text-foreground">
-						SignUIT CollateralRouter operates on a <strong>protocol fee model</strong>,
-						aligning incentives with Canton Network's core economic model.
-						Revenue is generated per-transaction, with tiered pricing based on usage volume.
+						SignUIT CollateralRouter operates on a <strong>protocol fee model</strong>, aligning
+						incentives with Canton Network's core economic model. Revenue is generated
+						per-transaction, with tiered pricing based on usage volume.
 					</p>
 					<div className="flex items-center gap-2 flex-wrap">
-						<Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border/50">Protocol Fee</Badge>
-						<Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border/50">B2B SaaS</Badge>
-						<Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border/50">Enterprise License</Badge>
+						<Badge
+							variant="outline"
+							className="text-[10px] uppercase tracking-wider border-border/50"
+						>
+							Protocol Fee
+						</Badge>
+						<Badge
+							variant="outline"
+							className="text-[10px] uppercase tracking-wider border-border/50"
+						>
+							B2B SaaS
+						</Badge>
+						<Badge
+							variant="outline"
+							className="text-[10px] uppercase tracking-wider border-border/50"
+						>
+							Enterprise License
+						</Badge>
 					</div>
 				</JudgingCard>
 
@@ -39,8 +61,8 @@ function GtmPage() {
 							<div className="flex-1">
 								<p className="font-semibold text-foreground">Per-Allocation Fee</p>
 								<p className="text-sm text-muted-foreground leading-relaxed">
-									<strong className="text-foreground">0.01% - 0.05%</strong> per collateral allocation, based on
-									allocation amount and complexity
+									<strong className="text-foreground">0.01% - 0.05%</strong> per collateral
+									allocation, based on allocation amount and complexity
 								</p>
 								<p className="text-sm text-muted-foreground mt-1 leading-relaxed">
 									Example: $15M margin call → $1,500 - $7,500 fee
@@ -54,8 +76,8 @@ function GtmPage() {
 							<div className="flex-1">
 								<p className="font-semibold text-foreground">Tiered Volume Discounts</p>
 								<p className="text-sm text-muted-foreground leading-relaxed">
-									Higher volumes unlock lower per-transaction rates, incentivizing
-									deep platform adoption
+									Higher volumes unlock lower per-transaction rates, incentivizing deep platform
+									adoption
 								</p>
 							</div>
 						</div>
@@ -66,8 +88,8 @@ function GtmPage() {
 							<div className="flex-1">
 								<p className="font-semibold text-foreground">Membership Tiers</p>
 								<p className="text-sm text-muted-foreground leading-relaxed">
-									Standard ($5K/mo), Professional ($15K/mo), Enterprise ($50K+/mo)
-									with increasing feature sets
+									Standard ($5K/mo), Professional ($15K/mo), Enterprise ($50K+/mo) with increasing
+									feature sets
 								</p>
 							</div>
 						</div>
@@ -88,24 +110,30 @@ function GtmPage() {
 					<div className="space-y-4">
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div className="p-5 border border-border/50 rounded-lg">
-								<p className="text-sm text-muted-foreground mb-1 uppercase tracking-wider text-xs">Year 1 (Q2-Q4 2026)</p>
+								<p className="text-sm text-muted-foreground mb-1 uppercase tracking-wider text-xs">
+									Year 1 (Q2-Q4 2026)
+								</p>
 								<p className="text-3xl font-semibold tracking-tight text-foreground">$0 - $150K</p>
 								<p className="text-xs text-muted-foreground mt-2">
 									3 pilot clients (zero fees), 5 beta clients at $5K-10K/mo
 								</p>
 							</div>
 							<div className="p-5 border border-border/50 rounded-lg">
-								<p className="text-sm text-muted-foreground mb-1 uppercase tracking-wider text-xs">Year 2 (2027)</p>
-								<p className="text-3xl font-semibold tracking-tight text-foreground">$150K-300K/mo</p>
+								<p className="text-sm text-muted-foreground mb-1 uppercase tracking-wider text-xs">
+									Year 2 (2027)
+								</p>
+								<p className="text-3xl font-semibold tracking-tight text-foreground">
+									$150K-300K/mo
+								</p>
 								<p className="text-xs text-muted-foreground mt-2">
 									20-50 institutions, usage-based fees + enterprise tier
 								</p>
 							</div>
 						</div>
 						<p className="text-sm text-muted-foreground mt-6 leading-relaxed">
-							<strong className="text-foreground">Assumptions (No current revenue):</strong> Average allocation
-							size $10-15M, 0.02-0.03% blended fee rate, 15% annual churn assumption.
-							All projections are forward-looking estimates for planning purposes.
+							<strong className="text-foreground">Assumptions (No current revenue):</strong> Average
+							allocation size $10-15M, 0.02-0.03% blended fee rate, 15% annual churn assumption. All
+							projections are forward-looking estimates for planning purposes.
 						</p>
 					</div>
 				</JudgingCard>
@@ -119,8 +147,8 @@ function GtmPage() {
 							<strong>Target:</strong> DTCC, Digital Asset, Canton pilot participants
 						</Bullet>
 						<Bullet>
-							<strong>Approach:</strong> Direct outreach through Canton Network community
-							channels, hackathon visibility, partner introductions
+							<strong>Approach:</strong> Direct outreach through Canton Network community channels,
+							hackathon visibility, partner introductions
 						</Bullet>
 						<Bullet>
 							<strong>Goal:</strong> 3-5 pilot clients, validate product-market fit
@@ -137,8 +165,8 @@ function GtmPage() {
 							<strong>Target:</strong> Independent asset managers, prime brokers, hedge funds
 						</Bullet>
 						<Bullet>
-							<strong>Channels:</strong> Conference presentations (Sibos, Money20/20),
-							financial media, case studies from Phase 1 pilots
+							<strong>Channels:</strong> Conference presentations (Sibos, Money20/20), financial
+							media, case studies from Phase 1 pilots
 						</Bullet>
 						<Bullet>
 							<strong>Goal:</strong> 15-20 paying clients, $2-3M ARR target
@@ -155,8 +183,8 @@ function GtmPage() {
 							<strong>Target:</strong> Clearinghouses, CCPs, sovereign wealth funds, large banks
 						</Bullet>
 						<Bullet>
-							<strong>Channels:</strong> RFP responses, consulting partnerships,
-							Canton Network co-marketing
+							<strong>Channels:</strong> RFP responses, consulting partnerships, Canton Network
+							co-marketing
 						</Bullet>
 						<Bullet>
 							<strong>Goal:</strong> 50+ clients, $18M+ ARR target
@@ -178,8 +206,8 @@ function GtmPage() {
 							</div>
 							<p className="font-semibold text-foreground mb-2">Canton Network Channel</p>
 							<p className="text-sm text-muted-foreground leading-relaxed">
-								Leverage Canton community events, Digital Asset partnerships,
-								and ecosystem developer programs for initial traction.
+								Leverage Canton community events, Digital Asset partnerships, and ecosystem
+								developer programs for initial traction.
 							</p>
 						</CardContent>
 					</Card>
@@ -190,8 +218,8 @@ function GtmPage() {
 							</div>
 							<p className="font-semibold text-foreground mb-2">Financial Conferences</p>
 							<p className="text-sm text-muted-foreground leading-relaxed">
-								Sibos, Money20/20, Blockchain for Finance conferences.
-								Demo stations, speaking slots, white paper distribution.
+								Sibos, Money20/20, Blockchain for Finance conferences. Demo stations, speaking
+								slots, white paper distribution.
 							</p>
 						</CardContent>
 					</Card>
@@ -202,8 +230,8 @@ function GtmPage() {
 							</div>
 							<p className="font-semibold text-foreground mb-2">Consulting Partners</p>
 							<p className="text-sm text-muted-foreground leading-relaxed">
-								Partner with systems integrators for
-								enterprise deployment and regulatory compliance consulting.
+								Partner with systems integrators for enterprise deployment and regulatory compliance
+								consulting.
 							</p>
 						</CardContent>
 					</Card>
@@ -214,14 +242,27 @@ function GtmPage() {
 			<JudgingSection title="Key Milestones">
 				<div className="space-y-4">
 					{[
-						{ q: "Q2 2026", title: "MVP Launch + 3 Pilot Clients", desc: "Canton sandbox, human-in-the-loop" },
-						{ q: "Q3 2026", title: "Beta Release + Auto-Approve", desc: "Policy-bounded automation, 5-15 clients" },
+						{
+							q: "Q2 2026",
+							title: "MVP Launch + 3 Pilot Clients",
+							desc: "Canton sandbox, human-in-the-loop",
+						},
+						{
+							q: "Q3 2026",
+							title: "Beta Release + Auto-Approve",
+							desc: "Policy-bounded automation, 5-15 clients",
+						},
 						{ q: "Q4 2026", title: "Mainnet Deployment", desc: "Canton production, 20+ clients" },
 						{ q: "2027", title: "Enterprise Scale", desc: "50+ clients, multi-tenancy" },
 					].map((m) => (
 						<div key={m.q} className="flex items-start gap-4">
 							<div className="w-24 shrink-0">
-								<Badge variant="outline" className="w-full justify-center text-[10px] uppercase tracking-wider border-border/50">{m.q}</Badge>
+								<Badge
+									variant="outline"
+									className="w-full justify-center text-[10px] uppercase tracking-wider border-border/50"
+								>
+									{m.q}
+								</Badge>
 							</div>
 							<div className="flex-1 p-4 bg-muted/30 rounded-lg">
 								<p className="font-semibold text-foreground">{m.title}</p>

@@ -1,6 +1,6 @@
-import type { RouterClient } from "@orpc/server";
 import type { SessionUser } from "@nexus/auth";
 import { db } from "@nexus/db";
+import type { RouterClient } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure, publicProcedure } from "../procedures";
 

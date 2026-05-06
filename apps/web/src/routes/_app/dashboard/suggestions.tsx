@@ -82,12 +82,12 @@ function RouteComponent() {
 				</div>
 			</div>
 
-		{role === "operator" && (
-			<div className="flex items-center gap-3 rounded-lg border border-muted bg-muted/30 px-4 py-3">
-				<div className="size-2 rounded-full bg-muted-foreground/50 animate-pulse" />
-				<p className="text-sm font-medium text-muted-foreground">
-					Observer Mode — SignUIT monitors all network routing activity. Approval authority
-					belongs solely to the institution.
+			{role === "operator" && (
+				<div className="flex items-center gap-3 rounded-lg border border-muted bg-muted/30 px-4 py-3">
+					<div className="size-2 rounded-full bg-muted-foreground/50 animate-pulse" />
+					<p className="text-sm font-medium text-muted-foreground">
+						Observer Mode — SignUIT monitors all network routing activity. Approval authority
+						belongs solely to the institution.
 					</p>
 				</div>
 			)}
@@ -195,14 +195,14 @@ function RouteComponent() {
 											<TableCell className="text-right">
 												<Badge
 													variant="secondary"
-											className={cn(
-													"border-transparent font-semibold text-[10px] px-2 py-0",
-													status === "RoutePending"
-														? "bg-muted text-muted-foreground"
-														: status === "RouteApproved" || status === "RouteExecuted"
-															? "bg-primary/10 text-primary"
-															: "bg-destructive/10 text-destructive",
-												)}
+													className={cn(
+														"border-transparent font-semibold text-[10px] px-2 py-0",
+														status === "RoutePending"
+															? "bg-muted text-muted-foreground"
+															: status === "RouteApproved" || status === "RouteExecuted"
+																? "bg-primary/10 text-primary"
+																: "bg-destructive/10 text-destructive",
+													)}
 												>
 													{status ?? "—"}
 												</Badge>

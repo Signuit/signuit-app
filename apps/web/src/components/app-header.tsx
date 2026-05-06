@@ -2,11 +2,7 @@
 
 import { Badge } from "@nexus/ui/components/badge";
 import { Button } from "@nexus/ui/components/button";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@nexus/ui/components/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@nexus/ui/components/popover";
 import { Separator } from "@nexus/ui/components/separator";
 import { SidebarTrigger } from "@nexus/ui/components/sidebar";
 import { ThemeToggle } from "@nexus/ui/components/theme-toggle";
@@ -37,9 +33,7 @@ function MarginCallNotifications() {
 
 	// Build set of callIds that already have an AllocationRecord
 	const respondedIds = new Set(
-		(allocations ?? [])
-			.map((a) => a.payload?.marginCallId as string | undefined)
-			.filter(Boolean),
+		(allocations ?? []).map((a) => a.payload?.marginCallId as string | undefined).filter(Boolean),
 	);
 
 	const pending = (marginCalls ?? []).filter((m) => {
@@ -60,11 +54,7 @@ function MarginCallNotifications() {
 					)}
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent
-				align="end"
-				className="w-80 p-0"
-				sideOffset={8}
-			>
+			<PopoverContent align="end" className="w-80 p-0" sideOffset={8}>
 				<div className="flex items-center justify-between px-4 py-3 border-b">
 					<p className="text-sm font-semibold">Notifications</p>
 					{pending.length > 0 && (
@@ -91,7 +81,10 @@ function MarginCallNotifications() {
 							const currency = m.payload?.currency as string | undefined;
 							const dueBy = m.payload?.dueBy as string | undefined;
 							return (
-								<div key={m.contractId} className="px-4 py-3 flex items-start justify-between gap-3">
+								<div
+									key={m.contractId}
+									className="px-4 py-3 flex items-start justify-between gap-3"
+								>
 									<div className="flex flex-col gap-0.5 min-w-0">
 										<div className="flex items-center gap-1.5">
 											<div className="size-1.5 rounded-full bg-primary shrink-0" />
@@ -145,10 +138,7 @@ export function AppHeader() {
 			<div className="flex w-full items-center justify-between px-4 lg:gap-2 lg:px-6">
 				<div className="flex items-center gap-1">
 					<SidebarTrigger className="-ml-1" />
-					<Separator
-						orientation="vertical"
-						className="mx-2 data-[orientation=vertical]:h-4"
-					/>
+					<Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
 					<span className="text-sm font-medium text-foreground/80">{pageTitle}</span>
 				</div>
 				<div className="flex items-center gap-1">

@@ -3,10 +3,7 @@
 import { Badge } from "@nexus/ui/components/badge";
 import { Button } from "@nexus/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@nexus/ui/components/card";
-import {
-	ChartContainer,
-	ChartTooltipContent,
-} from "@nexus/ui/components/chart";
+import { ChartContainer, ChartTooltipContent } from "@nexus/ui/components/chart";
 import { Separator } from "@nexus/ui/components/separator";
 import {
 	Table,
@@ -248,47 +245,49 @@ function PendingSuggestionsCard({ userRole }: { userRole: string }) {
 						<p>No pending {userRole === "counterparty" ? "calls" : "routes"}</p>
 					</div>
 				) : (
-				pending?.slice(0, 3).map((s, index: number) => {
-					const marginCallId = s.payload.marginCallId as string | undefined;
-					const suggestedAssets = (s.payload.suggestedAssets as string[] | undefined) ?? [];
-					const amountRequired = s.payload.amountRequired as string | undefined;
-					const status = s.payload.status as string | undefined;
-					return (
-					<div key={s.contractId} className="group">
-						<div className="flex justify-between items-start">
-							<div className="flex flex-col gap-1">
-								<div className="flex items-center gap-2">
-									<div className="size-1.5 rounded-full bg-primary/70" />
-									<p className="font-semibold text-sm tracking-tight text-foreground">
-										{marginCallId ?? "—"}
-									</p>
+					pending?.slice(0, 3).map((s, index: number) => {
+						const marginCallId = s.payload.marginCallId as string | undefined;
+						const suggestedAssets = (s.payload.suggestedAssets as string[] | undefined) ?? [];
+						const amountRequired = s.payload.amountRequired as string | undefined;
+						const status = s.payload.status as string | undefined;
+						return (
+							<div key={s.contractId} className="group">
+								<div className="flex justify-between items-start">
+									<div className="flex flex-col gap-1">
+										<div className="flex items-center gap-2">
+											<div className="size-1.5 rounded-full bg-primary/70" />
+											<p className="font-semibold text-sm tracking-tight text-foreground">
+												{marginCallId ?? "—"}
+											</p>
+										</div>
+										<p className="text-[10px] text-muted-foreground uppercase truncate max-w-[150px]">
+											{suggestedAssets.length > 0 ? suggestedAssets.join(" + ") : "—"}
+										</p>
+										<p className="text-[11px] font-semibold text-primary">
+											${(parseFloat(amountRequired || "0") / 1_000_000).toFixed(1)}M
+										</p>
+									</div>
+									{userRole === "institution" ? (
+										<Link to="/dashboard/suggestions">
+											<Button size="sm" variant="outline" className="h-7 text-[10px] font-medium">
+												Review
+											</Button>
+										</Link>
+									) : (
+										<Badge
+											variant="outline"
+											className="text-[10px] font-medium border-muted-foreground/20"
+										>
+											{status ?? "—"}
+										</Badge>
+									)}
 								</div>
-								<p className="text-[10px] text-muted-foreground uppercase truncate max-w-[150px]">
-									{suggestedAssets.length > 0 ? suggestedAssets.join(" + ") : "—"}
-								</p>
-								<p className="text-[11px] font-semibold text-primary">
-									${(parseFloat(amountRequired || "0") / 1_000_000).toFixed(1)}M
-								</p>
+								{index < Math.min(pending.length, 3) - 1 && (
+									<Separator className="mt-4 opacity-50" />
+								)}
 							</div>
-							{userRole === "institution" ? (
-								<Link to="/dashboard/suggestions">
-									<Button size="sm" variant="outline" className="h-7 text-[10px] font-medium">
-										Review
-									</Button>
-								</Link>
-							) : (
-								<Badge
-									variant="outline"
-									className="text-[10px] font-medium border-muted-foreground/20"
-								>
-									{status ?? "—"}
-								</Badge>
-							)}
-						</div>
-						{index < Math.min(pending.length, 3) - 1 && <Separator className="mt-4 opacity-50" />}
-					</div>
-					);
-				})
+						);
+					})
 				)}
 			</CardContent>
 		</Card>
@@ -497,7 +496,7 @@ function TransactionChart() {
 							tickLine={false}
 							axisLine={false}
 							tick={{ fontSize: 11, fill: "var(--muted-foreground)", opacity: 0.8 }}
-							tickFormatter={(v: number) => v === 0 ? "0" : v >= 1 ? `${v}` : v.toFixed(1)}
+							tickFormatter={(v: number) => (v === 0 ? "0" : v >= 1 ? `${v}` : v.toFixed(1))}
 							width={32}
 						/>
 						<RechartsPrimitive.Tooltip
@@ -538,9 +537,7 @@ function IncomingMarginCallsCard() {
 
 	// Exclude calls that already have a matching AllocationRecord
 	const respondedIds = new Set(
-		(allocations ?? [])
-			.map((a) => a.payload?.marginCallId as string | undefined)
-			.filter(Boolean),
+		(allocations ?? []).map((a) => a.payload?.marginCallId as string | undefined).filter(Boolean),
 	);
 
 	const pending = (marginCalls ?? []).filter((m) => {
@@ -583,7 +580,9 @@ function IncomingMarginCallsCard() {
 								</span>
 								<span className="text-[10px] text-muted-foreground">
 									From: {counterparty?.split("::")[0] ?? "—"}
-									{dueBy ? ` · Due ${new Date(dueBy).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}
+									{dueBy
+										? ` · Due ${new Date(dueBy).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+										: ""}
 								</span>
 							</div>
 							<Button
@@ -609,7 +608,6 @@ function IncomingMarginCallsCard() {
 		</Card>
 	);
 }
-
 
 function CounterpartyView() {
 	const { totalHoldingsValue, pendingSuggestions, totalAllocations, isLoading } = useStats();
@@ -733,17 +731,17 @@ function RouteComponent() {
 							/>
 						</div>
 
-					<div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-						<div className="flex flex-col gap-6">
-							<IncomingMarginCallsCard />
-							<HoldingsSummaryCard userRole={role} />
-							<PendingSuggestionsCard userRole={role} />
+						<div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
+							<div className="flex flex-col gap-6">
+								<IncomingMarginCallsCard />
+								<HoldingsSummaryCard userRole={role} />
+								<PendingSuggestionsCard userRole={role} />
+							</div>
+							<div className="flex flex-col gap-6">
+								<TransactionChart />
+								<RecentAllocationsCard />
+							</div>
 						</div>
-						<div className="flex flex-col gap-6">
-							<TransactionChart />
-							<RecentAllocationsCard />
-						</div>
-					</div>
 					</>
 				);
 		}

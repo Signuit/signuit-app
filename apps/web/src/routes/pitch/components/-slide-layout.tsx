@@ -20,20 +20,11 @@ export function SlideLayout({
 	className,
 }: SlideLayoutProps) {
 	return (
-		<div
-			className={cn(
-				"flex flex-col h-screen w-full bg-background text-foreground",
-				className,
-			)}
-		>
+		<div className={cn("flex flex-col h-screen w-full bg-background text-foreground", className)}>
 			{/* Header */}
 			<div className="flex items-center justify-between px-8 py-4 border-b">
 				<div className="flex items-center gap-3">
-					<img
-						src="/assets/logo.png"
-						alt="SignUIT"
-						className="h-8 w-auto object-contain"
-					/>
+					<img src="/assets/logo.png" alt="SignUIT" className="h-8 w-auto object-contain" />
 				</div>
 				<div className="text-xs text-muted-foreground font-medium">
 					{slideNumber} / {totalSlides}
@@ -45,9 +36,7 @@ export function SlideLayout({
 				<div className="w-full max-w-5xl">
 					<div className="mb-8 text-center">
 						<h1 className="text-4xl font-bold tracking-tight mb-2">{title}</h1>
-						{subtitle && (
-							<p className="text-lg text-muted-foreground">{subtitle}</p>
-						)}
+						{subtitle && <p className="text-lg text-muted-foreground">{subtitle}</p>}
 					</div>
 					{children}
 				</div>
@@ -83,13 +72,7 @@ export function SlideCard({
 	);
 }
 
-export function StatBox({
-	value,
-	label,
-}: {
-	value: string;
-	label: string;
-}) {
+export function StatBox({ value, label }: { value: string; label: string }) {
 	return (
 		<div className="flex flex-col items-center p-6 bg-muted/30 rounded-lg border">
 			<span className="text-3xl font-bold text-primary">{value}</span>

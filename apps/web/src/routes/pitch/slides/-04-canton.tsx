@@ -1,4 +1,4 @@
-import { EyeIcon, FileCheckIcon, NetworkIcon, ShieldCheckIcon } from "lucide-react";
+import { EyeIcon, FileCheckIcon, NetworkIcon } from "lucide-react";
 import { BulletPoint, SlideCard, SlideLayout, StatBox } from "../components/-slide-layout";
 
 export function CantonSlide() {
@@ -17,7 +17,8 @@ export function CantonSlide() {
 						</div>
 						<h3 className="font-bold text-lg">Privacy-Preserving</h3>
 						<p className="text-sm text-muted-foreground">
-							Sub-transaction privacy ensures sensitive positions are only visible to relevant parties
+							Sub-transaction privacy ensures sensitive positions are only visible to relevant
+							parties
 						</p>
 					</div>
 				</SlideCard>

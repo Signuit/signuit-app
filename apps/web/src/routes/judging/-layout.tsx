@@ -28,7 +28,11 @@ export function JudgingLayout({
 				<div className="mx-auto max-w-6xl px-6 h-14 flex items-center justify-between">
 					<div className="flex items-center gap-4">
 						<Link to="/judging">
-							<Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground -ml-2">
+							<Button
+								variant="ghost"
+								size="sm"
+								className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
+							>
 								<ArrowLeftIcon className="size-4" />
 								Back
 							</Button>
@@ -42,7 +46,11 @@ export function JudgingLayout({
 						</div>
 					</div>
 					<Link to="/pitch" target="_blank">
-						<Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground">
+						<Button
+							variant="ghost"
+							size="sm"
+							className="gap-1.5 text-muted-foreground hover:text-foreground"
+						>
 							<ExternalLinkIcon className="size-3.5" />
 							Pitch Deck
 						</Button>
@@ -92,9 +100,7 @@ export function JudgingSection({
 			<h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-10 text-balance">
 				{title}
 			</h2>
-			<div className={cn("space-y-6", stagger && "stagger-children")}>
-				{children}
-			</div>
+			<div className={cn("space-y-6", stagger && "stagger-children")}>{children}</div>
 		</section>
 	);
 }
@@ -112,12 +118,14 @@ export function JudgingCard({
 }) {
 	const staggerClass = index > 0 ? `stagger-${Math.min(index, 8)}` : "";
 	return (
-		<Card className={cn(
-			"border border-border/40 bg-card/40 backdrop-blur-sm animate-fade-in-up",
-			staggerClass,
-			"hover:-translate-y-0.5 hover:border-primary/15 transition-all duration-500",
-			className
-		)}>
+		<Card
+			className={cn(
+				"border border-border/40 bg-card/40 backdrop-blur-sm animate-fade-in-up",
+				staggerClass,
+				"hover:-translate-y-0.5 hover:border-primary/15 transition-all duration-500",
+				className,
+			)}
+		>
 			{title && (
 				<CardHeader className="pb-4">
 					<CardTitle className="text-xs font-semibold text-muted-foreground tracking-widest uppercase">
@@ -125,9 +133,7 @@ export function JudgingCard({
 					</CardTitle>
 				</CardHeader>
 			)}
-			<CardContent className={title ? "pt-0" : "pt-6"}>
-				{children}
-			</CardContent>
+			<CardContent className={title ? "pt-0" : "pt-6"}>{children}</CardContent>
 		</Card>
 	);
 }
@@ -141,14 +147,24 @@ export function Bullet({ children }: { children: ReactNode }) {
 	);
 }
 
-export function Stat({ value, label, index = 0 }: { value: string; label: string; index?: number }) {
+export function Stat({
+	value,
+	label,
+	index = 0,
+}: {
+	value: string;
+	label: string;
+	index?: number;
+}) {
 	const staggerClass = index > 0 ? `stagger-${Math.min(index, 8)}` : "";
 	return (
-		<div className={cn(
-			"flex flex-col items-start p-6 bg-card/40 border border-border/40 rounded-xl animate-fade-in-up",
-			staggerClass,
-			"hover:border-primary/10 transition-all duration-500"
-		)}>
+		<div
+			className={cn(
+				"flex flex-col items-start p-6 bg-card/40 border border-border/40 rounded-xl animate-fade-in-up",
+				staggerClass,
+				"hover:border-primary/10 transition-all duration-500",
+			)}
+		>
 			<span className="text-4xl font-semibold tracking-tighter text-foreground">{value}</span>
 			<div className="w-8 h-px bg-border mt-3 mb-2" />
 			<span className="text-[10px] text-muted-foreground uppercase tracking-widest">{label}</span>

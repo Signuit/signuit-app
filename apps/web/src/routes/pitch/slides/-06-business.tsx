@@ -1,7 +1,7 @@
 import { Badge } from "@nexus/ui/components/badge";
 import { Card, CardContent } from "@nexus/ui/components/card";
-import { ArrowRightIcon, CoinsIcon, NetworkIcon, UsersIcon } from "lucide-react";
-import { SlideLayout, StatBox } from "../components/-slide-layout";
+import { CoinsIcon, NetworkIcon, UsersIcon } from "lucide-react";
+import { SlideLayout } from "../components/-slide-layout";
 
 export function BusinessSlide() {
 	return (
@@ -27,7 +27,9 @@ export function BusinessSlide() {
 						<p className="text-sm text-muted-foreground">
 							Per executed AllocationRecord. Institutions pay only when value is created.
 						</p>
-						<Badge variant="secondary" className="w-fit">$15M × 0.03% = $4,500</Badge>
+						<Badge variant="secondary" className="w-fit">
+							$15M × 0.03% = $4,500
+						</Badge>
 					</CardContent>
 				</Card>
 
@@ -46,7 +48,9 @@ export function BusinessSlide() {
 						<p className="text-sm text-muted-foreground">
 							Monthly base fee for network access, unlimited suggestions, policy management.
 						</p>
-						<Badge variant="secondary" className="w-fit">Basic / Pro / Enterprise</Badge>
+						<Badge variant="secondary" className="w-fit">
+							Basic / Pro / Enterprise
+						</Badge>
 					</CardContent>
 				</Card>
 
@@ -65,7 +69,9 @@ export function BusinessSlide() {
 						<p className="text-sm text-muted-foreground">
 							Of protocol fees distributed to Canton validators for network security.
 						</p>
-						<Badge variant="secondary" className="w-fit">Ecosystem incentive</Badge>
+						<Badge variant="secondary" className="w-fit">
+							Ecosystem incentive
+						</Badge>
 					</CardContent>
 				</Card>
 			</div>

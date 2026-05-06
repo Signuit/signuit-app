@@ -1,6 +1,12 @@
 import { Badge } from "@nexus/ui/components/badge";
 import { Card, CardContent } from "@nexus/ui/components/card";
-import { ArrowRightIcon, CheckCircleIcon, ChevronRightIcon, LayoutDashboardIcon, ShieldCheckIcon, ZapIcon } from "lucide-react";
+import {
+	ArrowRightIcon,
+	CheckCircleIcon,
+	LayoutDashboardIcon,
+	ShieldCheckIcon,
+	ZapIcon,
+} from "lucide-react";
 import { SlideLayout } from "../components/-slide-layout";
 
 export function DemoSlide() {
@@ -21,7 +27,9 @@ export function DemoSlide() {
 						<p className="text-sm text-muted-foreground">
 							$45.2M total collateral, pending approvals, recent allocations
 						</p>
-						<Badge variant="secondary" className="w-fit">Live</Badge>
+						<Badge variant="secondary" className="w-fit">
+							Live
+						</Badge>
 					</CardContent>
 				</Card>
 
@@ -34,7 +42,9 @@ export function DemoSlide() {
 						<p className="text-sm text-muted-foreground">
 							4-step wizard: margin call → CTD → recommendation → approval
 						</p>
-						<Badge variant="secondary" className="w-fit">3 sec</Badge>
+						<Badge variant="secondary" className="w-fit">
+							3 sec
+						</Badge>
 					</CardContent>
 				</Card>
 
@@ -47,7 +57,9 @@ export function DemoSlide() {
 						<p className="text-sm text-muted-foreground">
 							Immutable AllocationRecord on Canton ledger
 						</p>
-						<Badge variant="secondary" className="w-fit">On-chain</Badge>
+						<Badge variant="secondary" className="w-fit">
+							On-chain
+						</Badge>
 					</CardContent>
 				</Card>
 			</div>

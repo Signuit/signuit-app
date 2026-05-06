@@ -74,12 +74,12 @@ export function RoadmapSlide() {
 					<div key={phase.quarter} className="flex-1 flex flex-col min-w-0">
 						{/* Connector line */}
 						<div className="flex items-center mb-3">
-							<div className={`size-8 rounded-full ${phase.bg} flex items-center justify-center shrink-0`}>
+							<div
+								className={`size-8 rounded-full ${phase.bg} flex items-center justify-center shrink-0`}
+							>
 								{phase.icon}
 							</div>
-							{i < phases.length - 1 && (
-								<div className="h-0.5 flex-1 bg-muted ml-2" />
-							)}
+							{i < phases.length - 1 && <div className="h-0.5 flex-1 bg-muted ml-2" />}
 						</div>
 
 						{/* Content */}
@@ -88,9 +88,7 @@ export function RoadmapSlide() {
 								<span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
 									{phase.quarter}
 								</span>
-								<Badge className={`${phase.badge} text-[10px] px-1.5 py-0`}>
-									{phase.status}
-								</Badge>
+								<Badge className={`${phase.badge} text-[10px] px-1.5 py-0`}>{phase.status}</Badge>
 							</div>
 							<h3 className="font-bold text-base mb-3">{phase.title}</h3>
 							<ul className="space-y-2 text-sm text-muted-foreground flex-1">

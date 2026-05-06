@@ -23,7 +23,7 @@ import {
 	ShieldAlertIcon,
 	ZapIcon,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -46,7 +46,11 @@ export const Route = createFileRoute("/_app/dashboard/generate")({
 function RouteComponent() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const { marginCallId: prefilledMcId, amount: prefilledAmount, counterparty: prefilledCounterparty } = Route.useSearch();
+	const {
+		marginCallId: prefilledMcId,
+		amount: prefilledAmount,
+		counterparty: prefilledCounterparty,
+	} = Route.useSearch();
 	const [step, setStep] = useState(1);
 
 	// Form State — pre-filled from URL params when coming from "Respond" button
@@ -74,7 +78,7 @@ function RouteComponent() {
 	useEffect(() => {
 		const cantonUrl = import.meta.env.VITE_CANTON_API_URL ?? "http://127.0.0.1:7575";
 		fetch(`${cantonUrl}/v2/parties`)
-			.then((r) => r.ok ? r.json() : null)
+			.then((r) => (r.ok ? r.json() : null))
 			.then((data: { partyDetails?: { party: string }[] } | null) => {
 				if (!data) return;
 				const names = (data.partyDetails ?? [])
@@ -128,17 +132,17 @@ function RouteComponent() {
 			if (routeId) {
 				try {
 					const fresh = await queryClient.fetchQuery(
-					orpc.collateral.listSuggestions.queryOptions({ input: { limit: 100 } }),
-				);
-				// Only match contracts that have a routeId string — this guards against
-				// MarginCall or other non-RoutingSuggestion contracts that may appear
-				// in the ACS if the template filter is not strictly enforced.
-				const match = fresh?.find(
-					(s) =>
-						typeof (s.payload?.routeId as unknown) === "string" &&
-						(s.payload?.routeId as string) === routeId,
-				);
-				if (match) resolvedResult = match;
+						orpc.collateral.listSuggestions.queryOptions({ input: { limit: 100 } }),
+					);
+					// Only match contracts that have a routeId string — this guards against
+					// MarginCall or other non-RoutingSuggestion contracts that may appear
+					// in the ACS if the template filter is not strictly enforced.
+					const match = fresh?.find(
+						(s) =>
+							typeof (s.payload?.routeId as unknown) === "string" &&
+							(s.payload?.routeId as string) === routeId,
+					);
+					if (match) resolvedResult = match;
 				} catch {
 					// Fallback to original result if re-fetch fails
 				}
@@ -177,9 +181,9 @@ function RouteComponent() {
 				<div className="flex items-center gap-3 rounded-lg border border-orange-500/20 bg-orange-500/5 px-4 py-3">
 					<div className="size-2 rounded-full bg-orange-500 shrink-0" />
 					<p className="text-sm text-orange-600 dark:text-orange-400 font-medium">
-						Responding to margin call{" "}
-						<span className="font-mono">{prefilledMcId}</span>
-						{prefilledAmount && ` · $${(parseFloat(prefilledAmount) / 1_000_000).toFixed(1)}M from ${prefilledCounterparty ?? "counterparty"}`}
+						Responding to margin call <span className="font-mono">{prefilledMcId}</span>
+						{prefilledAmount &&
+							` · $${(parseFloat(prefilledAmount) / 1_000_000).toFixed(1)}M from ${prefilledCounterparty ?? "counterparty"}`}
 					</p>
 				</div>
 			)}
@@ -227,23 +231,25 @@ function RouteComponent() {
 									placeholder="MC-4821"
 								/>
 							</div>
-						<div className="space-y-2">
-							<Label htmlFor="counterparty">Counterparty</Label>
-							<Select value={counterpartyName} onValueChange={setCounterpartyName}>
-								<SelectTrigger id="counterparty">
-									<SelectValue placeholder="Select counterparty" />
-								</SelectTrigger>
-								<SelectContent>
-									{cantonParties.length > 0 ? (
-										cantonParties.map((name) => (
-											<SelectItem key={name} value={name}>{name}</SelectItem>
-										))
-									) : (
-										<SelectItem value="PrimeBank">PrimeBank</SelectItem>
-									)}
-								</SelectContent>
-							</Select>
-						</div>
+							<div className="space-y-2">
+								<Label htmlFor="counterparty">Counterparty</Label>
+								<Select value={counterpartyName} onValueChange={setCounterpartyName}>
+									<SelectTrigger id="counterparty">
+										<SelectValue placeholder="Select counterparty" />
+									</SelectTrigger>
+									<SelectContent>
+										{cantonParties.length > 0 ? (
+											cantonParties.map((name) => (
+												<SelectItem key={name} value={name}>
+													{name}
+												</SelectItem>
+											))
+										) : (
+											<SelectItem value="PrimeBank">PrimeBank</SelectItem>
+										)}
+									</SelectContent>
+								</Select>
+							</div>
 						</div>
 
 						<div className="space-y-2">

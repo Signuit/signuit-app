@@ -22,8 +22,8 @@ export function AskSlide() {
 								<div>
 									<h3 className="font-bold text-lg mb-2">Feedback</h3>
 									<p className="text-sm text-muted-foreground">
-										We value your expertise. Help us refine the CTD algorithm,
-										policy engine, and user experience for institutional users.
+										We value your expertise. Help us refine the CTD algorithm, policy engine, and
+										user experience for institutional users.
 									</p>
 								</div>
 							</div>
@@ -39,8 +39,8 @@ export function AskSlide() {
 								<div>
 									<h3 className="font-bold text-lg mb-2">Connections</h3>
 									<p className="text-sm text-muted-foreground">
-										Introductions to asset managers, prime brokers, or Canton ecosystem
-										partners who could benefit from automated collateral routing.
+										Introductions to asset managers, prime brokers, or Canton ecosystem partners who
+										could benefit from automated collateral routing.
 									</p>
 								</div>
 							</div>
@@ -56,8 +56,8 @@ export function AskSlide() {
 								<div>
 									<h3 className="font-bold text-lg mb-2">Pilot Interest</h3>
 									<p className="text-sm text-muted-foreground">
-										Looking for 3-5 institutions to join our Phase 2 beta program
-										with zero fees for 90 days.
+										Looking for 3-5 institutions to join our Phase 2 beta program with zero fees for
+										90 days.
 									</p>
 								</div>
 							</div>
@@ -73,8 +73,8 @@ export function AskSlide() {
 							</div>
 							<h3 className="text-2xl font-bold mb-2">Thank You</h3>
 							<p className="text-muted-foreground mb-6">
-								SignUIT is building the future of institutional collateral management on Canton.
-								We are not replacing humans. We are replacing Excel.
+								SignUIT is building the future of institutional collateral management on Canton. We
+								are not replacing humans. We are replacing Excel.
 							</p>
 							<div className="space-y-2">
 								<Button className="w-full" size="lg">

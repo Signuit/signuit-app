@@ -18,15 +18,19 @@ function ValuePage() {
 				<JudgingCard>
 					<p className="text-lg leading-relaxed text-foreground">
 						<strong>SignUIT CollateralRouter</strong> is a policy-based collateral routing
-						recommendation engine built on Canton Network. It solves a critical gap in
-						institutional finance: <strong>treasury teams still manage collateral with Excel
-						spreadsheets and manual phone coordination</strong>, leading to slow margin call
-						response times, inconsistent decisions, and idle assets earning less than they
-						could.
+						recommendation engine built on Canton Network. It solves a critical gap in institutional
+						finance:{" "}
+						<strong>
+							treasury teams still manage collateral with Excel spreadsheets and manual phone
+							coordination
+						</strong>
+						, leading to slow margin call response times, inconsistent decisions, and idle assets
+						earning less than they could.
 					</p>
 					<p className="text-lg leading-relaxed mt-6 text-foreground">
-						SignUIT replaces 30+ minute manual processes with <strong>3-second automated
-						recommendations</strong>, enforces policy compliance automatically, and creates an
+						SignUIT replaces 30+ minute manual processes with{" "}
+						<strong>3-second automated recommendations</strong>, enforces policy compliance
+						automatically, and creates an
 						<strong>immutable audit trail</strong> on Canton — all while preserving human oversight.
 					</p>
 				</JudgingCard>
@@ -45,28 +49,28 @@ function ValuePage() {
 					<div className="space-y-4">
 						<Bullet>
 							<strong>Excel-based asset selection:</strong> Treasury teams open spreadsheets,
-							manually calculate eligible collateral, and cross-reference policy rules.
-							This takes 30+ minutes per margin call and introduces human error.
+							manually calculate eligible collateral, and cross-reference policy rules. This takes
+							30+ minutes per margin call and introduces human error.
 						</Bullet>
 						<Bullet>
-							<strong>No automated policy compliance:</strong> Institutions must manually check
-							if selected assets meet counterparty-specific eligibility rules, LTV limits,
-							and haircut thresholds. A single error can result in regulatory penalties.
+							<strong>No automated policy compliance:</strong> Institutions must manually check if
+							selected assets meet counterparty-specific eligibility rules, LTV limits, and haircut
+							thresholds. A single error can result in regulatory penalties.
 						</Bullet>
 						<Bullet>
-							<strong>No immutable audit trail:</strong> When regulators ask "who decided
-							what and when," firms rely on email chains and phone logs — neither of which
-							are tamper-proof or systematically searchable.
+							<strong>No immutable audit trail:</strong> When regulators ask "who decided what and
+							when," firms rely on email chains and phone logs — neither of which are tamper-proof
+							or systematically searchable.
 						</Bullet>
 						<Bullet>
-							<strong>After-hours margin calls:</strong> Markets operate 24/7. A margin call
-							at 2 AM requires waking up ops teams, coordinating across time zones, and
-							hoping the right people are available.
+							<strong>After-hours margin calls:</strong> Markets operate 24/7. A margin call at 2 AM
+							requires waking up ops teams, coordinating across time zones, and hoping the right
+							people are available.
 						</Bullet>
 						<Bullet>
 							<strong>Yield leakage:</strong> Without intelligent optimization, institutions
-							inadvertently send yield-bearing assets as collateral, sacrificing daily
-							income that compounds over time.
+							inadvertently send yield-bearing assets as collateral, sacrificing daily income that
+							compounds over time.
 						</Bullet>
 					</div>
 				</JudgingCard>
@@ -77,10 +81,11 @@ function ValuePage() {
 						<div>
 							<p className="font-semibold text-destructive/90 mb-2">The Human Cost</p>
 							<p className="text-muted-foreground leading-relaxed">
-								Treasury teams at large asset managers process dozens of margin calls per day.
-								At 30 minutes per call, that adds up to <strong className="text-foreground">hours of manual work daily</strong> —
-								just for collateral selection. Errors cost millions. Regulatory pressure is
-								increasing. There has to be a better way.
+								Treasury teams at large asset managers process dozens of margin calls per day. At 30
+								minutes per call, that adds up to{" "}
+								<strong className="text-foreground">hours of manual work daily</strong> — just for
+								collateral selection. Errors cost millions. Regulatory pressure is increasing. There
+								has to be a better way.
 							</p>
 						</div>
 					</div>
@@ -91,8 +96,8 @@ function ValuePage() {
 			<JudgingSection title="The Canton Gap: Infrastructure Without Tooling">
 				<JudgingCard>
 					<p className="text-muted-foreground mb-6 leading-relaxed">
-						Canton Network is the leading institutional blockchain for tokenized real-world
-						assets. However, it faces a critical tooling gap:
+						Canton Network is the leading institutional blockchain for tokenized real-world assets.
+						However, it faces a critical tooling gap:
 					</p>
 					<div className="space-y-4">
 						<Bullet>
@@ -110,9 +115,9 @@ function ValuePage() {
 							<strong>Zero native collateral routing engines</strong> exist on Canton
 						</Bullet>
 						<Bullet>
-							<strong>Institutions need tooling, not just infrastructure.</strong> Canton
-							provides settlement and privacy, but institutions still need applications to
-							manage their collateral workflows.
+							<strong>Institutions need tooling, not just infrastructure.</strong> Canton provides
+							settlement and privacy, but institutions still need applications to manage their
+							collateral workflows.
 						</Bullet>
 					</div>
 				</JudgingCard>
@@ -123,19 +128,44 @@ function ValuePage() {
 				<JudgingCard title="How SignUIT Works">
 					<div className="space-y-4">
 						{[
-							{ num: "1", title: "Trigger", desc: "Margin call received from counterparty (e.g., PrimeBank requests $15M)" },
-							{ num: "2", title: "Compute", desc: "CTD engine analyzes all holdings in 3 seconds — opportunity cost, LTV, haircut, counterparty rules" },
-							{ num: "3", title: "Recommend", desc: "Optimal collateral suggestion recorded as immutable RoutingSuggestion on Canton" },
-							{ num: "4", title: "Approve", desc: "Ops team reviews and clicks approve (human-in-the-loop, Day 1 MVP)" },
-							{ num: "5", title: "Audit", desc: "AllocationRecord created on Canton — immutable, tamper-proof, regulator-ready", highlight: true },
+							{
+								num: "1",
+								title: "Trigger",
+								desc: "Margin call received from counterparty (e.g., PrimeBank requests $15M)",
+							},
+							{
+								num: "2",
+								title: "Compute",
+								desc: "CTD engine analyzes all holdings in 3 seconds — opportunity cost, LTV, haircut, counterparty rules",
+							},
+							{
+								num: "3",
+								title: "Recommend",
+								desc: "Optimal collateral suggestion recorded as immutable RoutingSuggestion on Canton",
+							},
+							{
+								num: "4",
+								title: "Approve",
+								desc: "Ops team reviews and clicks approve (human-in-the-loop, Day 1 MVP)",
+							},
+							{
+								num: "5",
+								title: "Audit",
+								desc: "AllocationRecord created on Canton — immutable, tamper-proof, regulator-ready",
+								highlight: true,
+							},
 						].map((step) => (
 							<div key={step.num} className="flex items-start gap-4 p-5 bg-muted/30 rounded-lg">
-								<div className={`size-8 rounded-full flex items-center justify-center shrink-0 font-semibold text-sm ${step.highlight ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20 text-muted-foreground"}`}>
+								<div
+									className={`size-8 rounded-full flex items-center justify-center shrink-0 font-semibold text-sm ${step.highlight ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20 text-muted-foreground"}`}
+								>
 									{step.num}
 								</div>
 								<div>
 									<p className="font-semibold text-foreground">{step.title}</p>
-									<p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{step.desc}</p>
+									<p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">
+										{step.desc}
+									</p>
 								</div>
 							</div>
 						))}
@@ -155,15 +185,15 @@ function ValuePage() {
 					<JudgingCard title="Yield Preservation">
 						<TrendingUpIcon className="size-6 text-muted-foreground mb-4" />
 						<p className="text-sm text-muted-foreground leading-relaxed">
-							Yield-preserving algorithm sends non-yielding assets first. Reduces
-							opportunity cost on collateral portfolios.
+							Yield-preserving algorithm sends non-yielding assets first. Reduces opportunity cost
+							on collateral portfolios.
 						</p>
 					</JudgingCard>
 					<JudgingCard title="Immutable Audit">
 						<AlertTriangleIcon className="size-6 text-muted-foreground mb-4" />
 						<p className="text-sm text-muted-foreground leading-relaxed">
-							Every decision recorded on Canton. Regulators see exactly who decided what,
-							when, and why.
+							Every decision recorded on Canton. Regulators see exactly who decided what, when, and
+							why.
 						</p>
 					</JudgingCard>
 				</div>
@@ -174,24 +204,24 @@ function ValuePage() {
 				<JudgingCard>
 					<div className="space-y-4">
 						<Bullet>
-							<strong>DTCC exploring tokenization on Canton:</strong> On-chain collateral
-							demand is surging. Institutions need tools to manage it.
+							<strong>DTCC exploring tokenization on Canton:</strong> On-chain collateral demand is
+							surging. Institutions need tools to manage it.
 						</Bullet>
 						<Bullet>
 							<strong>Broadridge DLR processes trillions in UST repo monthly on Canton:</strong>
 							Proof of massive institutional transaction volume.
 						</Bullet>
 						<Bullet>
-							<strong>T+0 settlement now possible:</strong> Speed is the new competitive
-							advantage. Manual processes can't keep up.
+							<strong>T+0 settlement now possible:</strong> Speed is the new competitive advantage.
+							Manual processes can't keep up.
 						</Bullet>
 						<Bullet>
-							<strong>Tokenized Treasuries surpass $10bn globally</strong> (Markets Media, Jan 2026):
-							The on-chain collateral market is expanding rapidly.
+							<strong>Tokenized Treasuries surpass $10bn globally</strong> (Markets Media, Jan
+							2026): The on-chain collateral market is expanding rapidly.
 						</Bullet>
 						<Bullet>
-							<strong>No competitors:</strong> SignUIT is the first Canton-native
-							collateral routing engine.
+							<strong>No competitors:</strong> SignUIT is the first Canton-native collateral routing
+							engine.
 						</Bullet>
 					</div>
 				</JudgingCard>

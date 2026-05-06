@@ -1,4 +1,4 @@
-import { TrendingUpIcon, UsersIcon, Building2Icon, GlobeIcon } from "lucide-react";
+import { Building2Icon, GlobeIcon, TrendingUpIcon, UsersIcon } from "lucide-react";
 import { BulletPoint, SlideCard, SlideLayout, StatBox } from "../components/-slide-layout";
 
 export function MarketSlide() {
@@ -25,7 +25,9 @@ export function MarketSlide() {
 							</div>
 							<div>
 								<p className="font-semibold">Large Asset Managers</p>
-								<p className="text-sm text-muted-foreground">AUM &gt;$10B, high daily margin call volume</p>
+								<p className="text-sm text-muted-foreground">
+									AUM &gt;$10B, high daily margin call volume
+								</p>
 							</div>
 						</div>
 						<div className="flex items-start gap-3">
@@ -43,7 +45,9 @@ export function MarketSlide() {
 							</div>
 							<div>
 								<p className="font-semibold">Hedge Funds</p>
-								<p className="text-sm text-muted-foreground">Speed-critical, volatility-driven calls</p>
+								<p className="text-sm text-muted-foreground">
+									Speed-critical, volatility-driven calls
+								</p>
 							</div>
 						</div>
 						<div className="flex items-start gap-3">
@@ -52,7 +56,9 @@ export function MarketSlide() {
 							</div>
 							<div>
 								<p className="font-semibold">Clearinghouses & CCPs</p>
-								<p className="text-sm text-muted-foreground">Systemic risk management, regulatory audit</p>
+								<p className="text-sm text-muted-foreground">
+									Systemic risk management, regulatory audit
+								</p>
 							</div>
 						</div>
 					</div>
@@ -61,19 +67,23 @@ export function MarketSlide() {
 				<SlideCard title="Market Timing">
 					<div className="space-y-3">
 						<BulletPoint>
-							<strong>DTCC exploring tokenization</strong> on Canton — on-chain collateral demand surging
+							<strong>DTCC exploring tokenization</strong> on Canton — on-chain collateral demand
+							surging
 						</BulletPoint>
 						<BulletPoint>
 							<strong>T+0 settlement now possible</strong> — speed is the new competitive advantage
 						</BulletPoint>
 						<BulletPoint>
-							<strong>71% of Canton developers</strong> come from Ethereum — they expect modern tooling
+							<strong>71% of Canton developers</strong> come from Ethereum — they expect modern
+							tooling
 						</BulletPoint>
 						<BulletPoint>
-							<strong>"Typed SDKs"</strong> most requested missing tool — Nexus Framework fills this gap
+							<strong>"Typed SDKs"</strong> most requested missing tool — Nexus Framework fills this
+							gap
 						</BulletPoint>
 						<BulletPoint>
-							<strong>No competitors</strong> — SignUIT is the first Canton-native collateral routing engine
+							<strong>No competitors</strong> — SignUIT is the first Canton-native collateral
+							routing engine
 						</BulletPoint>
 					</div>
 				</SlideCard>

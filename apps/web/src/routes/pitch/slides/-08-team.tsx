@@ -33,17 +33,14 @@ export function TeamSlide() {
 					<Card key={member.github} className="flex flex-col">
 						<CardContent className="p-6 flex flex-col flex-1">
 							<h3 className="font-bold text-lg mb-2">{member.name}</h3>
-							<p className="text-sm text-muted-foreground leading-relaxed flex-1">
-								{member.desc}
-							</p>
+							<p className="text-sm text-muted-foreground leading-relaxed flex-1">{member.desc}</p>
 							<a
 								href={`https://github.com/${member.github}`}
 								target="_blank"
 								rel="noopener noreferrer"
 								className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
 							>
-								<GithubIcon className="size-4" />
-								@{member.github}
+								<GithubIcon className="size-4" />@{member.github}
 							</a>
 						</CardContent>
 					</Card>

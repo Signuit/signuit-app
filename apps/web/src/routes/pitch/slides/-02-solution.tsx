@@ -1,4 +1,4 @@
-import { CheckCircleIcon, LightbulbIcon, ShieldCheckIcon, ZapIcon } from "lucide-react";
+import { LightbulbIcon, ShieldCheckIcon, ZapIcon } from "lucide-react";
 import { BulletPoint, SlideCard, SlideLayout, StatBox } from "../components/-slide-layout";
 
 export function SolutionSlide() {

@@ -1,9 +1,9 @@
 import { Button } from "@nexus/ui/components/button";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeftIcon, ChevronRightIcon, HomeIcon } from "lucide-react";
 import { useCallback, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ProgressBar, SlideDots } from "./components/-progress-bar";
 import { useKeyboardNav } from "./components/-keyboard-nav";
+import { ProgressBar, SlideDots } from "./components/-progress-bar";
 import { ProblemSlide } from "./slides/-01-problem";
 import { SolutionSlide } from "./slides/-02-solution";
 import { DemoSlide } from "./slides/-03-demo";
@@ -55,7 +55,7 @@ function PitchDeck() {
 		onPrev: goToPrev,
 		onFirst: goToFirst,
 		onLast: goToLast,
-	})
+	});
 
 	const CurrentSlideComponent = slides[currentSlide];
 
@@ -121,5 +121,5 @@ function PitchDeck() {
 				Use arrow keys to navigate
 			</div>
 		</div>
-	)
+	);
 }

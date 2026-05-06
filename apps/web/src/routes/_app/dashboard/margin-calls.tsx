@@ -22,7 +22,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AlertTriangleIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useCreateMarginCall, useMarginCalls, useAuditTrail } from "@/hooks/use-collateral-api";
+import { useAuditTrail, useCreateMarginCall, useMarginCalls } from "@/hooks/use-collateral-api";
 
 export const Route = createFileRoute("/_app/dashboard/margin-calls")({
 	component: RouteComponent,
@@ -101,11 +101,7 @@ function RouteComponent() {
 						</p>
 					</div>
 				</div>
-				<Button
-					size="sm"
-					className="gap-2"
-					onClick={() => setShowForm((v) => !v)}
-				>
+				<Button size="sm" className="gap-2" onClick={() => setShowForm((v) => !v)}>
 					<PlusIcon className="size-4" />
 					{showForm ? "Cancel" : "New Margin Call"}
 				</Button>
@@ -124,7 +120,9 @@ function RouteComponent() {
 							<div className="space-y-1.5">
 								<Label className="text-xs font-medium">Amount Required</Label>
 								<div className="relative">
-									<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+									<span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+										$
+									</span>
 									<Input
 										type="number"
 										value={amount}
@@ -165,7 +163,8 @@ function RouteComponent() {
 						</div>
 						<div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
 							<p className="text-[11px] text-muted-foreground">
-								To: <span className="font-semibold text-foreground">VantageCapital</span> · Canton ledger contract
+								To: <span className="font-semibold text-foreground">VantageCapital</span> · Canton
+								ledger contract
 							</p>
 							<Button
 								size="sm"
@@ -205,11 +204,21 @@ function RouteComponent() {
 						<Table>
 							<TableHeader>
 								<TableRow className="hover:bg-transparent border-muted/50">
-									<TableHead className="text-[10px] font-bold uppercase py-2 pl-6">Call ID</TableHead>
-									<TableHead className="text-[10px] font-bold uppercase py-2">Institution</TableHead>
-									<TableHead className="text-[10px] font-bold uppercase py-2 text-right">Amount</TableHead>
-									<TableHead className="text-[10px] font-bold uppercase py-2 text-right">Due By</TableHead>
-									<TableHead className="text-[10px] font-bold uppercase py-2 text-right pr-6">Status</TableHead>
+									<TableHead className="text-[10px] font-bold uppercase py-2 pl-6">
+										Call ID
+									</TableHead>
+									<TableHead className="text-[10px] font-bold uppercase py-2">
+										Institution
+									</TableHead>
+									<TableHead className="text-[10px] font-bold uppercase py-2 text-right">
+										Amount
+									</TableHead>
+									<TableHead className="text-[10px] font-bold uppercase py-2 text-right">
+										Due By
+									</TableHead>
+									<TableHead className="text-[10px] font-bold uppercase py-2 text-right pr-6">
+										Status
+									</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -233,7 +242,12 @@ function RouteComponent() {
 												<span className="text-muted-foreground text-[10px]">{cur}</span>
 											</TableCell>
 											<TableCell className="text-xs text-muted-foreground text-right">
-												{dueBy ? new Date(dueBy).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
+												{dueBy
+													? new Date(dueBy).toLocaleTimeString([], {
+															hour: "2-digit",
+															minute: "2-digit",
+														})
+													: "—"}
 											</TableCell>
 											<TableCell className="text-right pr-6">
 												<Badge
@@ -264,39 +278,47 @@ function RouteComponent() {
 						<Table>
 							<TableHeader>
 								<TableRow className="hover:bg-transparent border-muted/50">
-									<TableHead className="text-[10px] font-bold uppercase py-2 pl-6">Call ID</TableHead>
-									<TableHead className="text-[10px] font-bold uppercase py-2 text-right">Amount</TableHead>
-									<TableHead className="text-[10px] font-bold uppercase py-2 text-right pr-6">Status</TableHead>
+									<TableHead className="text-[10px] font-bold uppercase py-2 pl-6">
+										Call ID
+									</TableHead>
+									<TableHead className="text-[10px] font-bold uppercase py-2 text-right">
+										Amount
+									</TableHead>
+									<TableHead className="text-[10px] font-bold uppercase py-2 text-right pr-6">
+										Status
+									</TableHead>
 								</TableRow>
 							</TableHeader>
-						<TableBody>
-							{fulfilled.map((m) => {
-								const callId = m.payload?.callId as string | undefined;
-								const amountRequired = m.payload?.amountRequired as string | undefined;
-								const status = m.payload?.status as string | undefined;
-								const responded = isResponded(callId);
-								return (
-									<TableRow key={m.contractId} className="border-muted/30 opacity-70">
-										<TableCell className="font-mono text-xs text-muted-foreground pl-6">
-											{callId ?? m.contractId.slice(0, 8)}
-										</TableCell>
-										<TableCell className="text-sm font-semibold text-right">
-											${(parseFloat(amountRequired || "0") / 1_000_000).toFixed(1)}M
-										</TableCell>
-										<TableCell className="text-right pr-6">
-											<Badge
-												variant="secondary"
-												className={responded
-													? "bg-primary/10 text-primary border-transparent"
-													: (STATUS_STYLES[status ?? ""] ?? "border-transparent")}
-											>
-												{responded ? "Responded" : (status ?? "—")}
-											</Badge>
-										</TableCell>
-									</TableRow>
-								);
-							})}
-						</TableBody>
+							<TableBody>
+								{fulfilled.map((m) => {
+									const callId = m.payload?.callId as string | undefined;
+									const amountRequired = m.payload?.amountRequired as string | undefined;
+									const status = m.payload?.status as string | undefined;
+									const responded = isResponded(callId);
+									return (
+										<TableRow key={m.contractId} className="border-muted/30 opacity-70">
+											<TableCell className="font-mono text-xs text-muted-foreground pl-6">
+												{callId ?? m.contractId.slice(0, 8)}
+											</TableCell>
+											<TableCell className="text-sm font-semibold text-right">
+												${(parseFloat(amountRequired || "0") / 1_000_000).toFixed(1)}M
+											</TableCell>
+											<TableCell className="text-right pr-6">
+												<Badge
+													variant="secondary"
+													className={
+														responded
+															? "bg-primary/10 text-primary border-transparent"
+															: (STATUS_STYLES[status ?? ""] ?? "border-transparent")
+													}
+												>
+													{responded ? "Responded" : (status ?? "—")}
+												</Badge>
+											</TableCell>
+										</TableRow>
+									);
+								})}
+							</TableBody>
 						</Table>
 					</CardContent>
 				</Card>

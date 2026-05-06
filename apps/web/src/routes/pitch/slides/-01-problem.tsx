@@ -1,4 +1,4 @@
-import { AlertTriangleIcon, ClockIcon, FileSpreadsheetIcon, ShieldAlertIcon } from "lucide-react";
+import { AlertTriangleIcon } from "lucide-react";
 import { BulletPoint, SlideCard, SlideLayout, StatBox } from "../components/-slide-layout";
 
 export function ProblemSlide() {
@@ -60,9 +60,8 @@ export function ProblemSlide() {
 							<div>
 								<p className="font-semibold text-destructive mb-1">The Human Cost</p>
 								<p className="text-sm text-muted-foreground">
-									Treasury teams spend hours daily on manual collateral decisions.
-									Errors cost millions. Regulatory pressure is increasing.
-									There has to be a better way.
+									Treasury teams spend hours daily on manual collateral decisions. Errors cost
+									millions. Regulatory pressure is increasing. There has to be a better way.
 								</p>
 							</div>
 						</div>

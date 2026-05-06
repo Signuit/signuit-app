@@ -23,7 +23,7 @@ export function useKeyboardNav({ onNext, onPrev, onFirst, onLast }: KeyboardNavP
 				case "ArrowRight":
 				case "ArrowDown":
 				case " ":
-					case "PageDown":
+				case "PageDown":
 					e.preventDefault();
 					onNext();
 					break;

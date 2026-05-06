@@ -68,8 +68,7 @@ function RouteComponent() {
 
 	const p = (val: unknown) => parseFloat((val as string | undefined) || "0");
 
-	const totalValue =
-		holdings?.reduce((sum, h) => sum + p(h.payload.amount), 0) || 0;
+	const totalValue = holdings?.reduce((sum, h) => sum + p(h.payload.amount), 0) || 0;
 
 	const maxYield =
 		holdings && holdings.length > 0
@@ -78,9 +77,7 @@ function RouteComponent() {
 
 	const avgLtv =
 		holdings && holdings.length > 0
-			? (holdings.reduce((sum, h) => sum + (1 - p(h.payload.haircut)), 0) /
-					holdings.length) *
-				100
+			? (holdings.reduce((sum, h) => sum + (1 - p(h.payload.haircut)), 0) / holdings.length) * 100
 			: null;
 
 	const title = role === "operator" ? "Network Holdings" : "Collateral Holdings";
@@ -210,49 +207,49 @@ function RouteComponent() {
 									const yieldVal = p(h.payload.yield);
 									const haircut = p(h.payload.haircut);
 									return (
-									<TableRow
-										key={h.contractId}
-										className="border-muted/30 group hover:bg-muted/10 transition-colors"
-									>
-										<TableCell className="pl-6">
-											<div className="flex items-center gap-3">
-												<div className="size-7 rounded bg-muted flex items-center justify-center font-bold text-[9px] text-muted-foreground">
-													{asset}
+										<TableRow
+											key={h.contractId}
+											className="border-muted/30 group hover:bg-muted/10 transition-colors"
+										>
+											<TableCell className="pl-6">
+												<div className="flex items-center gap-3">
+													<div className="size-7 rounded bg-muted flex items-center justify-center font-bold text-[9px] text-muted-foreground">
+														{asset}
+													</div>
+													<span className="font-semibold text-sm">{asset}</span>
 												</div>
-												<span className="font-semibold text-sm">{asset}</span>
-											</div>
-										</TableCell>
-										<TableCell className="font-semibold text-sm">
-											${amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}
-										</TableCell>
-										<TableCell>
-											<Badge
-												variant="secondary"
-												className="bg-primary/5 text-primary border-transparent font-medium text-[10px] py-0 px-1.5"
-											>
-												{(yieldVal * 100).toFixed(2)}%
-											</Badge>
-										</TableCell>
-										<TableCell className="text-xs font-medium text-muted-foreground">
-											{(haircut * 100).toFixed(1)}%
-										</TableCell>
-										<TableCell className="text-xs font-semibold">
-											{((1 - haircut) * 100).toFixed(0)}%
-										</TableCell>
-										{role !== "operator" && (
-											<TableCell className="pr-6 text-right">
-												<Button
-													variant="ghost"
-													size="sm"
-													className="h-7 text-xs font-medium"
-													disabled
-													title="Individual position management coming in Phase 2"
-												>
-													Manage
-												</Button>
 											</TableCell>
-										)}
-									</TableRow>
+											<TableCell className="font-semibold text-sm">
+												${amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+											</TableCell>
+											<TableCell>
+												<Badge
+													variant="secondary"
+													className="bg-primary/5 text-primary border-transparent font-medium text-[10px] py-0 px-1.5"
+												>
+													{(yieldVal * 100).toFixed(2)}%
+												</Badge>
+											</TableCell>
+											<TableCell className="text-xs font-medium text-muted-foreground">
+												{(haircut * 100).toFixed(1)}%
+											</TableCell>
+											<TableCell className="text-xs font-semibold">
+												{((1 - haircut) * 100).toFixed(0)}%
+											</TableCell>
+											{role !== "operator" && (
+												<TableCell className="pr-6 text-right">
+													<Button
+														variant="ghost"
+														size="sm"
+														className="h-7 text-xs font-medium"
+														disabled
+														title="Individual position management coming in Phase 2"
+													>
+														Manage
+													</Button>
+												</TableCell>
+											)}
+										</TableRow>
 									);
 								})}
 								{holdings?.length === 0 && (
