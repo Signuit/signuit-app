@@ -16,7 +16,7 @@ var pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 = requir
 exports.Placeholder = damlTypes.assembleTemplate(
 {
   templateId: '#nexus-example:Main:Placeholder',
-  templateIdWithPackageId: 'da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758:Main:Placeholder',
+  templateIdWithPackageId: 'dd067bd7c791f3881583bdd41a52e80dd1ca4acff5cef6a5981e6c5131ffca8f:Main:Placeholder',
   keyDecoder: damlTypes.lazyMemo(function () { return jtv.constant(undefined); }),
   keyEncode: function () { throw 'EncodeError'; },
   decoder: damlTypes.lazyMemo(function () { return jtv.object({owner: damlTypes.Party.decoder, }); }),
@@ -39,5 +39,5 @@ exports.Placeholder = damlTypes.assembleTemplate(
 );
 
 
-damlTypes.registerTemplate(exports.Placeholder, ['da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758', '#nexus-example']);
+damlTypes.registerTemplate(exports.Placeholder, ['dd067bd7c791f3881583bdd41a52e80dd1ca4acff5cef6a5981e6c5131ffca8f', '#nexus-example']);
 

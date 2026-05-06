@@ -4,4 +4,4 @@ import * as Iou from './Iou';
 export { Iou } ;
 import * as Main from './Main';
 export { Main } ;
-export declare const packageId = 'da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758';
+export declare const packageId = 'dd067bd7c791f3881583bdd41a52e80dd1ca4acff5cef6a5981e6c5131ffca8f';

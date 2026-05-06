@@ -56,6 +56,24 @@ seed_demo_scenario = script do
       approvedPolicy = initialPolicy
   
   debug "SignUIT accepted → ServiceAgreement created"
+
+  -- Create a standalone CollateralPolicy contract so the web app can query it directly
+  submit institution do
+    createCmd CollateralPolicy with
+      operator = operator
+      institution = institution
+      policyId = "POLICY-001"
+      ruleType = CTD
+      priorityList = ["USYC", "UST", "USDC"]
+      minLtv = 0.95
+      maxHaircut = 0.10
+      counterpartyRules = [("PrimeBank", ["USYC", "UST", "USDC"])]
+      autoApprove = False
+      notificationEmail = Some "ops@vantage.capital"
+      active = True
+      createdAt = now
+
+  debug "CollateralPolicy created as standalone contract"
   
   -- ─────────────────────────────────────────────────────────────────────────────
   -- Step 2: ASSET METADATA (Operator creates, all can query)

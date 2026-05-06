@@ -40,10 +40,12 @@ export const collateralRouter = {
 		});
 	}),
 
-	listPolicies: ledgerProcedure.input(CollateralQuerySchema).handler(({ input, context }) => {
-		return context.ledger.CollateralPolicy.findMany({
-			limit: input.limit,
-		});
+	listPolicies: ledgerProcedure.input(CollateralQuerySchema).handler(async ({ input, context }) => {
+		const all = await context.ledger.CollateralPolicy.findMany({ limit: input.limit });
+		// Canton ACS does not support payload field filtering — filter client-side
+		return all.filter(
+			(p) => p.payload.institution === context.partyId && p.payload.active === true,
+		);
 	}),
 
 	updatePolicy: ledgerProcedure.input(UpdatePolicySchema).handler(({ input, context }) => {
@@ -102,17 +104,20 @@ export const collateralRouter = {
 	generateSuggestion: ledgerProcedure
 		.input(GenerateSuggestionSchema)
 		.handler(async ({ input, context }) => {
-			// 1. Fetch policy
-			const policies = await context.ledger.CollateralPolicy.findMany({
-				where: { policyId: input.policyId },
-			});
-			if (policies.length === 0) {
+			// 1. Fetch all policies and find by policyId in memory
+			// (Canton ACS does not support payload field filtering without PQS)
+			const allPolicies = await context.ledger.CollateralPolicy.findMany({});
+			const policyContract = allPolicies.find(
+				(p) => p.payload.policyId === input.policyId && p.payload.institution === context.partyId,
+			);
+			if (!policyContract) {
 				throw new Error(`Policy not found: ${input.policyId}`);
 			}
-			const policy = policies[0].payload;
+			const policy = policyContract.payload;
 
-			// 2. Fetch holdings
-			const holdings = await context.ledger.CollateralHolding.findMany({});
+			// 2. Fetch holdings scoped to this institution
+			const allHoldings = await context.ledger.CollateralHolding.findMany({});
+			const holdings = allHoldings.filter((h) => h.payload.institution === context.partyId);
 
 			// 3. Extract counterparty rules if specified
 			let counterpartyRules: CounterpartyRules | undefined;
@@ -159,7 +164,7 @@ export const collateralRouter = {
 					if (res.ok) {
 						const data = (await res.json()) as { partyDetails?: { party: string }[] };
 						const match = (data.partyDetails ?? []).find(
-							(p) => p.party.split("::")[0] === input.counterpartyName,
+							(p) => p.party.split("::")[0].startsWith(input.counterpartyName ?? ""),
 						);
 						if (match) counterpartyPartyId = match.party;
 					}
@@ -228,18 +233,26 @@ export const collateralRouter = {
 
 			// Resolve operator and institution parties from Canton
 			const operatorPartyId = context.operatorPartyId;
-			let institutionPartyId = context.partyId; // fallback
 
+			// Look up the target institution party — never fall back to caller's own party
+			// since the caller is the counterparty (PrimeBank), not the institution.
+			let institutionPartyId: string | null = null;
 			try {
 				const res = await fetch(`${cantonUrl}/v2/parties`);
 				if (res.ok) {
 					const data = (await res.json()) as { partyDetails?: { party: string }[] };
 					const parties = data.partyDetails ?? [];
-					const institution = parties.find((p) => p.party.split("::")[0] === input.institutionName);
+				const institution = parties.find((p) => p.party.split("::")[0].startsWith(input.institutionName));
 					if (institution) institutionPartyId = institution.party;
 				}
 			} catch {
-				// Non-fatal — use fallback
+				// Non-fatal
+			}
+
+			if (!institutionPartyId) {
+				throw new Error(
+					`Institution party not found: "${input.institutionName}". Make sure they have logged in at least once.`,
+				);
 			}
 
 			const now = new Date();
@@ -258,9 +271,17 @@ export const collateralRouter = {
 			});
 		}),
 
-	listMarginCalls: ledgerProcedure.input(CollateralQuerySchema).handler(({ input, context }) => {
-		return context.ledger.MarginCall.findMany({
-			limit: input.limit,
+	listMarginCalls: ledgerProcedure.input(CollateralQuerySchema).handler(async ({ input, context }) => {
+		const all = await context.ledger.MarginCall.findMany({ limit: input.limit });
+		// Filter by role: institution sees calls addressed to them,
+		// counterparty sees calls they issued, operator sees all
+		return all.filter((mc) => {
+			const { institution, counterparty } = mc.payload;
+			if (institution === context.partyId) return true; // addressed to me
+			if (counterparty === context.partyId) return true; // issued by me
+			// Operator sees everything — operator is neither institution nor counterparty
+			// but will still see all contracts as an observer
+			return false;
 		});
 	}),
 
