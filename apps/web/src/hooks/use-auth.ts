@@ -8,7 +8,7 @@ export function useAuthRole() {
 	const { data: session, isLoading } = useQuery(orpc.auth.getSession.queryOptions());
 
 	const user = session?.user as SessionUser | undefined;
-	const role: UserRole = (user?.role as UserRole | undefined) ?? "institution";
+	const role = user?.role as UserRole | undefined;
 
 	return { role, isLoading };
 }

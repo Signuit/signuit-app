@@ -34,7 +34,6 @@ export const auth = betterAuth({
 			role: {
 				type: "string",
 				required: false,
-				defaultValue: "institution",
 				// Note: input:false can interfere with databaseHooks in some BA versions.
 				// We rely on databaseHooks.user.create.before for role assignment.
 			},

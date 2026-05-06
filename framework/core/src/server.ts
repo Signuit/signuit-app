@@ -25,6 +25,18 @@ export * from "./query/pqs-engine";
 export * from "./server/auth-handler";
 export * from "./types/client";
 
+/**
+ * Strip top-level null fields from an encoded Daml payload before sending to
+ * Canton HTTP API v2. Canton rejects null-valued Optional fields as
+ * "unexpected fields" — omitting them entirely signals "None" correctly.
+ */
+function stripNullFields(obj: unknown): unknown {
+	if (obj === null || typeof obj !== "object" || Array.isArray(obj)) return obj;
+	return Object.fromEntries(
+		Object.entries(obj as Record<string, unknown>).filter(([, v]) => v !== null),
+	);
+}
+
 // ─── createNexusServerClient (low-level plugin API) ──────────────────────────
 
 /**
@@ -322,7 +334,7 @@ export async function createNexusServer<
 								`Daml validation failed (${templateId}): ${v.error?.message ?? "unknown"}`,
 							);
 						}
-						const encoded = damlTemplate.encode(v.result);
+						const encoded = stripNullFields(damlTemplate.encode(v.result));
 						const http = getHttp();
 						const res = await http.submitAndWait({
 							commands: [{ type: "create", templateId, createArguments: encoded }],

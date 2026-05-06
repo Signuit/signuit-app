@@ -1,5 +1,6 @@
 import type { SessionUser } from "@nexus/auth";
 import { db } from "@nexus/db";
+import { DEMO_USERS } from "@nexus/db/seed/demo-users";
 import type { RouterClient } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure, publicProcedure } from "../procedures";
@@ -19,7 +20,16 @@ export const baseAppRouter = {
 			where: (u, { eq: eqFn }) => eqFn(u.id, sessionUser.id),
 		});
 
-		return { user: (dbUser ?? null) as SessionUser | null };
+		if (!dbUser) return { user: null };
+
+		// Force sync demo roles for consistency
+		const demoInfo = DEMO_USERS.find((u) => u.email === dbUser.email);
+		if (demoInfo) {
+			dbUser.role = demoInfo.role;
+			dbUser.cantonPartyId = demoInfo.partyId;
+		}
+
+		return { user: dbUser as SessionUser | null };
 	}),
 
 	me: protectedProcedure.input(z.void()).handler(({ context }) => ({
