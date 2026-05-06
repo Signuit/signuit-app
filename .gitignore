@@ -55,4 +55,4 @@ sandbox/log
 local.db
 local.db-journal
 local.db-shm
-local.db-wal
+local.db-waldocker-compose.override.yml
