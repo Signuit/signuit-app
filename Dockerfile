@@ -48,7 +48,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs \
-    && adduser --system --uid 1001 --ingroup nodejs appuser
+    && adduser --system --uid 1001 --ingroup nodejs appuser \
+    && mkdir -p /data && chown appuser:nodejs /data
 
 # Copy ONLY the built output from builder stage
 COPY --from=builder --chown=appuser:nodejs /app/apps/web/.output ./apps/web/.output
