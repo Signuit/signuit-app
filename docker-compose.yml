@@ -42,9 +42,7 @@ services:
 
   # ─── Web Application ──────────────────────────────────────────────────────
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${WEB_IMAGE:-ghcr.io/signuit/signuit-web:latest}
     environment:
       NODE_ENV: production
       PORT: "3000"
