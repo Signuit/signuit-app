@@ -1,7 +1,6 @@
-import Lenis from "lenis";
 import type React from "react";
 import type { ReactNode } from "react";
-import { useCallback, useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 export interface ScrollStackItemProps {
 	itemClassName?: string;
@@ -32,7 +31,6 @@ interface ScrollStackProps {
 	stackPosition?: string;
 	scaleEndPosition?: string;
 	baseScale?: number;
-	scaleDuration?: number;
 	rotationAmount?: number;
 	blurAmount?: number;
 	useWindowScroll?: boolean;
@@ -48,17 +46,17 @@ const ScrollStack: React.FC<ScrollStackProps> = ({
 	stackPosition = "20%",
 	scaleEndPosition = "10%",
 	baseScale = 0.85,
-	scaleDuration = 0.5,
 	rotationAmount = 0,
 	blurAmount = 0,
 	useWindowScroll = false,
 	onStackComplete,
 }) => {
 	const scrollerRef = useRef<HTMLDivElement>(null);
-	const stackCompletedRef = useRef(false);
-	const animationFrameRef = useRef<number | null>(null);
-	const lenisRef = useRef<Lenis | null>(null);
+	const innerRef = useRef<HTMLDivElement>(null);
 	const cardsRef = useRef<HTMLElement[]>([]);
+	const endRef = useRef<HTMLDivElement>(null);
+	const stackCompletedRef = useRef(false);
+	const rafRef = useRef<number | null>(null);
 	const lastTransformsRef = useRef(new Map<number, any>());
 	const isUpdatingRef = useRef(false);
 
@@ -80,14 +78,12 @@ const ScrollStack: React.FC<ScrollStackProps> = ({
 			return {
 				scrollTop: window.scrollY,
 				containerHeight: window.innerHeight,
-				scrollContainer: document.documentElement,
 			};
 		} else {
 			const scroller = scrollerRef.current;
 			return {
 				scrollTop: scroller ? scroller.scrollTop : 0,
 				containerHeight: scroller ? scroller.clientHeight : 0,
-				scrollContainer: scroller,
 			};
 		}
 	}, [useWindowScroll]);
@@ -113,10 +109,7 @@ const ScrollStack: React.FC<ScrollStackProps> = ({
 		const stackPositionPx = parsePercentage(stackPosition, containerHeight);
 		const scaleEndPositionPx = parsePercentage(scaleEndPosition, containerHeight);
 
-		const endElement = useWindowScroll
-			? (document.querySelector(".scroll-stack-end") as HTMLElement | null)
-			: (scrollerRef.current?.querySelector(".scroll-stack-end") as HTMLElement | null);
-
+		const endElement = endRef.current;
 		const endElementTop = endElement ? getElementOffset(endElement) : 0;
 
 		cardsRef.current.forEach((card, i) => {
@@ -212,139 +205,101 @@ const ScrollStack: React.FC<ScrollStackProps> = ({
 		getElementOffset,
 	]);
 
-	const handleScroll = useCallback(() => {
-		updateCardTransforms();
-	}, [updateCardTransforms]);
+	// Initialize card refs from DOM after mount
+	useEffect(() => {
+		const inner = innerRef.current;
+		if (!inner) return;
 
-	const setupLenis = useCallback(() => {
-		if (useWindowScroll) {
-			const lenis = new Lenis({
-				duration: 1.2,
-				easing: (t) => Math.min(1, 1.001 - 2 ** (-10 * t)),
-				smoothWheel: true,
-				touchMultiplier: 2,
-				infinite: false,
-				wheelMultiplier: 1,
-				lerp: 0.1,
-				syncTouch: true,
-				syncTouchLerp: 0.075,
+		// Small delay to ensure DOM is ready
+		const timeout = setTimeout(() => {
+			const cards = Array.from(inner.querySelectorAll(".scroll-stack-card")) as HTMLElement[];
+			cardsRef.current = cards;
+
+			cards.forEach((card, i) => {
+				if (i < cards.length - 1) {
+					card.style.marginBottom = `${itemDistance}px`;
+				}
+				card.style.willChange = "transform, filter";
+				card.style.transformOrigin = "top center";
+				card.style.backfaceVisibility = "hidden";
+				card.style.transform = "translateZ(0)";
+				card.style.webkitTransform = "translateZ(0)";
+				card.style.perspective = "1000px";
+				card.style.webkitPerspective = "1000px";
 			});
 
-			lenis.on("scroll", handleScroll);
+			updateCardTransforms();
+		}, 50);
 
-			const raf = (time: number) => {
-				lenis.raf(time);
-				animationFrameRef.current = requestAnimationFrame(raf);
+		return () => clearTimeout(timeout);
+	}, [itemDistance, updateCardTransforms]);
+
+	useEffect(() => {
+		const handleScroll = () => {
+			updateCardTransforms();
+		};
+
+		const handleResize = () => {
+			updateCardTransforms();
+		};
+
+		if (useWindowScroll) {
+			window.addEventListener("scroll", handleScroll, { passive: true });
+			window.addEventListener("resize", handleResize);
+
+			// RAF loop for smooth updates
+			const raf = () => {
+				updateCardTransforms();
+				rafRef.current = requestAnimationFrame(raf);
 			};
-			animationFrameRef.current = requestAnimationFrame(raf);
-
-			lenisRef.current = lenis;
-			return lenis;
+			rafRef.current = requestAnimationFrame(raf);
 		} else {
 			const scroller = scrollerRef.current;
-			if (!scroller) return;
-
-			const lenis = new Lenis({
-				wrapper: scroller,
-				content: scroller.querySelector(".scroll-stack-inner") as HTMLElement,
-				duration: 1.2,
-				easing: (t) => Math.min(1, 1.001 - 2 ** (-10 * t)),
-				smoothWheel: true,
-				touchMultiplier: 2,
-				infinite: false,
-				gestureOrientation: "vertical",
-				wheelMultiplier: 1,
-				lerp: 0.1,
-				syncTouch: true,
-				syncTouchLerp: 0.075,
-			});
-
-			lenis.on("scroll", handleScroll);
-
-			const raf = (time: number) => {
-				lenis.raf(time);
-				animationFrameRef.current = requestAnimationFrame(raf);
-			};
-			animationFrameRef.current = requestAnimationFrame(raf);
-
-			lenisRef.current = lenis;
-			return lenis;
-		}
-	}, [handleScroll, useWindowScroll]);
-
-	useLayoutEffect(() => {
-		if (!useWindowScroll && !scrollerRef.current) return;
-
-		const cards = Array.from(
-			useWindowScroll
-				? document.querySelectorAll(".scroll-stack-card")
-				: (scrollerRef.current?.querySelectorAll(".scroll-stack-card") ?? []),
-		) as HTMLElement[];
-		cardsRef.current = cards;
-		const transformsCache = lastTransformsRef.current;
-
-		cards.forEach((card, i) => {
-			if (i < cards.length - 1) {
-				card.style.marginBottom = `${itemDistance}px`;
+			if (scroller) {
+				scroller.addEventListener("scroll", handleScroll, { passive: true });
 			}
-			card.style.willChange = "transform, filter";
-			card.style.transformOrigin = "top center";
-			card.style.backfaceVisibility = "hidden";
-			card.style.transform = "translateZ(0)";
-			card.style.webkitTransform = "translateZ(0)";
-			card.style.perspective = "1000px";
-			card.style.webkitPerspective = "1000px";
-		});
-
-		setupLenis();
-
-		updateCardTransforms();
+		}
 
 		return () => {
-			if (animationFrameRef.current) {
-				cancelAnimationFrame(animationFrameRef.current);
+			if (rafRef.current) {
+				cancelAnimationFrame(rafRef.current);
 			}
-			if (lenisRef.current) {
-				lenisRef.current.destroy();
+			if (useWindowScroll) {
+				window.removeEventListener("scroll", handleScroll);
+				window.removeEventListener("resize", handleResize);
+			} else {
+				const scroller = scrollerRef.current;
+				if (scroller) {
+					scroller.removeEventListener("scroll", handleScroll);
+				}
 			}
-			stackCompletedRef.current = false;
-			cardsRef.current = [];
-			transformsCache.clear();
-			isUpdatingRef.current = false;
 		};
-	}, [
-		itemDistance,
-		itemScale,
-		itemStackDistance,
-		stackPosition,
-		scaleEndPosition,
-		baseScale,
-		scaleDuration,
-		rotationAmount,
-		blurAmount,
-		useWindowScroll,
-		onStackComplete,
-		setupLenis,
-		updateCardTransforms,
-	]);
+	}, [useWindowScroll, updateCardTransforms]);
 
 	return (
 		<div
-			className={`relative w-full h-full overflow-y-auto overflow-x-visible ${className}`.trim()}
+			className={`relative w-full ${useWindowScroll ? "h-auto overflow-visible" : "h-full overflow-y-auto"} overflow-x-visible ${className}`.trim()}
 			ref={scrollerRef}
 			style={{
-				overscrollBehavior: "contain",
-				WebkitOverflowScrolling: "touch",
-				scrollBehavior: "smooth",
+				...(useWindowScroll
+					? {}
+					: {
+							overscrollBehavior: "contain",
+							WebkitOverflowScrolling: "touch",
+							scrollBehavior: "smooth",
+							willChange: "scroll-position",
+						}),
 				WebkitTransform: "translateZ(0)",
 				transform: "translateZ(0)",
-				willChange: "scroll-position",
 			}}
 		>
-			<div className="scroll-stack-inner pt-[20vh] px-20 pb-[50rem] min-h-screen">
+			<div
+				ref={innerRef}
+				className={`scroll-stack-inner pt-[20vh] px-20 pb-[50rem] ${useWindowScroll ? "min-h-[300vh]" : "min-h-screen"}`}
+			>
 				{children}
 				{/* Spacer so the last pin can release cleanly */}
-				<div className="scroll-stack-end w-full h-px" />
+				<div ref={endRef} className="scroll-stack-end w-full h-px" />
 			</div>
 		</div>
 	);

@@ -7,6 +7,8 @@ export interface BentoCardProps {
 	title?: string;
 	description?: string;
 	label?: string;
+	icon?: React.ComponentType<{ size?: number; className?: string }>;
+	footer?: React.ReactNode;
 	textAutoHide?: boolean;
 	disableAnimations?: boolean;
 }
@@ -23,6 +25,7 @@ export interface BentoProps {
 	glowColor?: string;
 	clickEffect?: boolean;
 	enableMagnetism?: boolean;
+	cards?: BentoCardProps[];
 }
 
 const DEFAULT_PARTICLE_COUNT = 12;
@@ -520,7 +523,7 @@ const BentoCardGrid: React.FC<{
 	gridRef?: React.RefObject<HTMLDivElement | null>;
 }> = ({ children, gridRef }) => (
 	<div
-		className="bento-section grid gap-2 p-3 max-w-[54rem] select-none relative"
+		className="bento-section grid gap-2 p-3 w-full mx-auto select-none relative"
 		style={{ fontSize: "clamp(1rem, 0.9rem + 0.5vw, 1.5rem)" }}
 		ref={gridRef}
 	>
@@ -555,6 +558,7 @@ const MagicBento: React.FC<BentoProps> = ({
 	glowColor = DEFAULT_GLOW_COLOR,
 	clickEffect = true,
 	enableMagnetism = true,
+	cards,
 }) => {
 	const gridRef = useRef<HTMLDivElement>(null);
 	const isMobile = useMobileDetection();
@@ -580,11 +584,11 @@ const MagicBento: React.FC<BentoProps> = ({
           
           .card-responsive {
             grid-template-columns: 1fr;
-            width: 90%;
+            width: 100%;
             margin: 0 auto;
             padding: 0.5rem;
           }
-          
+
           @media (min-width: 600px) {
             .card-responsive {
               grid-template-columns: repeat(2, 1fr);
@@ -677,7 +681,7 @@ const MagicBento: React.FC<BentoProps> = ({
           @media (max-width: 599px) {
             .card-responsive {
               grid-template-columns: 1fr;
-              width: 90%;
+              width: 100%;
               margin: 0 auto;
               padding: 0.5rem;
             }
@@ -702,7 +706,7 @@ const MagicBento: React.FC<BentoProps> = ({
 
 			<BentoCardGrid gridRef={gridRef}>
 				<div className="card-responsive grid gap-2">
-					{cardData.map((card, index) => {
+					{(cards || cardData).map((card, index) => {
 						const baseClassName = `card flex flex-col justify-between relative aspect-[4/3] min-h-[200px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-colors duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)] ${
 							enableBorderGlow ? "card--border-glow" : ""
 						}`;
@@ -730,8 +734,13 @@ const MagicBento: React.FC<BentoProps> = ({
 									clickEffect={clickEffect}
 									enableMagnetism={enableMagnetism}
 								>
-									<div className="card__header flex justify-between gap-3 relative text-white">
-										<span className="card__label text-base">{card.label}</span>
+									<div className="card__header flex justify-between gap-3 relative text-white items-start">
+										{card.icon && (
+											<div className="inline-flex rounded-lg border border-blue-400/35 bg-blue-500/10 p-2">
+												<card.icon size={18} className="text-blue-300" />
+											</div>
+										)}
+										{card.label && <span className="card__label text-base">{card.label}</span>}
 									</div>
 									<div className="card__content flex flex-col relative text-white">
 										<h3
@@ -744,6 +753,7 @@ const MagicBento: React.FC<BentoProps> = ({
 										>
 											{card.description}
 										</p>
+										{card.footer && <div className="mt-4">{card.footer}</div>}
 									</div>
 								</ParticleCard>
 							);
@@ -864,8 +874,13 @@ const MagicBento: React.FC<BentoProps> = ({
 									el.addEventListener("click", handleClick);
 								}}
 							>
-								<div className="card__header flex justify-between gap-3 relative text-white">
-									<span className="card__label text-base">{card.label}</span>
+								<div className="card__header flex justify-between gap-3 relative text-white items-start">
+									{card.icon && (
+										<div className="inline-flex rounded-lg border border-blue-400/35 bg-blue-500/10 p-2">
+											<card.icon size={18} className="text-blue-300" />
+										</div>
+									)}
+									{card.label && <span className="card__label text-base">{card.label}</span>}
 								</div>
 								<div className="card__content flex flex-col relative text-white">
 									<h3
@@ -878,6 +893,7 @@ const MagicBento: React.FC<BentoProps> = ({
 									>
 										{card.description}
 									</p>
+									{card.footer && <div className="mt-4">{card.footer}</div>}
 								</div>
 							</div>
 						);

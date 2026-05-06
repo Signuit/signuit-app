@@ -34,6 +34,7 @@ export default defineConfig({
 		strictPort: true,
 	},
 	optimizeDeps: {
+		include: damlPackages,
 		exclude: [
 			"@tanstack/react-start",
 			"@tanstack/react-router",
@@ -42,6 +43,8 @@ export default defineConfig({
 		],
 	},
 	ssr: {
-		noExternal: damlPackages,
+		// Daml packages are CommonJS; leave them external for SSR so Node.js can require() them natively.
+		// Client-side CJS→ESM conversion is handled by optimizeDeps.include above.
+		external: damlPackages,
 	},
 });

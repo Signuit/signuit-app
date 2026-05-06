@@ -23,12 +23,6 @@ export function LandingNav() {
 						Features
 					</a>
 					<a
-						href="#how-it-works"
-						className="text-sm font-medium text-slate-400 transition-colors hover:text-white"
-					>
-						How it works
-					</a>
-					<a
 						href="#use-cases"
 						className="text-sm font-medium text-slate-400 transition-colors hover:text-white"
 					>

@@ -16,7 +16,5 @@ export default defineConfig({
 	schema: "./src/schema",
 	out: "./src/migrations",
 	dialect: isRemote ? "turso" : "sqlite",
-	dbCredentials: isRemote
-		? { url, authToken }
-		: { url },
+	dbCredentials: isRemote ? { url, authToken } : { url },
 });

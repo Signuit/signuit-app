@@ -1,46 +1,87 @@
-import {
-	CheckCheck,
-	Fingerprint,
-	LockKeyhole,
-	ShieldCheck,
-	UserRoundCheck,
-	WalletCards,
-} from "lucide-react";
+import { FileCheck, LayoutGrid, Route, Shield, UserCheck, Zap } from "lucide-react";
 
 import AnimatedContent from "@/components/AnimatedContent";
 import MagicBento from "@/components/MagicBento";
 import ShinyText from "@/components/ShinyText";
 
-const featureItems = [
+const featureCards = [
 	{
-		icon: LockKeyhole,
-		title: "Policy-Based Routing",
-		desc: "CTD algorithm that optimizes capital efficiency while adhering to institutional policies.",
+		icon: Route,
+		title: "Smart Policy Routing",
+		description:
+			"CTD algorithm routes margin calls through the most capital-efficient path while enforcing institutional policy constraints.",
+		footer: (
+			<ShinyText
+				text="Enterprise-ready"
+				className="text-xs uppercase tracking-[0.15em] text-blue-200"
+				speed={3}
+			/>
+		),
 	},
 	{
-		icon: ShieldCheck,
-		title: "Privacy by Design",
-		desc: "Transactions are visible only to involved parties, leveraging Canton's privacy layer.",
+		icon: Shield,
+		title: "Institutional Privacy",
+		description:
+			"Transactions are cryptographically isolated. Only involved counterparties can view routing details and allocations.",
+		footer: (
+			<ShinyText
+				text="Enterprise-ready"
+				className="text-xs uppercase tracking-[0.15em] text-blue-200"
+				speed={3}
+			/>
+		),
 	},
 	{
-		icon: CheckCheck,
-		title: "Real-time Optimization",
-		desc: "Monitor your collateral pool in real-time and capture optimization opportunities instantly.",
+		icon: Zap,
+		title: "Live Optimization",
+		description:
+			"Continuous monitoring of collateral pools with real-time rebalancing suggestions and instant execution triggers.",
+		footer: (
+			<ShinyText
+				text="Enterprise-ready"
+				className="text-xs uppercase tracking-[0.15em] text-blue-200"
+				speed={3}
+			/>
+		),
 	},
 	{
-		icon: WalletCards,
-		title: "Asset Allocation",
-		desc: "Manage your collateral pool, margin calls, and asset allocation in a single dashboard.",
+		icon: LayoutGrid,
+		title: "Unified Command",
+		description:
+			"Manage collateral policies, margin calls, and asset routing from a single institutional-grade dashboard.",
+		footer: (
+			<ShinyText
+				text="Enterprise-ready"
+				className="text-xs uppercase tracking-[0.15em] text-blue-200"
+				speed={3}
+			/>
+		),
 	},
 	{
-		icon: Fingerprint,
-		title: "Immutable Audit Trail",
-		desc: "Every recommendation and approval leaves a verifiable and auditable record on the Canton ledger.",
+		icon: FileCheck,
+		title: "Verifiable Audit",
+		description:
+			"Every routing decision, approval, and settlement is permanently recorded on the Canton ledger for full traceability.",
+		footer: (
+			<ShinyText
+				text="Enterprise-ready"
+				className="text-xs uppercase tracking-[0.15em] text-blue-200"
+				speed={3}
+			/>
+		),
 	},
 	{
-		icon: UserRoundCheck,
-		title: "Human-in-the-loop",
-		desc: "All automated suggestions are securely executed only with the operations team's approval.",
+		icon: UserCheck,
+		title: "Governed Execution",
+		description:
+			"Automated suggestions are policy-bounded. Critical routing decisions require explicit institutional sign-off.",
+		footer: (
+			<ShinyText
+				text="Enterprise-ready"
+				className="text-xs uppercase tracking-[0.15em] text-blue-200"
+				speed={3}
+			/>
+		),
 	},
 ];
 
@@ -58,31 +99,16 @@ export function LandingFeatures() {
 				</AnimatedContent>
 
 				<AnimatedContent distance={80}>
-					<div className="rounded-3xl border border-slate-800/70 bg-slate-900/20 py-4">
-						<MagicBento enableMagnetism clickEffect enableTilt={false} />
+					<div className="w-full flex items-center">
+						<MagicBento
+							enableMagnetism
+							clickEffect
+							enableTilt={false}
+							glowColor="59, 130, 246"
+							cards={featureCards}
+						/>
 					</div>
 				</AnimatedContent>
-
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-					{featureItems.map(({ icon: Icon, title, desc }) => (
-						<AnimatedContent key={title} distance={32}>
-							<article className="rounded-2xl border border-slate-800/70 bg-slate-950/70 p-5">
-								<div className="mb-3 inline-flex rounded-lg border border-blue-400/35 bg-blue-500/10 p-2">
-									<Icon size={18} className="text-blue-300" />
-								</div>
-								<h3 className="text-lg font-medium text-slate-100">{title}</h3>
-								<p className="mt-2 text-sm leading-relaxed text-slate-400">{desc}</p>
-								<div className="mt-4">
-									<ShinyText
-										text="Enterprise-ready"
-										className="text-xs uppercase tracking-[0.15em] text-blue-200"
-										speed={3}
-									/>
-								</div>
-							</article>
-						</AnimatedContent>
-					))}
-				</div>
 			</div>
 		</section>
 	);

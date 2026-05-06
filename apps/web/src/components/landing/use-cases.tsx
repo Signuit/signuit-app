@@ -1,5 +1,4 @@
 import AnimatedContent from "@/components/AnimatedContent";
-import ScrollStack, { ScrollStackItem } from "@/components/ScrollStack";
 import SpotlightCard from "@/components/SpotlightCard";
 
 const useCases = [
@@ -24,7 +23,7 @@ const useCases = [
 export function LandingUseCases() {
 	return (
 		<section id="use-cases" className="px-6 py-24">
-			<div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+			<div className="mx-auto flex w-full max-w-6xl flex-col gap-12">
 				<AnimatedContent distance={40}>
 					<div className="text-center">
 						<p className="text-sm uppercase tracking-[0.2em] text-cyan-300">Use cases</p>
@@ -34,31 +33,26 @@ export function LandingUseCases() {
 					</div>
 				</AnimatedContent>
 
-				<div className="h-[760px] rounded-3xl border border-slate-800/70 bg-slate-900/20">
-					<ScrollStack
-						itemScale={0.02}
-						itemStackDistance={24}
-						stackPosition="22%"
-						useWindowScroll={false}
-					>
-						{useCases.map((item, index) => (
-							<ScrollStackItem
-								key={item.title}
-								itemClassName="!h-[260px] !rounded-3xl !bg-transparent !p-0"
+				<div className="grid gap-6 sm:grid-cols-2">
+					{useCases.map((item, index) => (
+						<AnimatedContent
+							key={item.title}
+							distance={60}
+							direction="vertical"
+							delay={index * 0.15}
+						>
+							<SpotlightCard
+								className="h-full min-h-[240px] border border-slate-700 bg-slate-950/90 p-8"
+								spotlightColor="rgba(59, 130, 246, 0.32)"
 							>
-								<SpotlightCard
-									className="h-full border border-slate-700 bg-slate-950/90"
-									spotlightColor="rgba(59, 130, 246, 0.32)"
-								>
-									<p className="text-xs uppercase tracking-[0.16em] text-slate-400">
-										Use Case 0{index + 1}
-									</p>
-									<h3 className="mt-3 text-2xl font-semibold text-blue-100">{item.title}</h3>
-									<p className="mt-4 max-w-2xl text-sm text-slate-300">{item.desc}</p>
-								</SpotlightCard>
-							</ScrollStackItem>
-						))}
-					</ScrollStack>
+								<p className="text-xs uppercase tracking-[0.16em] text-slate-400">
+									Use Case 0{index + 1}
+								</p>
+								<h3 className="mt-3 text-2xl font-semibold text-blue-100">{item.title}</h3>
+								<p className="mt-4 max-w-md text-sm leading-relaxed text-slate-300">{item.desc}</p>
+							</SpotlightCard>
+						</AnimatedContent>
+					))}
 				</div>
 			</div>
 		</section>

@@ -5,10 +5,9 @@ import { LandingFinalCta } from "./final-cta";
 import { LandingFlow } from "./flow";
 import { LandingFooter } from "./footer";
 import { LandingHero } from "./hero";
-import { LandingHowItWorks } from "./how-it-works";
 import { LandingNav } from "./nav";
 import { LandingStats } from "./stats";
-import { LandingTestimonials } from "./testimonials";
+
 import { LandingTrustBar } from "./trust-bar";
 import { LandingUseCases } from "./use-cases";
 
@@ -22,10 +21,8 @@ export function LandingPage() {
 					<LandingTrustBar />
 					<LandingFeatures />
 					<LandingFlow />
-					<LandingHowItWorks />
 					<LandingStats />
 					<LandingUseCases />
-					<LandingTestimonials />
 					<LandingFinalCta />
 				</main>
 				<LandingFooter />
