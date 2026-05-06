@@ -32,7 +32,7 @@ export function PresentationStage({ children, title }: PresentationStageProps) {
 			{/* Header */}
 			<div className="flex items-center justify-between p-6 border-b border-primary/5 bg-background/40">
 				<div className="flex items-center gap-4">
-					<Link to="/presentations">
+					<Link to="/judging">
 						<Button variant="ghost" size="icon" className="rounded-full">
 							<Home className="size-5" />
 						</Button>

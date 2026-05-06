@@ -1,14 +1,13 @@
 import { type SandboxAuthOptions, SessionManager, sandboxAuth } from "@nexus-framework/core";
 import { createNexusServer } from "@nexus-framework/core/server";
+// Import package ID directly from codegen — always stays in sync with daml.js
+import { packageId as NEXUS_PACKAGE_ID } from "@daml.js/nexus-example-0.0.1";
 import { nexusTypes } from "./nexus-types";
 
 const CANTON_API_URL = process.env.CANTON_API_URL ?? "http://127.0.0.1:7575";
 const SESSION_SECRET = process.env.SESSION_SECRET;
 const SANDBOX_USER_ID = process.env.SANDBOX_USER_ID ?? "alice";
 const SANDBOX_SECRET = process.env.SANDBOX_SECRET ?? "secret";
-
-// The compiled nexus-example package ID — must match daml.js/nexus-example-0.0.1
-const NEXUS_PACKAGE_ID = "da428ba73bc84c5c94d4844577dc0ecdb98e40c6450d545e4144706b83d05758";
 
 // Session TTL: configurable via NEXUS_SESSION_TTL_HOURS
 // Default: 24h in development, 2h in production
