@@ -4,7 +4,7 @@ import { type SandboxAuthOptions, SessionManager, sandboxAuth } from "@nexus-fra
 import { createNexusServer } from "@nexus-framework/core/server";
 import { nexusTypes } from "./nexus-types";
 
-const CANTON_API_URL = process.env.CANTON_API_URL ?? "http://127.0.0.1:7575";
+const CANTON_API_URL = process.env.CANTON_API_URL ?? "http://canton-sandbox:7575";
 const SESSION_SECRET = process.env.SESSION_SECRET;
 const SANDBOX_USER_ID = process.env.SANDBOX_USER_ID ?? "alice";
 const SANDBOX_SECRET = process.env.SANDBOX_SECRET ?? "secret";

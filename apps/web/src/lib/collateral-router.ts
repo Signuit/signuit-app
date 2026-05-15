@@ -159,7 +159,7 @@ export const collateralRouter = {
 			let counterpartyPartyId: string | null = null;
 			if (input.counterpartyName) {
 				try {
-					const cantonUrl = process.env.CANTON_API_URL ?? "http://127.0.0.1:7575";
+					const cantonUrl = process.env.CANTON_API_URL ?? "http://canton-sandbox:7575";
 					const res = await fetch(`${cantonUrl}/v2/parties`);
 					if (res.ok) {
 						const data = (await res.json()) as { partyDetails?: { party: string }[] };
@@ -229,7 +229,7 @@ export const collateralRouter = {
 	createMarginCall: ledgerProcedure
 		.input(CreateMarginCallSchema)
 		.handler(async ({ input, context }) => {
-			const cantonUrl = process.env.CANTON_API_URL ?? "http://127.0.0.1:7575";
+			const cantonUrl = process.env.CANTON_API_URL ?? "http://canton-sandbox:7575";
 
 			// Resolve operator and institution parties from Canton
 			const operatorPartyId = context.operatorPartyId;

@@ -1,7 +1,7 @@
 import { o } from "@nexus/api";
 import { nexus, sessionManager } from "./nexus-server";
 
-const CANTON_API_URL = process.env.CANTON_API_URL ?? "http://127.0.0.1:7575";
+const CANTON_API_URL = process.env.CANTON_API_URL ?? "http://canton-sandbox:7575";
 const OPERATOR_PARTY_HINT = process.env.OPERATOR_PARTY_ID ?? "SignUIT";
 const SANDBOX_SECRET = process.env.SANDBOX_SECRET ?? "secret";
 

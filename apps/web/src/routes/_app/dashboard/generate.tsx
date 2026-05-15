@@ -73,18 +73,18 @@ function RouteComponent() {
 	const generateMutation = useGenerateSuggestion();
 	const approveMutation = useApproveSuggestion();
 
-	// Load counterparty parties from Canton — only those with "counterparty" hinted names
+	// Load counterparty parties from Canton via server-side API
 	const [cantonParties, setCantonParties] = useState<string[]>([]);
 	useEffect(() => {
-		const cantonUrl = import.meta.env.VITE_CANTON_API_URL ?? "http://127.0.0.1:7575";
-		fetch(`${cantonUrl}/v2/parties`)
+		// Use window.location.origin so it works in both dev and production
+		const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+		fetch(`${baseUrl}/api/canton/parties`)
 			.then((r) => (r.ok ? r.json() : null))
 			.then((data: { partyDetails?: { party: string }[] } | null) => {
 				if (!data) return;
 				const names = (data.partyDetails ?? [])
 					.map((p) => p.party.split("::")[0])
 					.filter((n) => n !== "sandbox" && n !== "SignUIT");
-				// Only show parties that are not the current institution — use unique names
 				const unique = [...new Set(names)];
 				if (unique.length > 0) setCantonParties(unique);
 			})
