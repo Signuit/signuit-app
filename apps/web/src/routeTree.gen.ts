@@ -23,6 +23,7 @@ import { Route as JudgingGtmRouteImport } from './routes/judging/gtm'
 import { Route as AppDashboardIndexRouteImport } from './routes/_app/dashboard/index'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiNexusAuthSplatRouteImport } from './routes/api/nexus-auth/$'
+import { Route as ApiCantonPartiesRouteImport } from './routes/api/canton/parties'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppDashboardSuggestionsRouteImport } from './routes/_app/dashboard/suggestions'
 import { Route as AppDashboardPolicyRouteImport } from './routes/_app/dashboard/policy'
@@ -104,6 +105,11 @@ const ApiNexusAuthSplatRoute = ApiNexusAuthSplatRouteImport.update({
   path: '/api/nexus-auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCantonPartiesRoute = ApiCantonPartiesRouteImport.update({
+  id: '/api/canton/parties',
+  path: '/api/canton/parties',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/policy': typeof AppDashboardPolicyRoute
   '/dashboard/suggestions': typeof AppDashboardSuggestionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/canton/parties': typeof ApiCantonPartiesRoute
   '/api/nexus-auth/$': typeof ApiNexusAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/dashboard/': typeof AppDashboardIndexRoute
@@ -208,6 +215,7 @@ export interface FileRoutesByTo {
   '/dashboard/policy': typeof AppDashboardPolicyRoute
   '/dashboard/suggestions': typeof AppDashboardSuggestionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/canton/parties': typeof ApiCantonPartiesRoute
   '/api/nexus-auth/$': typeof ApiNexusAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/dashboard': typeof AppDashboardIndexRoute
@@ -236,6 +244,7 @@ export interface FileRoutesById {
   '/_app/dashboard/policy': typeof AppDashboardPolicyRoute
   '/_app/dashboard/suggestions': typeof AppDashboardSuggestionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/canton/parties': typeof ApiCantonPartiesRoute
   '/api/nexus-auth/$': typeof ApiNexusAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
   '/_app/dashboard/': typeof AppDashboardIndexRoute
@@ -264,6 +273,7 @@ export interface FileRouteTypes {
     | '/dashboard/policy'
     | '/dashboard/suggestions'
     | '/api/auth/$'
+    | '/api/canton/parties'
     | '/api/nexus-auth/$'
     | '/api/rpc/$'
     | '/dashboard/'
@@ -290,6 +300,7 @@ export interface FileRouteTypes {
     | '/dashboard/policy'
     | '/dashboard/suggestions'
     | '/api/auth/$'
+    | '/api/canton/parties'
     | '/api/nexus-auth/$'
     | '/api/rpc/$'
     | '/dashboard'
@@ -317,6 +328,7 @@ export interface FileRouteTypes {
     | '/_app/dashboard/policy'
     | '/_app/dashboard/suggestions'
     | '/api/auth/$'
+    | '/api/canton/parties'
     | '/api/nexus-auth/$'
     | '/api/rpc/$'
     | '/_app/dashboard/'
@@ -338,6 +350,7 @@ export interface RootRouteChildren {
   JudgingIndexRoute: typeof JudgingIndexRoute
   PitchIndexRoute: typeof PitchIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiCantonPartiesRoute: typeof ApiCantonPartiesRoute
   ApiNexusAuthSplatRoute: typeof ApiNexusAuthSplatRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
 }
@@ -440,6 +453,13 @@ declare module '@tanstack/react-router' {
       path: '/api/nexus-auth/$'
       fullPath: '/api/nexus-auth/$'
       preLoaderRoute: typeof ApiNexusAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/canton/parties': {
+      id: '/api/canton/parties'
+      path: '/api/canton/parties'
+      fullPath: '/api/canton/parties'
+      preLoaderRoute: typeof ApiCantonPartiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -567,6 +587,7 @@ const rootRouteChildren: RootRouteChildren = {
   JudgingIndexRoute: JudgingIndexRoute,
   PitchIndexRoute: PitchIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiCantonPartiesRoute: ApiCantonPartiesRoute,
   ApiNexusAuthSplatRoute: ApiNexusAuthSplatRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
 }
