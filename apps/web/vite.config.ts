@@ -17,12 +17,10 @@ export default defineConfig({
 		tailwindcss(),
 		tanstackStart({
 			prerender: {
-				enabled: true,
-				crawlLinks: true,
+				enabled: false,
 			},
 			sitemap: {
-				enabled: true,
-				host: "https://signuit.com",
+				enabled: false,
 			},
 		}),
 		nitro(),
