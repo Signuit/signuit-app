@@ -1,7 +1,7 @@
 import { EyeIcon, FileCheckIcon, NetworkIcon } from "lucide-react";
 import { motion } from "motion/react";
-import SpotlightCard from "@/components/SpotlightCard";
 import CountUp from "@/components/CountUp";
+import SpotlightCard from "@/components/SpotlightCard";
 import { SlideLayout } from "../components/-slide-layout";
 
 const REASONS = [

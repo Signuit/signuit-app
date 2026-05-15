@@ -163,8 +163,8 @@ export const collateralRouter = {
 					const res = await fetch(`${cantonUrl}/v2/parties`);
 					if (res.ok) {
 						const data = (await res.json()) as { partyDetails?: { party: string }[] };
-						const match = (data.partyDetails ?? []).find(
-							(p) => p.party.split("::")[0].startsWith(input.counterpartyName ?? ""),
+						const match = (data.partyDetails ?? []).find((p) =>
+							p.party.split("::")[0].startsWith(input.counterpartyName ?? ""),
 						);
 						if (match) counterpartyPartyId = match.party;
 					}
@@ -242,7 +242,9 @@ export const collateralRouter = {
 				if (res.ok) {
 					const data = (await res.json()) as { partyDetails?: { party: string }[] };
 					const parties = data.partyDetails ?? [];
-				const institution = parties.find((p) => p.party.split("::")[0].startsWith(input.institutionName));
+					const institution = parties.find((p) =>
+						p.party.split("::")[0].startsWith(input.institutionName),
+					);
 					if (institution) institutionPartyId = institution.party;
 				}
 			} catch {
@@ -271,19 +273,21 @@ export const collateralRouter = {
 			});
 		}),
 
-	listMarginCalls: ledgerProcedure.input(CollateralQuerySchema).handler(async ({ input, context }) => {
-		const all = await context.ledger.MarginCall.findMany({ limit: input.limit });
-		// Filter by role: institution sees calls addressed to them,
-		// counterparty sees calls they issued, operator sees all
-		return all.filter((mc) => {
-			const { institution, counterparty } = mc.payload;
-			if (institution === context.partyId) return true; // addressed to me
-			if (counterparty === context.partyId) return true; // issued by me
-			// Operator sees everything — operator is neither institution nor counterparty
-			// but will still see all contracts as an observer
-			return false;
-		});
-	}),
+	listMarginCalls: ledgerProcedure
+		.input(CollateralQuerySchema)
+		.handler(async ({ input, context }) => {
+			const all = await context.ledger.MarginCall.findMany({ limit: input.limit });
+			// Filter by role: institution sees calls addressed to them,
+			// counterparty sees calls they issued, operator sees all
+			return all.filter((mc) => {
+				const { institution, counterparty } = mc.payload;
+				if (institution === context.partyId) return true; // addressed to me
+				if (counterparty === context.partyId) return true; // issued by me
+				// Operator sees everything — operator is neither institution nor counterparty
+				// but will still see all contracts as an observer
+				return false;
+			});
+		}),
 
 	// ─── Demo Setup ────────────────────────────────────────────────────────
 

@@ -11,10 +11,18 @@ const STATS = [
 ];
 
 const SEGMENTS = [
-	{ icon: Building2Icon, label: "Large Asset Managers", sub: "AUM >$10B, high daily margin call volume" },
+	{
+		icon: Building2Icon,
+		label: "Large Asset Managers",
+		sub: "AUM >$10B, high daily margin call volume",
+	},
 	{ icon: UsersIcon, label: "Prime Brokers", sub: "Multi-client, very high call volume" },
 	{ icon: TrendingUpIcon, label: "Hedge Funds", sub: "Speed-critical, volatility-driven calls" },
-	{ icon: GlobeIcon, label: "Clearinghouses & CCPs", sub: "Systemic risk management, regulatory audit" },
+	{
+		icon: GlobeIcon,
+		label: "Clearinghouses & CCPs",
+		sub: "Systemic risk management, regulatory audit",
+	},
 ];
 
 const TIMING = [

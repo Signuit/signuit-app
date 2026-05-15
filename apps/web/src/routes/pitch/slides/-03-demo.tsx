@@ -1,6 +1,5 @@
 import { Badge } from "@nexus/ui/components/badge";
 import { Button } from "@nexus/ui/components/button";
-import { motion } from "motion/react";
 import {
 	CheckCircleIcon,
 	LayoutDashboardIcon,
@@ -8,6 +7,7 @@ import {
 	ShieldCheckIcon,
 	ZapIcon,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { useState } from "react";
 import { DemoLaunchModal } from "../components/-demo-launch-modal";
 import { SlideLayout } from "../components/-slide-layout";
@@ -107,7 +107,10 @@ export function DemoSlide() {
 					<button
 						key={card.title}
 						type="button"
-						onClick={() => { setActiveStepIndex(null); setModalOpen(true); }}
+						onClick={() => {
+							setActiveStepIndex(null);
+							setModalOpen(true);
+						}}
 						className="group flex flex-col gap-3 p-5 rounded-xl border-2 border-primary/20 bg-card hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 text-left cursor-pointer"
 					>
 						<div className="flex items-center justify-between">
@@ -131,7 +134,10 @@ export function DemoSlide() {
 					<h3 className="font-bold text-base">Demo Scenario: $15M Margin Call</h3>
 					<Button
 						size="sm"
-						onClick={() => { setActiveStepIndex(null); setModalOpen(true); }}
+						onClick={() => {
+							setActiveStepIndex(null);
+							setModalOpen(true);
+						}}
 						className="gap-2 text-xs h-8"
 					>
 						<PlayIcon className="size-3" />
@@ -177,9 +183,7 @@ export function DemoSlide() {
 								<div
 									key={`line-${i}`}
 									className={`h-px w-full transition-colors duration-300 ${
-										hoveredStep !== null && hoveredStep > i
-											? "bg-primary"
-											: "bg-border"
+										hoveredStep !== null && hoveredStep > i ? "bg-primary" : "bg-border"
 									}`}
 								/>
 							)}
@@ -207,9 +211,7 @@ export function DemoSlide() {
 								</span>
 								<span
 									className={`text-[11px] text-center transition-colors duration-200 ${
-										hoveredStep === i
-											? "text-primary font-semibold"
-											: "text-muted-foreground"
+										hoveredStep === i ? "text-primary font-semibold" : "text-muted-foreground"
 									}`}
 								>
 									{step.sub}

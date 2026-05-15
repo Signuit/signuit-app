@@ -1,4 +1,10 @@
-import { AlertTriangleIcon, ClockIcon, DatabaseIcon, TrendingDownIcon, ZapIcon } from "lucide-react";
+import {
+	AlertTriangleIcon,
+	ClockIcon,
+	DatabaseIcon,
+	TrendingDownIcon,
+	ZapIcon,
+} from "lucide-react";
 import { motion } from "motion/react";
 import CountUp from "@/components/CountUp";
 import { SlideLayout } from "../components/-slide-layout";
@@ -61,8 +67,12 @@ export function ProblemSlide() {
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: i * 0.1, duration: 0.4 }}
 						>
-							<stat.icon className={`size-4 mb-1 ${stat.highlight ? "text-destructive" : "text-primary"}`} />
-							<div className={`text-3xl font-black tracking-tight ${stat.highlight ? "text-destructive" : "text-primary"}`}>
+							<stat.icon
+								className={`size-4 mb-1 ${stat.highlight ? "text-destructive" : "text-primary"}`}
+							/>
+							<div
+								className={`text-3xl font-black tracking-tight ${stat.highlight ? "text-destructive" : "text-primary"}`}
+							>
 								{stat.prefix ?? ""}
 								<CountUp to={stat.value} duration={1.5} delay={0.3 + i * 0.1} />
 								{stat.suffix}

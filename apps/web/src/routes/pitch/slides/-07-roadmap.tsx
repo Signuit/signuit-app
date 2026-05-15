@@ -11,7 +11,12 @@ const phases = [
 		badgeClass: "bg-green-500 text-white",
 		dotClass: "bg-green-500",
 		icon: CheckCircleIcon,
-		items: ["6-page dashboard", "CTD engine (3 sec)", "Human approval flow", "Immutable audit trail"],
+		items: [
+			"6-page dashboard",
+			"CTD engine (3 sec)",
+			"Human approval flow",
+			"Immutable audit trail",
+		],
 	},
 	{
 		quarter: "Q3 2026",
@@ -20,7 +25,12 @@ const phases = [
 		badgeClass: "bg-yellow-500 text-white",
 		dotClass: "bg-yellow-500",
 		icon: RocketIcon,
-		items: ["Optional auto-execution", "3–5 pilot institutions", "Auto-approve rules", "Advanced analytics"],
+		items: [
+			"Optional auto-execution",
+			"3–5 pilot institutions",
+			"Auto-approve rules",
+			"Advanced analytics",
+		],
 	},
 	{
 		quarter: "Q4 2026",
@@ -29,7 +39,12 @@ const phases = [
 		badgeClass: "bg-primary text-primary-foreground",
 		dotClass: "bg-primary",
 		icon: CircleIcon,
-		items: ["General availability", "20+ paying institutions", "Enterprise tier", "Cross-border collateral"],
+		items: [
+			"General availability",
+			"20+ paying institutions",
+			"Enterprise tier",
+			"Cross-border collateral",
+		],
 	},
 	{
 		quarter: "2027",
@@ -61,7 +76,9 @@ export function RoadmapSlide() {
 					>
 						{/* Timeline dot + connector */}
 						<div className="flex items-center mb-3">
-							<div className={`size-8 rounded-full ${phase.dotClass} flex items-center justify-center shrink-0`}>
+							<div
+								className={`size-8 rounded-full ${phase.dotClass} flex items-center justify-center shrink-0`}
+							>
 								<phase.icon className="size-4 text-white" />
 							</div>
 							{i < phases.length - 1 && (

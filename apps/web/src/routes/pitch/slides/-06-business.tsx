@@ -92,8 +92,7 @@ export function BusinessSlide() {
 					<div className="flex flex-col items-center gap-1">
 						<span className="text-xs text-muted-foreground">Target</span>
 						<span className="text-xl font-black text-primary">
-							<CountUp to={50} duration={1.2} delay={0.8} />
-							+ institutions
+							<CountUp to={50} duration={1.2} delay={0.8} />+ institutions
 						</span>
 					</div>
 				</div>

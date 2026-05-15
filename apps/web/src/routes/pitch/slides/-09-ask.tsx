@@ -1,6 +1,13 @@
 import { Button } from "@nexus/ui/components/button";
 import { Card, CardContent } from "@nexus/ui/components/card";
-import { GithubIcon, HeartIcon, MessageCircleIcon, PlayIcon, RocketIcon, UsersIcon } from "lucide-react";
+import {
+	GithubIcon,
+	HeartIcon,
+	MessageCircleIcon,
+	PlayIcon,
+	RocketIcon,
+	UsersIcon,
+} from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { DemoLaunchModal } from "../components/-demo-launch-modal";
@@ -28,7 +35,12 @@ export function AskSlide() {
 	const [modalOpen, setModalOpen] = useState(false);
 
 	return (
-		<SlideLayout title="The Ask" subtitle="How you can help SignUIT grow" slideNumber={9} totalSlides={9}>
+		<SlideLayout
+			title="The Ask"
+			subtitle="How you can help SignUIT grow"
+			slideNumber={9}
+			totalSlides={9}
+		>
 			<div className="grid grid-cols-2 gap-6">
 				{/* Left — ask cards */}
 				<div className="space-y-3">
@@ -78,12 +90,7 @@ export function AskSlide() {
 									<PlayIcon className="size-3.5" />
 									View Live Demo
 								</Button>
-								<Button
-									variant="outline"
-									className="w-full gap-2"
-									size="sm"
-									asChild
-								>
+								<Button variant="outline" className="w-full gap-2" size="sm" asChild>
 									<a href="https://github.com/Signuit" target="_blank" rel="noopener noreferrer">
 										<GithubIcon className="size-3.5" />
 										GitHub Repository

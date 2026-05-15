@@ -75,9 +75,7 @@ export function DemoLaunchModal({
 	};
 
 	// Which roles to show — if targetRole given, show only that one
-	const visibleRoles = targetRole
-		? ROLES.filter((r) => r.key === targetRole)
-		: ROLES;
+	const visibleRoles = targetRole ? ROLES.filter((r) => r.key === targetRole) : ROLES;
 
 	const isDirectLaunch = !!targetRole;
 
@@ -86,7 +84,7 @@ export function DemoLaunchModal({
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
 					<DialogTitle className="text-xl font-bold">
-						{isDirectLaunch ? stepHint ?? "Open Demo" : "Launch Live Demo"}
+						{isDirectLaunch ? (stepHint ?? "Open Demo") : "Launch Live Demo"}
 					</DialogTitle>
 					<DialogDescription>
 						{isDirectLaunch
@@ -102,6 +100,7 @@ export function DemoLaunchModal({
 						const dest = targetHref ?? role.href;
 						return (
 							<button
+								type="button"
 								key={role.key}
 								onClick={() => handleLaunch(role.key, dest)}
 								disabled={!!loadingRole}
