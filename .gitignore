@@ -55,4 +55,7 @@ sandbox/log
 local.db
 local.db-journal
 local.db-shm
-local.db-waldocker-compose.override.yml
+local.db-wal
+
+# docker compose local override (production sunucusunda kullanılmaz)
+docker-compose.override.yml
