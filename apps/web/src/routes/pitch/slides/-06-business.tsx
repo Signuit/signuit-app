@@ -1,7 +1,37 @@
-import { Badge } from "@nexus/ui/components/badge";
-import { Card, CardContent } from "@nexus/ui/components/card";
 import { CoinsIcon, NetworkIcon, UsersIcon } from "lucide-react";
+import { motion } from "motion/react";
+import CountUp from "@/components/CountUp";
 import { SlideLayout } from "../components/-slide-layout";
+
+const REVENUE = [
+	{
+		icon: CoinsIcon,
+		title: "Allocation Fee",
+		range: "0.01–0.05%",
+		desc: "Per executed AllocationRecord",
+		example: "$15M × 0.03% = $4,500",
+	},
+	{
+		icon: NetworkIcon,
+		title: "Membership Fee",
+		range: "$500–$2,000",
+		desc: "Monthly base access fee",
+		example: "Basic / Pro / Enterprise",
+	},
+	{
+		icon: UsersIcon,
+		title: "Validator Rewards",
+		range: "40–50%",
+		desc: "Of protocol fees to validators",
+		example: "Ecosystem alignment",
+	},
+];
+
+const PROJECTION = [
+	{ period: "Q3 2026", lo: 5, hi: 10, unit: "K/mo" },
+	{ period: "Q4 2026", lo: 25, hi: 50, unit: "K/mo" },
+	{ period: "2027", lo: 150, hi: 300, unit: "K/mo" },
+];
 
 export function BusinessSlide() {
 	return (
@@ -11,96 +41,63 @@ export function BusinessSlide() {
 			slideNumber={6}
 			totalSlides={9}
 		>
-			<div className="grid grid-cols-3 gap-6">
-				<Card className="border-2 border-primary/20">
-					<CardContent className="p-6 flex flex-col gap-4">
-						<div className="flex items-center gap-3">
-							<div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
-								<CoinsIcon className="size-5 text-primary" />
+			{/* Revenue streams */}
+			<div className="grid grid-cols-3 gap-4">
+				{REVENUE.map((r, i) => (
+					<motion.div
+						key={r.title}
+						className="flex flex-col gap-3 p-5 rounded-xl border border-primary/20 bg-card"
+						initial={{ opacity: 0, y: 16 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: i * 0.12, duration: 0.4 }}
+						whileHover={{ scale: 1.02 }}
+					>
+						<div className="flex items-center gap-2">
+							<div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
+								<r.icon className="size-4 text-primary" />
 							</div>
-							<div>
-								<h3 className="font-bold">Allocation Fee</h3>
-								<p className="text-sm text-muted-foreground">Primary revenue</p>
-							</div>
+							<span className="font-bold text-sm">{r.title}</span>
 						</div>
-						<div className="text-3xl font-bold text-primary">0.01% - 0.05%</div>
-						<p className="text-sm text-muted-foreground">
-							Per executed AllocationRecord. Institutions pay only when value is created.
-						</p>
-						<Badge variant="secondary" className="w-fit">
-							$15M × 0.03% = $4,500
-						</Badge>
-					</CardContent>
-				</Card>
-
-				<Card className="border-2 border-primary/20">
-					<CardContent className="p-6 flex flex-col gap-4">
-						<div className="flex items-center gap-3">
-							<div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
-								<NetworkIcon className="size-5 text-primary" />
-							</div>
-							<div>
-								<h3 className="font-bold">Membership Fee</h3>
-								<p className="text-sm text-muted-foreground">Base access</p>
-							</div>
-						</div>
-						<div className="text-3xl font-bold text-primary">$500 - $2,000</div>
-						<p className="text-sm text-muted-foreground">
-							Monthly base fee for network access, unlimited suggestions, policy management.
-						</p>
-						<Badge variant="secondary" className="w-fit">
-							Basic / Pro / Enterprise
-						</Badge>
-					</CardContent>
-				</Card>
-
-				<Card className="border-2 border-primary/20">
-					<CardContent className="p-6 flex flex-col gap-4">
-						<div className="flex items-center gap-3">
-							<div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
-								<UsersIcon className="size-5 text-primary" />
-							</div>
-							<div>
-								<h3 className="font-bold">Validator Rewards</h3>
-								<p className="text-sm text-muted-foreground">Network alignment</p>
-							</div>
-						</div>
-						<div className="text-3xl font-bold text-primary">40% - 50%</div>
-						<p className="text-sm text-muted-foreground">
-							Of protocol fees distributed to Canton validators for network security.
-						</p>
-						<Badge variant="secondary" className="w-fit">
-							Ecosystem incentive
-						</Badge>
-					</CardContent>
-				</Card>
+						<div className="text-2xl font-black text-primary">{r.range}</div>
+						<p className="text-xs text-muted-foreground">{r.desc}</p>
+						<span className="text-[11px] bg-muted/50 px-2 py-1 rounded-md text-muted-foreground w-fit">
+							{r.example}
+						</span>
+					</motion.div>
+				))}
 			</div>
 
-			<div className="mt-6 p-6 bg-muted/30 rounded-lg border">
-				<h3 className="font-bold text-lg mb-4">Revenue Projection (Forward-Looking)</h3>
+			{/* Revenue projection */}
+			<motion.div
+				className="mt-5 p-5 rounded-xl border border-border bg-muted/20"
+				initial={{ opacity: 0, y: 12 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ delay: 0.45, duration: 0.4 }}
+			>
+				<p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
+					Revenue Projection
+				</p>
 				<div className="grid grid-cols-4 gap-4">
-					<div className="text-center">
-						<p className="text-sm text-muted-foreground mb-1">Q3 2026</p>
-						<p className="text-2xl font-bold">$5-10K</p>
-						<p className="text-xs text-muted-foreground">/month target</p>
-					</div>
-					<div className="text-center">
-						<p className="text-sm text-muted-foreground mb-1">Q4 2026</p>
-						<p className="text-2xl font-bold">$25-50K</p>
-						<p className="text-xs text-muted-foreground">/month target</p>
-					</div>
-					<div className="text-center">
-						<p className="text-sm text-muted-foreground mb-1">2027</p>
-						<p className="text-2xl font-bold">$150-300K</p>
-						<p className="text-xs text-muted-foreground">/month target</p>
-					</div>
-					<div className="text-center">
-						<p className="text-sm text-muted-foreground mb-1">Target</p>
-						<p className="text-2xl font-bold text-primary">50+</p>
-						<p className="text-xs text-muted-foreground">institutions (projection)</p>
+					{PROJECTION.map((p, i) => (
+						<div key={p.period} className="flex flex-col items-center gap-1">
+							<span className="text-xs text-muted-foreground">{p.period}</span>
+							<span className="text-xl font-black text-primary">
+								$<CountUp to={p.lo} duration={1.2} delay={0.5 + i * 0.1} />
+								–
+								<CountUp to={p.hi} duration={1.2} delay={0.5 + i * 0.1} />
+								{p.unit}
+							</span>
+						</div>
+					))}
+					<div className="flex flex-col items-center gap-1">
+						<span className="text-xs text-muted-foreground">Target</span>
+						<span className="text-xl font-black text-primary">
+							<CountUp to={50} duration={1.2} delay={0.8} />
+							+ institutions
+						</span>
 					</div>
 				</div>
-			</div>
+			</motion.div>
 		</SlideLayout>
 	);
 }

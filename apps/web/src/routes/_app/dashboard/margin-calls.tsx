@@ -18,8 +18,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@nexus/ui/components/table";
-import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangleIcon, PlusIcon } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { AlertTriangleIcon, ArrowRightIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuditTrail, useCreateMarginCall, useMarginCalls } from "@/hooks/use-collateral-api";
@@ -38,6 +38,7 @@ function RouteComponent() {
 	const { data: marginCalls, isLoading, error } = useMarginCalls();
 	const { data: allocations } = useAuditTrail();
 	const createMutation = useCreateMarginCall();
+	const navigate = useNavigate();
 
 	// Build a set of margin call IDs that have been responded to (AllocationRecord exists)
 	const respondedCallIds = new Set(
@@ -216,8 +217,11 @@ function RouteComponent() {
 									<TableHead className="text-[10px] font-bold uppercase py-2 text-right">
 										Due By
 									</TableHead>
-									<TableHead className="text-[10px] font-bold uppercase py-2 text-right pr-6">
+									<TableHead className="text-[10px] font-bold uppercase py-2 text-right">
 										Status
+									</TableHead>
+									<TableHead className="text-[10px] font-bold uppercase py-2 text-right pr-6">
+										Action
 									</TableHead>
 								</TableRow>
 							</TableHeader>
@@ -256,6 +260,26 @@ function RouteComponent() {
 												>
 													{status ?? "—"}
 												</Badge>
+											</TableCell>
+											<TableCell className="text-right pr-6">
+												<Button
+													size="sm"
+													variant="outline"
+													className="h-7 text-xs gap-1"
+													onClick={() =>
+														navigate({
+															to: "/dashboard/generate",
+															search: {
+																marginCallId: callId ?? "",
+																amount: amountRequired ?? "15000000",
+																counterparty: "PrimeBank",
+															},
+														})
+													}
+												>
+													Respond
+													<ArrowRightIcon className="size-3" />
+												</Button>
 											</TableCell>
 										</TableRow>
 									);
