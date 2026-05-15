@@ -1,4 +1,4 @@
-import { CoinsIcon, NetworkIcon, UsersIcon } from "lucide-react";
+import { CoinsIcon, NetworkIcon } from "lucide-react";
 import { motion } from "motion/react";
 import CountUp from "@/components/CountUp";
 import { SlideLayout } from "../components/-slide-layout";
@@ -18,13 +18,6 @@ const REVENUE = [
 		desc: "Monthly base access fee",
 		example: "Basic / Pro / Enterprise",
 	},
-	{
-		icon: UsersIcon,
-		title: "Validator Rewards",
-		range: "40–50%",
-		desc: "Of protocol fees to validators",
-		example: "Ecosystem alignment",
-	},
 ];
 
 const PROJECTION = [
@@ -42,7 +35,7 @@ export function BusinessSlide() {
 			totalSlides={9}
 		>
 			{/* Revenue streams */}
-			<div className="grid grid-cols-3 gap-4">
+			<div className="grid grid-cols-2 gap-4">
 				{REVENUE.map((r, i) => (
 					<motion.div
 						key={r.title}
