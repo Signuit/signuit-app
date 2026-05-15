@@ -1,241 +1,302 @@
-import { Badge } from "@nexus/ui/components/badge";
 import { Button } from "@nexus/ui/components/button";
+import { motion, AnimatePresence } from "motion/react";
 import {
 	CheckCircleIcon,
-	LayoutDashboardIcon,
+	ExternalLinkIcon,
 	PlayIcon,
-	ShieldCheckIcon,
-	ZapIcon,
 } from "lucide-react";
-import { motion } from "motion/react";
 import { useState } from "react";
-import { DemoLaunchModal } from "../components/-demo-launch-modal";
+import DecryptedText from "@/components/DecryptedText";
+import BlurText from "@/components/BlurText";
+import { demoLogin } from "@/lib/auth-client";
 import { SlideLayout } from "../components/-slide-layout";
 
 const STEPS = [
 	{
 		label: "New Margin Call",
-		sub: "$15M required",
+		sub: "$15M · 2hr deadline",
 		icon: "1",
-		hint: "Issue a $15M margin call",
+		role: "counterparty" as const,
 		href: "/dashboard/margin-calls",
-		role: "institution" as const,
+		who: "PrimeBank",
+		desc: "PrimeBank issues a $15M margin call to VantageCapital with a 2-hour deadline.",
 	},
 	{
 		label: "CTD Engine",
 		sub: "3 seconds",
 		icon: "2",
-		hint: "Generate routing suggestion",
-		href: "/dashboard/generate",
 		role: "institution" as const,
+		href: "/dashboard/generate",
+		who: "VantageCapital",
+		desc: "Cheapest-to-Deliver algorithm evaluates all holdings. Picks $15M USDC — zero yield cost.",
 	},
 	{
-		label: "Recommends",
+		label: "Suggestion",
 		sub: "$15M USDC",
 		icon: "3",
-		hint: "Review the suggestion",
-		href: "/dashboard/suggestions",
 		role: "institution" as const,
+		href: "/dashboard/suggestions",
+		who: "VantageCapital",
+		desc: "RoutingSuggestion contract recorded on Canton. $2,300/day yield preserved by keeping USYC & UST.",
 	},
 	{
 		label: "Human Approves",
 		sub: "Ops team",
 		icon: "4",
-		hint: "Approve the allocation",
-		href: "/dashboard/suggestions",
 		role: "institution" as const,
+		href: "/dashboard/suggestions",
+		who: "VantageCapital",
+		desc: "Ops team reviews and clicks Approve. No operator override possible — institution controls this.",
 	},
 	{
-		label: "On-Chain Record",
-		sub: "Immutable",
+		label: "Audit Trail",
+		sub: "On Canton",
 		icon: "✓",
-		hint: "View audit trail",
-		href: "/dashboard/audit",
 		role: "institution" as const,
+		href: "/dashboard/audit",
+		who: "VantageCapital",
+		desc: "Immutable AllocationRecord created on-ledger. Who approved, when, what assets, cost in bps.",
 		final: true,
 	},
 ];
 
-const CARDS = [
-	{
-		icon: LayoutDashboardIcon,
-		title: "Dashboard",
-		desc: "$45.2M total collateral, pending approvals, recent allocations",
-		badge: "Live",
-	},
-	{
-		icon: ZapIcon,
-		title: "Generate Suggestion",
-		desc: "4-step wizard: margin call → CTD → recommendation → approval",
-		badge: "3 sec",
-	},
-	{
-		icon: ShieldCheckIcon,
-		title: "Audit Trail",
-		desc: "Immutable AllocationRecord on Canton ledger",
-		badge: "On-chain",
-	},
-];
+type StepState = "idle" | "loading" | "done" | "error";
 
 export function DemoSlide() {
-	const [modalOpen, setModalOpen] = useState(false);
+	const [stepStates, setStepStates] = useState<Record<number, StepState>>({});
 	const [hoveredStep, setHoveredStep] = useState<number | null>(null);
-	const [activeStepIndex, setActiveStepIndex] = useState<number | null>(null);
+	const [selectedStep, setSelectedStep] = useState<number | null>(null);
+	const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-	const openStep = (i: number) => {
-		setActiveStepIndex(i);
-		setModalOpen(true);
+	const setStepState = (i: number, state: StepState) =>
+		setStepStates((prev) => ({ ...prev, [i]: state }));
+
+	// Daire tıklanınca: sadece login yap + detay paneli aç, sekme açma
+	const handleStepClick = async (i: number) => {
+		const step = STEPS[i];
+		if (stepStates[i] === "loading") return;
+
+		setSelectedStep(i);
+		setErrorMsg(null);
+		setStepState(i, "loading");
+
+		try {
+			await demoLogin(step.role);
+			setStepState(i, "done");
+		} catch (err) {
+			setStepState(i, "error");
+			setErrorMsg(err instanceof Error ? err.message : "Login failed");
+			setTimeout(() => setStepState(i, "idle"), 3000);
+		}
 	};
 
-	const closeModal = () => {
-		setModalOpen(false);
-		setActiveStepIndex(null);
+	// Detay panelindeki "Open as ..." butonu: sekmeyi açar
+	const handleOpenTab = (i: number) => {
+		const step = STEPS[i];
+		window.open(step.href, "_blank");
 	};
 
-	const activeStep = activeStepIndex !== null ? STEPS[activeStepIndex] : null;
+	const activeStep = selectedStep !== null ? STEPS[selectedStep] : null;
 
 	return (
 		<SlideLayout
-			title="Live Demo"
-			subtitle="6-page dashboard · Real-time Canton sandbox data"
+			title=""
+			subtitle=""
 			slideNumber={3}
 			totalSlides={9}
 		>
-			{/* Top cards */}
-			<div className="grid grid-cols-3 gap-4">
-				{CARDS.map((card) => (
-					<button
-						key={card.title}
-						type="button"
-						onClick={() => {
-							setActiveStepIndex(null);
-							setModalOpen(true);
-						}}
-						className="group flex flex-col gap-3 p-5 rounded-xl border-2 border-primary/20 bg-card hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 text-left cursor-pointer"
-					>
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-2">
-								<card.icon className="size-5 text-primary" />
-								<h3 className="font-bold text-sm">{card.title}</h3>
-							</div>
-							<PlayIcon className="size-3.5 text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-						</div>
-						<p className="text-xs text-muted-foreground leading-snug">{card.desc}</p>
-						<Badge variant="secondary" className="w-fit text-xs">
-							{card.badge}
-						</Badge>
-					</button>
-				))}
+			{/* Custom title with DecryptedText */}
+			<div className="mb-6 text-center">
+				<h1 className="text-4xl font-bold tracking-tight mb-2">
+					<DecryptedText
+						text="Live Demo"
+						animateOn="view"
+						speed={40}
+						maxIterations={8}
+						sequential
+						revealDirection="start"
+						className="text-foreground"
+						encryptedClassName="text-primary/40"
+					/>
+				</h1>
+				<BlurText
+					text="Click any step — opens instantly in a new tab"
+					className="text-lg text-muted-foreground"
+					delay={60}
+					animateBy="words"
+					direction="top"
+				/>
 			</div>
 
-			{/* Scenario flow */}
-			<div className="mt-5 p-5 bg-muted/30 rounded-xl border border-dashed">
-				<div className="flex items-center justify-between mb-6">
-					<h3 className="font-bold text-base">Demo Scenario: $15M Margin Call</h3>
-					<Button
-						size="sm"
-						onClick={() => {
-							setActiveStepIndex(null);
-							setModalOpen(true);
-						}}
-						className="gap-2 text-xs h-8"
-					>
-						<PlayIcon className="size-3" />
-						Launch Live Demo
-					</Button>
-				</div>
+			{/* Step flow */}
+			<div className="p-6 bg-muted/20 rounded-2xl border border-border">
 
-				{/*
-				  Step flow — 5 columns for circles, 4 connectors between them.
-				  grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] keeps each
-				  circle in its own fixed column and connectors between them.
-				*/}
+				{/* Circles + connectors */}
 				<div
 					className="grid items-center"
-					style={{ gridTemplateColumns: "1fr 40px 1fr 40px 1fr 40px 1fr 40px 1fr" }}
+					style={{ gridTemplateColumns: "1fr 48px 1fr 48px 1fr 48px 1fr 48px 1fr" }}
 				>
-					{STEPS.map((step, i) => (
-						<>
-							{/* Circle */}
-							<div key={`circle-${i}`} className="flex justify-center">
-								<motion.button
-									type="button"
-									onClick={() => openStep(i)}
-									onHoverStart={() => setHoveredStep(i)}
-									onHoverEnd={() => setHoveredStep(null)}
-									whileHover={{ scale: 1.15, y: -4 }}
-									transition={{ type: "spring", stiffness: 380, damping: 20 }}
-									className={`size-12 rounded-full flex items-center justify-center font-black text-base border-2 shrink-0 transition-colors duration-200 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-										step.final
-											? "bg-green-500 border-green-400 text-white"
-											: hoveredStep === i
-												? "bg-primary border-primary text-white"
-												: "bg-card border-primary/50 text-primary"
-									}`}
-									title={step.hint}
-								>
-									{step.icon}
-								</motion.button>
-							</div>
+					{STEPS.map((step, i) => {
+						const state = stepStates[i] ?? "idle";
+						const isHovered = hoveredStep === i;
+						return (
+							<>
+								<div key={`c-${i}`} className="flex justify-center">
+									<motion.button
+										type="button"
+										onClick={() => handleStepClick(i)}
+										onHoverStart={() => setHoveredStep(i)}
+										onHoverEnd={() => setHoveredStep(null)}
+										whileHover={{ scale: 1.12, y: -4 }}
+										whileTap={{ scale: 0.95 }}
+										transition={{ type: "spring", stiffness: 400, damping: 20 }}
+										disabled={state === "loading"}
+										className={`size-16 rounded-full flex items-center justify-center font-black text-lg border-2 shrink-0 transition-colors duration-200 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-wait ${
+											state === "error"
+												? "bg-destructive/10 border-destructive text-destructive"
+												: state === "done"
+													? "bg-green-500/20 border-green-500 text-green-500"
+													: step.final
+														? "bg-green-500 border-green-400 text-white"
+														: isHovered || selectedStep === i
+															? "bg-primary border-primary text-white"
+															: "bg-card border-primary/50 text-primary"
+										}`}
+									>
+										{state === "loading" ? (
+											<div className="size-5 border-2 border-current border-t-transparent animate-spin rounded-full" />
+										) : state === "done" && !step.final ? (
+											<CheckCircleIcon className="size-6" />
+										) : (
+											step.icon
+										)}
+									</motion.button>
+								</div>
 
-							{/* Connector — only between circles, not after last */}
-							{i < STEPS.length - 1 && (
-								<div
-									key={`line-${i}`}
-									className={`h-px w-full transition-colors duration-300 ${
-										hoveredStep !== null && hoveredStep > i ? "bg-primary" : "bg-border"
-									}`}
-								/>
-							)}
-						</>
-					))}
+								{i < STEPS.length - 1 && (
+									<motion.div
+										key={`l-${i}`}
+										className="h-0.5 w-full rounded-full transition-colors duration-300"
+										style={{
+											backgroundColor:
+												stepStates[i] === "done"
+													? "hsl(var(--primary))"
+													: isHovered
+														? "hsl(var(--primary) / 0.5)"
+														: "hsl(var(--border))",
+										}}
+									/>
+								)}
+							</>
+						);
+					})}
 				</div>
 
-				{/* Labels row — same grid so labels align under circles */}
+				{/* Labels */}
 				<div
 					className="grid mt-3"
-					style={{ gridTemplateColumns: "1fr 40px 1fr 40px 1fr 40px 1fr 40px 1fr" }}
+					style={{ gridTemplateColumns: "1fr 48px 1fr 48px 1fr 48px 1fr 48px 1fr" }}
 				>
 					{STEPS.map((step, i) => (
 						<>
 							<button
-								key={`label-${i}`}
+								key={`lb-${i}`}
 								type="button"
-								onClick={() => openStep(i)}
+								onClick={() => handleStepClick(i)}
 								onMouseEnter={() => setHoveredStep(i)}
 								onMouseLeave={() => setHoveredStep(null)}
-								className="flex flex-col items-center gap-0.5 px-1 cursor-pointer"
+								className="flex flex-col items-center gap-0.5 cursor-pointer group"
 							>
-								<span className="text-xs font-semibold text-center leading-tight">
+								<span className={`text-xs font-bold text-center leading-tight transition-colors duration-200 ${selectedStep === i || hoveredStep === i ? "text-primary" : "text-foreground"}`}>
 									{step.label}
 								</span>
-								<span
-									className={`text-[11px] text-center transition-colors duration-200 ${
-										hoveredStep === i ? "text-primary font-semibold" : "text-muted-foreground"
-									}`}
-								>
-									{step.sub}
+								<span className="text-[11px] text-muted-foreground text-center">{step.sub}</span>
+								<span className={`text-[10px] font-medium transition-colors duration-200 ${step.role === "counterparty" ? "text-orange-400" : "text-primary/70"}`}>
+									{step.who}
 								</span>
 							</button>
-							{/* Empty spacer for connector columns */}
-							{i < STEPS.length - 1 && <div key={`spacer-${i}`} />}
+							{i < STEPS.length - 1 && <div key={`sp-${i}`} />}
 						</>
 					))}
 				</div>
+
+				{/* Detail panel */}
+				<AnimatePresence mode="wait">
+					{activeStep && (
+						<motion.div
+							key={selectedStep}
+							initial={{ opacity: 0, y: 8 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: 8 }}
+							transition={{ duration: 0.2 }}
+							className="mt-5 flex items-start justify-between gap-4 p-4 rounded-xl border border-primary/20 bg-primary/5"
+						>
+							<div className="flex items-start gap-3">
+								<div className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-black text-primary shrink-0 mt-0.5">
+									{activeStep.icon}
+								</div>
+								<div>
+									<p className="text-sm font-bold mb-0.5">{activeStep.label}
+										<span className={`ml-2 text-xs font-medium ${activeStep.role === "counterparty" ? "text-orange-400" : "text-primary/70"}`}>
+											— {activeStep.who}
+										</span>
+									</p>
+									<p className="text-xs text-muted-foreground leading-snug">{activeStep.desc}</p>
+								</div>
+							</div>
+							<Button
+								size="sm"
+								variant="outline"
+								className="shrink-0 gap-1.5 text-xs"
+								onClick={() => handleOpenTab(selectedStep!)}
+								disabled={stepStates[selectedStep!] === "loading"}
+							>
+								{stepStates[selectedStep!] === "loading" ? (
+									<div className="size-3 border-2 border-primary border-t-transparent animate-spin rounded-full" />
+								) : (
+									<ExternalLinkIcon className="size-3" />
+								)}
+								Open as {activeStep.who}
+							</Button>
+						</motion.div>
+					)}
+
+					{!activeStep && (
+						<motion.p
+							key="hint"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							className="mt-5 text-center text-xs text-muted-foreground/50 italic"
+						>
+							Click any step above to open that part of the demo
+						</motion.p>
+					)}
+				</AnimatePresence>
+
+				{errorMsg && (
+					<p className="mt-3 text-xs text-destructive text-center bg-destructive/10 rounded-lg p-2">
+						{errorMsg} — is the Canton sandbox running?
+					</p>
+				)}
 			</div>
 
-			<div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-				<CheckCircleIcon className="size-3.5 text-green-500" />
-				<span>Click any step to open that part of the demo · Multi-party views available</span>
+			{/* Footer row */}
+			<div className="mt-4 flex items-center justify-between">
+				<div className="flex items-center gap-2 text-xs text-muted-foreground">
+					<CheckCircleIcon className="size-3.5 text-green-500" />
+					<span>Multi-party: Institution + Counterparty + Operator</span>
+				</div>
+				<Button
+					size="sm"
+					variant="ghost"
+					className="gap-2 text-xs h-7"
+					onClick={() => window.open("/dashboard", "_blank")}
+				>
+					<PlayIcon className="size-3" />
+					Open Full Dashboard
+				</Button>
 			</div>
-
-			<DemoLaunchModal
-				open={modalOpen}
-				onClose={closeModal}
-				targetRole={activeStep?.role}
-				targetHref={activeStep?.href}
-				stepHint={activeStep?.hint}
-			/>
 		</SlideLayout>
 	);
 }
