@@ -73,12 +73,10 @@ function RouteComponent() {
 	const generateMutation = useGenerateSuggestion();
 	const approveMutation = useApproveSuggestion();
 
-	// Load counterparty parties from Canton via server-side API
+	// Load counterparty parties via server-side proxy (avoids direct Canton access from browser)
 	const [cantonParties, setCantonParties] = useState<string[]>([]);
 	useEffect(() => {
-		// Use window.location.origin so it works in both dev and production
-		const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-		fetch(`${baseUrl}/api/canton/parties`)
+		fetch("/api/canton/parties")
 			.then((r) => (r.ok ? r.json() : null))
 			.then((data: { partyDetails?: { party: string }[] } | null) => {
 				if (!data) return;
@@ -88,7 +86,7 @@ function RouteComponent() {
 				const unique = [...new Set(names)];
 				if (unique.length > 0) setCantonParties(unique);
 			})
-			.catch(() => {}); // Non-fatal
+			.catch(() => {});
 	}, []);
 
 	const handleGenerate = async () => {
