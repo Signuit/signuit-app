@@ -17,7 +17,7 @@ COPY . .
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --ignore-scripts
 
-RUN pnpm --filter=@nexus/web build
+RUN NODE_ENV=production pnpm --filter=@nexus/web build
 
 # pnpm deploy: sadece production node_modules üretir (source veya .output değil)
 RUN pnpm deploy --filter=@nexus/web --prod --legacy /prod/web

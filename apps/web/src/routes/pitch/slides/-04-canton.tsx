@@ -1,7 +1,6 @@
 import { EyeIcon, FileCheckIcon, NetworkIcon } from "lucide-react";
 import { motion } from "motion/react";
 import CountUp from "@/components/CountUp";
-import SpotlightCard from "@/components/SpotlightCard";
 import { SlideLayout } from "../components/-slide-layout";
 
 const REASONS = [
@@ -46,13 +45,13 @@ export function CantonSlide() {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: i * 0.12, duration: 0.4 }}
 					>
-						<SpotlightCard className="flex flex-col gap-3 h-full !rounded-xl !p-5 !border-border !bg-card">
+						<div className="flex flex-col gap-3 h-full rounded-xl p-5 border border-border bg-card hover:border-primary/40 transition-colors">
 							<div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
 								<r.icon className="size-5 text-primary" />
 							</div>
 							<h3 className="font-bold text-sm">{r.title}</h3>
 							<p className="text-xs text-muted-foreground leading-snug">{r.desc}</p>
-						</SpotlightCard>
+						</div>
 					</motion.div>
 				))}
 			</div>
